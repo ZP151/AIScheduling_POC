@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Algorithms\AlgorithmsImpl\**" />
+    <Compile Remove="Algorithms\GeneticAlgorithm\**" />
+    <Compile Remove="Algorithms\Initial\**" />
+    <Compile Remove="Algorithms\SimulatedAnnealing\**" />
+    <Compile Remove="Algorithms\TabuSearch\**" />
+    <EmbeddedResource Remove="Algorithms\AlgorithmsImpl\**" />
+    <EmbeddedResource Remove="Algorithms\GeneticAlgorithm\**" />
+    <EmbeddedResource Remove="Algorithms\Initial\**" />
+    <EmbeddedResource Remove="Algorithms\SimulatedAnnealing\**" />
+    <EmbeddedResource Remove="Algorithms\TabuSearch\**" />
+    <None Remove="Algorithms\AlgorithmsImpl\**" />
+    <None Remove="Algorithms\GeneticAlgorithm\**" />
+    <None Remove="Algorithms\Initial\**" />
+    <None Remove="Algorithms\SimulatedAnnealing\**" />
+    <None Remove="Algorithms\TabuSearch\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Algorithms\ISchedulingAlgorithm.cs" />
+    <Compile Remove="Algorithms\ISchedulingAlgorithmFactory.cs" />
+    <Compile Remove="Algorithms\SchedulingAlgorithmFactory.cs" />
+    <Compile Remove="DependencyInjection.cs" />
+    <Compile Remove="Models\SchedulingResultSet.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartSchedulingSystem.Data\SmartSchedulingSystem.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Algorithms\CP\CPScheduler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.OrTools" Version="9.12.4544" />
+  </ItemGroup>
+
+</Project>

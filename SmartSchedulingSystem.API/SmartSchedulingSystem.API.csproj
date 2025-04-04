@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+<Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
+  <Exec Command="npm install" WorkingDirectory="ClientApp" />
+  <Exec Command="npm run build" WorkingDirectory="ClientApp" />
+</Target>
+<ItemGroup>
+  <Compile Remove="clientapp-new\**" />
+  <Compile Remove="ClientApp\**" />
+  <Content Remove="clientapp-new\**" />
+  <Content Remove="ClientApp\**" />
+  <EmbeddedResource Remove="clientapp-new\**" />
+  <EmbeddedResource Remove="ClientApp\**" />
+  <None Remove="clientapp-new\**" />
+  <None Remove="ClientApp\**" />
+</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartSchedulingSystem.Core\SmartSchedulingSystem.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+    <Folder Include="Filters\" />
+    <Folder Include="Middlewares\" />
+  </ItemGroup>
+
+</Project>
