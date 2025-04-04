@@ -74,7 +74,8 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
 
         public bool IsSatisfied(SchedulingSolution solution)
         {
-            throw new NotImplementedException();
+            var (score, _) = Evaluate(solution);
+            return score >= 1.0;
         }
     }
 }

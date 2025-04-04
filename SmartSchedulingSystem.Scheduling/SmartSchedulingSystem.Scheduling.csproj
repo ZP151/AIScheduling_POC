@@ -28,7 +28,6 @@
     <Compile Remove="Algorithms\ISchedulingAlgorithm.cs" />
     <Compile Remove="Algorithms\ISchedulingAlgorithmFactory.cs" />
     <Compile Remove="Algorithms\SchedulingAlgorithmFactory.cs" />
-    <Compile Remove="DependencyInjection.cs" />
     <Compile Remove="Models\SchedulingResultSet.cs" />
     <Compile Remove="Models\SchedulingSolutionSet.cs" />
   </ItemGroup>
