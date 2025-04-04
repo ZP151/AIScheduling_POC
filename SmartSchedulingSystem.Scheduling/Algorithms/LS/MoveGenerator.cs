@@ -187,29 +187,40 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS
                     moves.Add(roomSwap);
                 }
 
+                // 交换教师
+                var teacherSwap = new SwapMove(assignment.Id, partnerId, false, false, true);
+                if (IsValidMove(solution, teacherSwap))
+                {
+                    moves.Add(teacherSwap);
+                }
                 // 时间和教室都交换
-                var fullSwap = new SwapMove(assignment.Id, partnerId, true, true, false);
-                if (IsValidMove(solution, fullSwap))
+                var timeRoomSwap = new SwapMove(assignment.Id, partnerId, true, true, false);
+                if (IsValidMove(solution, timeRoomSwap))
                 {
-                    moves.Add(fullSwap);
+                    moves.Add(timeRoomSwap);
+                }
+                // 时间和教师交换
+                var timeTeacherSwap = new SwapMove(assignment.Id, partnerId, true, false, true);
+                if (IsValidMove(solution, timeTeacherSwap))
+                {
+                    moves.Add(timeTeacherSwap);
                 }
 
-                // 交换教师（在某些情况下可能需要）
-                if (_parameters.AllowTeacherSwap)
+                // 教室和教师交换
+                var roomTeacherSwap = new SwapMove(assignment.Id, partnerId, false, true, true);
+                if (IsValidMove(solution, roomTeacherSwap))
                 {
-                    var teacherSwap = new SwapMove(assignment.Id, partnerId, false, false, true);
-                    if (IsValidMove(solution, teacherSwap))
-                    {
-                        moves.Add(teacherSwap);
-                    }
-
-                    // 全部交换（时间、教室、教师）
-                    var completeSwap = new SwapMove(assignment.Id, partnerId, true, true, true);
-                    if (IsValidMove(solution, completeSwap))
-                    {
-                        moves.Add(completeSwap);
-                    }
+                    moves.Add(roomTeacherSwap);
                 }
+
+
+                // 全部交换（时间、教室、教师）
+                var completeSwap = new SwapMove(assignment.Id, partnerId, true, true, true);
+                if (IsValidMove(solution, completeSwap))
+                {
+                    moves.Add(completeSwap);
+                }
+                
             }
         }
 

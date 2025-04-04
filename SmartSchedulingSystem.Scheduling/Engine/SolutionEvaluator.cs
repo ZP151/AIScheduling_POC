@@ -135,7 +135,18 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             return 1.0; // 所有硬约束都满足
         }
+        /// <summary>
+        /// 综合评估所有软约束
+        /// </summary>
+        public double EvaluateSoftConstraints(SchedulingSolution solution)
+        {
+            double physicalSoftScore = EvaluatePhysicalSoftConstraints(solution);
+            double qualitySoftScore = EvaluateQualitySoftConstraints(solution);
 
+            // 使用参数配置的权重计算综合软约束得分
+            return (_parameters.PhysicalSoftConstraintWeight * physicalSoftScore) +
+                   (_parameters.QualitySoftConstraintWeight * qualitySoftScore);
+        }
         /// <summary>
         /// 评估物理软约束
         /// </summary>
@@ -274,4 +285,81 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             // 计算物理软约束得分
             double physicalTotalScore = 0;
-            double physicalTotalWeight = physicalS
+            double physicalTotalWeight = physicalSoftConstraints.Sum(c => c.Weight);
+
+            foreach (var constraint in physicalSoftConstraints)
+            {
+                if (cachedScores.TryGetValue(constraint.Id, out double score))
+                {
+                    physicalTotalScore += score * constraint.Weight;
+                }
+                else
+                {
+                    // 缓存中缺少约束评分，认为得分为0
+                    physicalTotalScore += 0;
+                }
+            }
+
+            // 计算质量软约束得分
+            double qualityTotalScore = 0;
+            double qualityTotalWeight = qualitySoftConstraints.Sum(c => c.Weight);
+
+            foreach (var constraint in qualitySoftConstraints)
+            {
+                if (cachedScores.TryGetValue(constraint.Id, out double score))
+                {
+                    qualityTotalScore += score * constraint.Weight;
+                }
+                else
+                {
+                    // 缓存中缺少约束评分，认为得分为0
+                    qualityTotalScore += 0;
+                }
+            }
+
+            // 如果没有约束，返回1.0
+            double physicalSoftScore = physicalTotalWeight > 0
+                ? physicalTotalScore / physicalTotalWeight
+                : 1.0;
+
+            double qualitySoftScore = qualityTotalWeight > 0
+                ? qualityTotalScore / qualityTotalWeight
+                : 1.0;
+
+            // 加权组合得分
+            return (_parameters.PhysicalSoftConstraintWeight * physicalSoftScore) +
+                   (_parameters.QualitySoftConstraintWeight * qualitySoftScore);
+        }
+        /// <summary>
+        /// 缓存约束评分
+        /// </summary>
+        /// <param name="solutionId">解决方案ID</param>
+        /// <param name="constraintId">约束ID</param>
+        /// <param name="score">约束得分</param>
+        private void CacheConstraintScore(int solutionId, int constraintId, double score)
+        {
+            // 如果解决方案ID无效，不进行缓存
+            if (solutionId <= 0)
+                return;
+
+            // 确保字典中存在该解决方案的缓存
+            if (!_constraintScoreCache.ContainsKey(solutionId))
+            {
+                _constraintScoreCache[solutionId] = new Dictionary<int, double>();
+            }
+
+            // 缓存约束得分
+            _constraintScoreCache[solutionId][constraintId] = score;
+
+            // 可选：限制缓存大小，防止内存泄漏
+            // 这里简单地限制最多缓存100个解决方案
+            if (_constraintScoreCache.Count > 100)
+            {
+                // 移除最早的缓存
+                var oldestSolutionId = _constraintScoreCache.Keys.Min();
+                _constraintScoreCache.Remove(oldestSolutionId);
+            }
+        }
+
+    }
+}

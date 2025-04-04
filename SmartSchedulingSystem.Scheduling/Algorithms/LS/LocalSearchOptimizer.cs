@@ -36,7 +36,67 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _parameters = parameters ?? new SchedulingParameters();
         }
+        /// <summary>
+        /// 优化多个初始解
+        /// </summary>
+        /// <param name="initialSolutions">初始解列表</param>
+        /// <returns>优化后的解列表</returns>
+        public List<SchedulingSolution> OptimizeSolutions(List<SchedulingSolution> initialSolutions)
+        {
+            if (initialSolutions == null || initialSolutions.Count == 0)
+            {
+                _logger.LogWarning("传入的初始解列表为空");
+                return new List<SchedulingSolution>();
+            }
 
+            _logger.LogInformation($"开始优化 {initialSolutions.Count} 个初始解");
+
+            // 并行优化解
+            var optimizedSolutions = new List<SchedulingSolution>();
+
+            if (_parameters.EnableParallelOptimization)
+            {
+                // 使用并行处理
+                optimizedSolutions = initialSolutions
+                    .AsParallel()
+                    .WithDegreeOfParallelism(_parameters.MaxParallelism > 0 ?
+                        _parameters.MaxParallelism :
+                        Environment.ProcessorCount)
+                    .Select(solution =>
+                    {
+                        try
+                        {
+                            return OptimizeSolution(solution);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, $"优化解 {solution.Id} 时发生错误");
+                            return solution; // 如果优化失败，返回原解
+                        }
+                    })
+                    .ToList();
+            }
+            else
+            {
+                // 串行处理
+                foreach (var solution in initialSolutions)
+                {
+                    try
+                    {
+                        optimizedSolutions.Add(OptimizeSolution(solution));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"优化解 {solution.Id} 时发生错误");
+                        optimizedSolutions.Add(solution); // 如果优化失败，添加原解
+                    }
+                }
+            }
+
+            _logger.LogInformation($"完成 {optimizedSolutions.Count} 个解的优化");
+
+            return optimizedSolutions;
+        }
         /// <summary>
         /// 优化指定的解
         /// </summary>
