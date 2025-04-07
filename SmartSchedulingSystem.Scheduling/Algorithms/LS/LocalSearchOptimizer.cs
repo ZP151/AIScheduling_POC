@@ -108,7 +108,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS
 
             var currentSolution = initialSolution.Clone();
             var bestSolution = initialSolution.Clone();
-            double bestScore = _evaluator.Evaluate(bestSolution);
+            double bestScore = _evaluator.Evaluate(bestSolution).Score;
 
             _logger.LogInformation("初始解评分: {Score}", bestScore);
 
@@ -165,7 +165,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS
 
                     // 8. 应用移动生成新解
                     var newSolution = bestMove.Apply(currentSolution);
-                    double newScore = _evaluator.Evaluate(newSolution);
+                    double newScore = _evaluator.Evaluate(newSolution).Score;
 
                     // 9. 决定是否接受新解
                     bool acceptMove = _saController.ShouldAccept(bestScore, newScore);
@@ -233,7 +233,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS
             foreach (var move in moves)
             {
                 var newSolution = move.Apply(currentSolution);
-                double score = _evaluator.Evaluate(newSolution);
+                double score = _evaluator.Evaluate(newSolution).Score;
 
                 if (score > bestMoveScore)
                 {

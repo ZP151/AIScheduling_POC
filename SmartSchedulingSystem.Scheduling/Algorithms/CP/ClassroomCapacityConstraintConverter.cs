@@ -15,10 +15,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         private readonly Dictionary<int, int> _expectedEnrollments;
 
         public ClassroomCapacityConstraintConverter(
-            Dictionary<int, int> classroomCapacities,
+            IClassroomCapacityProvider capacityProvider,
             Dictionary<int, int> expectedEnrollments)
         {
-            _classroomCapacities = classroomCapacities ?? throw new ArgumentNullException(nameof(classroomCapacities));
+            if (capacityProvider == null) throw new ArgumentNullException(nameof(capacityProvider));
+            _classroomCapacities = capacityProvider.GetCapacities(); 
             _expectedEnrollments = expectedEnrollments ?? throw new ArgumentNullException(nameof(expectedEnrollments));
         }
 
@@ -65,5 +66,30 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 }
             }
         }
+    }
+    public interface IClassroomCapacityProvider
+    {
+        Dictionary<int, int> GetCapacities();
+    }
+    public class TestClassroomCapacityProvider : IClassroomCapacityProvider
+    {
+        public Dictionary<int, int> GetCapacities() => new Dictionary<int, int>
+        {
+            [1] = 50,
+            [2] = 40,
+            [3] = 60,
+            [4] = 35,
+            [5] = 45,
+            [6] = 55,
+            [7] = 70,
+            [8] = 30,
+            [9] = 65,
+            [10] = 50,
+            [11] = 40,
+            [12] = 60,
+            [13] = 45,
+            [14] = 50,
+            [15] = 55
+        };
     }
 }

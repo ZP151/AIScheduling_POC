@@ -71,13 +71,6 @@ builder.Services.AddScoped<IConstraint, TeacherConflictConstraint>();
 builder.Services.AddScoped<IConstraint, ClassroomConflictConstraint>();
 builder.Services.AddScoped<IConstraint, TeacherScheduleCompactnessConstraint>();
 
-// Gender Restriction
-builder.Services.AddScoped<IConstraint>(sp =>
-{
-    var db = sp.GetRequiredService<AppDbContext>();
-    var genderDict = db.CourseSections.ToDictionary(s => s.CourseSectionId, s => s.GenderRestriction);
-    return new GenderRestrictionConstraint(genderDict);
-});
 
 // Prerequisite
 builder.Services.AddScoped<IConstraint>(sp =>

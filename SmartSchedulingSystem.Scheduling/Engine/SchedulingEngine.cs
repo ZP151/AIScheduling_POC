@@ -99,7 +99,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 _logger.LogInformation("开始评估排课方案...");
 
                 // 使用评估器评估方案
-                double score = _solutionEvaluator.Evaluate(solution);
+                double score = _solutionEvaluator.Evaluate(solution).Score;
                 var hardConstraintSatisfaction = _solutionEvaluator.EvaluateHardConstraints(solution);
                 var softConstraintSatisfaction = _solutionEvaluator.EvaluateSoftConstraints(solution);
 

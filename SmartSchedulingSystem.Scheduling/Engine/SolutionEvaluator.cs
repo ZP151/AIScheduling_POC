@@ -10,7 +10,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
     /// <summary>
     /// 评估排课方案的质量
     /// </summary>
-    public class SolutionEvaluator
+    public interface ISolutionEvaluator
+    {
+        SchedulingEvaluation Evaluate(SchedulingSolution solution);
+    }
+    public class SolutionEvaluator : ISolutionEvaluator
     {
         private readonly ILogger<SolutionEvaluator> _logger;
         private readonly ConstraintManager _constraintManager;
@@ -32,11 +36,18 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         /// <summary>
         /// 评估解决方案，返回0-1分数（1为最佳）
         /// </summary>
-        public double Evaluate(SchedulingSolution solution)
+        public SchedulingEvaluation Evaluate(SchedulingSolution solution)
         {
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
-
+            
+            var evaluation = new SchedulingEvaluation
+            {
+                SolutionId = solution.Id,
+                HardConstraintEvaluations = new List<ConstraintEvaluation>(),
+                SoftConstraintEvaluations = new List<ConstraintEvaluation>(),
+                Conflicts = new List<SchedulingConflict>()
+            };
             try
             {
                 // 检查缓存
@@ -51,12 +62,16 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                         // 如果不满足硬约束，直接返回负无穷
                         if (hardScore < 1.0)
                         {
-                            return double.NegativeInfinity;
+                            evaluation.IsFeasible = false;
+                            evaluation.Score = double.NegativeInfinity;
+                            return evaluation;
                         }
 
                         // 计算软约束评分
                         double softScore = EvaluateSoftConstraintsFromCache(cachedScores);
-                        return softScore;
+                        evaluation.IsFeasible = true;
+                        evaluation.Score = softScore;
+                        return evaluation;
                     }
                 }
 
@@ -66,7 +81,9 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 // 如果违反任何硬约束，返回负无穷大分数
                 if (hardConstraintScore < 1.0)
                 {
-                    return double.NegativeInfinity;
+                    evaluation.IsFeasible = false;
+                    evaluation.Score = double.NegativeInfinity;
+                    return evaluation;
                 }
 
                 // 评估软约束
@@ -81,12 +98,16 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 _logger.LogDebug($"评分: 硬约束={hardConstraintScore:F4}, 物理软约束={physicalSoftScore:F4}, " +
                                $"质量软约束={qualitySoftScore:F4}, 总分={softConstraintScore:F4}");
 
-                return softConstraintScore;
+                evaluation.IsFeasible = true;
+                evaluation.Score = softConstraintScore;
+                return evaluation;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "评估解决方案时出错");
-                return double.NegativeInfinity;
+                evaluation.IsFeasible = false;
+                evaluation.Score = double.NegativeInfinity;
+                return evaluation;
             }
         }
 

@@ -112,7 +112,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
                 // 4. 初步评估初始解
                 foreach (var solution in initialSolutions)
                 {
-                    double score = _evaluator.Evaluate(solution);
+                    double score = _evaluator.Evaluate(solution).Score;
                     _logger.LogDebug($"初始解评分: {score:F4}");
                 }
 
@@ -131,7 +131,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
                 // 记录最终解的评分
                 if (optimizedSolutions.Any())
                 {
-                    double bestScore = _evaluator.Evaluate(optimizedSolutions.First());
+                    double bestScore = _evaluator.Evaluate(optimizedSolutions.First()).Score;
                     _logger.LogInformation($"最优解评分: {bestScore:F4}");
                 }
 
