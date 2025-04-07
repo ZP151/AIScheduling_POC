@@ -360,6 +360,40 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 _constraintScoreCache.Remove(oldestSolutionId);
             }
         }
+        // Add this method to the SolutionEvaluator class
+
+        /// <summary>
+        /// Get all active constraints
+        /// </summary>
+        public IEnumerable<IConstraint> GetAllActiveConstraints()
+        {
+            return _constraintManager.GetAllConstraints().Where(c => c.IsActive);
+        }
+
+        /// <summary>
+        /// Get active hard constraints
+        /// </summary>
+        public IEnumerable<IConstraint> GetActiveHardConstraints()
+        {
+            return _constraintManager.GetHardConstraints();
+        }
+
+        /// <summary>
+        /// Get active soft constraints
+        /// </summary>
+        public IEnumerable<IConstraint> GetActiveSoftConstraints()
+        {
+            return _constraintManager.GetSoftConstraints();
+        }
+
+        /// <summary>
+        /// Get active constraints by hierarchy level
+        /// </summary>
+        public IEnumerable<IConstraint> GetActiveConstraintsByHierarchy(ConstraintHierarchy hierarchy)
+        {
+            return _constraintManager.GetAllConstraints()
+                .Where(c => c.IsActive && c.Hierarchy == hierarchy);
+        }
 
     }
 }
