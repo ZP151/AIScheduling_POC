@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SmartSchedulingSystem.Scheduling;
-using SmartSchedulingSystem.Scheduling.Algorithms.CP;
+using SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters;
 using SmartSchedulingSystem.Scheduling.Engine;
 using SmartSchedulingSystem.Scheduling.Engine.Hybrid;
 using SmartSchedulingSystem.Scheduling.Models;

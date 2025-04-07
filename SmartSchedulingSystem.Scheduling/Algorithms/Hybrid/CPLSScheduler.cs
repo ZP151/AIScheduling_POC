@@ -70,36 +70,14 @@ namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
                     };
                 }
 
-                // 3. 使用CP阶段生成初始解
-                List<SchedulingSolution> initialSolutions;
+                // 3. CP阶段：生成初始解
+                _logger.LogInformation("CP阶段：生成初始解...");
+                List<SchedulingSolution> initialSolutions = _cpScheduler.GenerateInitialSolutions(
+                    problem, _parameters.InitialSolutionCount);
 
-                try
-                {
-                    _logger.LogInformation("CP阶段：生成初始解...");
-
-                    initialSolutions = _cpScheduler.GenerateInitialSolutions(
-                        problem, _parameters.InitialSolutionCount);
-
-                    _logger.LogInformation($"CP阶段完成，生成了 {initialSolutions.Count} 个初始解");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "CP阶段失败");
-
-                    return new SchedulingResult
-                    {
-                        Status = SchedulingStatus.Error,
-                        Message = $"CP生成初始解失败: {ex.Message}",
-                        Solutions = new List<SchedulingSolution>(),
-                        ExecutionTimeMs = sw.ElapsedMilliseconds
-                    };
-                }
-
-                // 如果没有找到初始解，返回错误结果
                 if (initialSolutions.Count == 0)
                 {
                     _logger.LogWarning("CP阶段未能生成任何初始解");
-
                     return new SchedulingResult
                     {
                         Status = SchedulingStatus.Failure,
@@ -108,6 +86,8 @@ namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
                         ExecutionTimeMs = sw.ElapsedMilliseconds
                     };
                 }
+
+                _logger.LogInformation($"CP阶段完成，生成了 {initialSolutions.Count} 个初始解");
 
                 // 4. 初步评估初始解
                 foreach (var solution in initialSolutions)

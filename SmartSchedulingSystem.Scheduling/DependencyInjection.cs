@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SmartSchedulingSystem.Scheduling.Algorithms.CP;
+using SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters;
 using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Constraints.Hard;
 using SmartSchedulingSystem.Scheduling.Constraints.PhysicalSoft;

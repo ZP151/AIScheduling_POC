@@ -17,6 +17,8 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS.Moves
             _assignmentId = assignmentId;
             _newClassroomId = newClassroomId;
         }
+        public int NewClassroomId => _newClassroomId;
+        public int AssignmentId => _assignmentId;
 
         public SchedulingSolution Apply(SchedulingSolution solution)
         {

@@ -34,14 +34,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             var model = new CpModel();
             var variables = CreateDecisionVariables(model, problem);
 
-            // 添加基本约束（每门课程必须且只能分配一次）
-            model.AddOneCourseOneAssignmentConstraints(variables, problem);
+            // 添加核心约束
+            AddOneCourseOneAssignmentConstraints(model, variables, problem);  // 每门课必须分配一次
+            AddTeacherConflictConstraints(model, variables, problem);   // 教师不能同时教两门课
+            AddClassroomConflictConstraints(model, variables, problem); // 教室不能同时安排两门课
+            AddTeacherAvailabilityConstraints(model, variables, problem); // 教师可用性约束
+            AddClassroomAvailabilityConstraints(model, variables, problem); // 教室可用性约束
+            AddClassroomCapacityConstraints(model, variables, problem); // 教室容量约束
+            AddPrerequisiteConstraints(model, variables, problem);      // 先修课程约束
 
-            // 添加教室冲突约束
-            model.AddClassroomConflictConstraints(variables, problem);
-
-            // 添加教师冲突约束
-            model.AddTeacherConflictConstraints(variables, problem);
 
             // 应用所有自定义约束转换器
             foreach (var converter in _constraintConverters)
@@ -308,7 +309,194 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             // 其他情况视为不兼容
             return false;
         }
+        private void AddOneCourseOneAssignmentConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var course in problem.CourseSections)
+            {
+                // 找出所有涉及此课程班级的变量
+                var courseVars = variables
+                    .Where(kv => kv.Key.StartsWith($"c{course.Id}_"))
+                    .Select(kv => kv.Value)
+                    .ToList();
 
+                if (courseVars.Count > 0)
+                {
+                    // 约束：每门课程必须且只能分配一次
+                    model.Add(LinearExpr.Sum(courseVars) == 1);
+                }
+            }
+        }
+
+        private void AddTeacherConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var teacher in problem.Teachers)
+            {
+                foreach (var timeSlot in problem.TimeSlots)
+                {
+                    // 找出该教师在该时间段的所有可能分配
+                    var teacherTimeVars = variables
+                        .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_") &&
+                                   kv.Key.EndsWith($"_f{teacher.Id}"))
+                        .Select(kv => kv.Value)
+                        .ToList();
+
+                    if (teacherTimeVars.Count > 1)
+                    {
+                        // 约束：教师在同一时间段最多只能教一门课
+                        model.Add(LinearExpr.Sum(teacherTimeVars) <= 1);
+                    }
+                }
+            }
+        }
+
+        private void AddClassroomConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var classroom in problem.Classrooms)
+            {
+                foreach (var timeSlot in problem.TimeSlots)
+                {
+                    // 找出该教室在该时间段的所有可能分配
+                    var roomTimeVars = variables
+                        .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_r{classroom.Id}_"))
+                        .Select(kv => kv.Value)
+                        .ToList();
+
+                    if (roomTimeVars.Count > 1)
+                    {
+                        // 约束：教室在同一时间段最多只能安排一门课
+                        model.Add(LinearExpr.Sum(roomTimeVars) <= 1);
+                    }
+                }
+            }
+        }
+
+        private void AddTeacherAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var availability in problem.TeacherAvailabilities)
+            {
+                if (!availability.IsAvailable)
+                {
+                    // 找出教师在不可用时间段的所有可能分配
+                    var unavailableVars = variables
+                        .Where(kv => kv.Key.Contains($"_t{availability.TimeSlotId}_") &&
+                                   kv.Key.EndsWith($"_f{availability.TeacherId}"))
+                        .Select(kv => kv.Value)
+                        .ToList();
+
+                    foreach (var variable in unavailableVars)
+                    {
+                        // 约束：不可用时间段的分配变量必须为0
+                        model.Add(variable == 0);
+                    }
+                }
+            }
+        }
+
+        private void AddClassroomAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var availability in problem.ClassroomAvailabilities)
+            {
+                if (!availability.IsAvailable)
+                {
+                    // 找出教室在不可用时间段的所有可能分配
+                    var unavailableVars = variables
+                        .Where(kv => kv.Key.Contains($"_t{availability.TimeSlotId}_r{availability.ClassroomId}_"))
+                        .Select(kv => kv.Value)
+                        .ToList();
+
+                    foreach (var variable in unavailableVars)
+                    {
+                        // 约束：不可用时间段的分配变量必须为0
+                        model.Add(variable == 0);
+                    }
+                }
+            }
+        }
+
+        private void AddClassroomCapacityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            foreach (var section in problem.CourseSections)
+            {
+                foreach (var classroom in problem.Classrooms)
+                {
+                    if (classroom.Capacity < section.Enrollment)
+                    {
+                        // 找出教室容量不足的所有可能分配
+                        var invalidVars = variables
+                            .Where(kv => kv.Key.StartsWith($"c{section.Id}_") &&
+                                       kv.Key.Contains($"_r{classroom.Id}_"))
+                            .Select(kv => kv.Value)
+                            .ToList();
+
+                        foreach (var variable in invalidVars)
+                        {
+                            // 约束：容量不足的教室不能安排此课程
+                            model.Add(variable == 0);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void AddPrerequisiteConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        {
+            // 创建课程ID到班级ID的映射
+            var courseToSections = new Dictionary<int, List<int>>();
+            foreach (var section in problem.CourseSections)
+            {
+                if (!courseToSections.ContainsKey(section.CourseId))
+                {
+                    courseToSections[section.CourseId] = new List<int>();
+                }
+                courseToSections[section.CourseId].Add(section.Id);
+            }
+
+            // 处理先修课程约束
+            // 在当前学期内，先修课程不能与后续课程在同一时间段
+            foreach (var section in problem.CourseSections)
+            {
+                var course = section.Course;
+
+                if (course?.Prerequisites == null || course.Prerequisites.Count == 0)
+                    continue;
+
+                foreach (var prerequisite in course.Prerequisites)
+                {
+                    // 当前课程和先修课程分别对应的 CourseSection 列表
+                    if (courseToSections.TryGetValue(course.CourseId, out var sectionIds) &&
+                        courseToSections.TryGetValue(prerequisite.PrerequisiteCourseId, out var prereqSectionIds))
+                    {
+                        foreach (var timeSlot in problem.TimeSlots)
+                        {
+                            foreach (var sectionId in sectionIds)
+                            {
+                                foreach (var prereqSectionId in prereqSectionIds)
+                                {
+                                    var sectionTimeVars = variables
+                                        .Where(kv => kv.Key.StartsWith($"c{sectionId}_t{timeSlot.Id}_"))
+                                        .Select(kv => kv.Value)
+                                        .ToList();
+
+                                    var prereqTimeVars = variables
+                                        .Where(kv => kv.Key.StartsWith($"c{prereqSectionId}_t{timeSlot.Id}_"))
+                                        .Select(kv => kv.Value)
+                                        .ToList();
+
+                                    foreach (var sectionVar in sectionTimeVars)
+                                    {
+                                        foreach (var prereqVar in prereqTimeVars)
+                                        {
+                                            // 添加：先修课程与课程不能同时安排
+                                            model.Add(sectionVar + prereqVar <= 1);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         /// <summary>
         /// 计算教室容量适合度
         /// </summary>

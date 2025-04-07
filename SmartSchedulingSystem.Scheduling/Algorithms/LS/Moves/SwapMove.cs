@@ -31,6 +31,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS.Moves
             _swapRoom = swapRoom;
             _swapTeacher = swapTeacher;
         }
+        public int AssignmentId1 => _assignmentId1;
+        public int AssignmentId2 => _assignmentId2;
+        public bool SwapTime => _swapTime;
+        public bool SwapRoom => _swapRoom;
+        public bool SwapTeacher => _swapTeacher;
 
         public SchedulingSolution Apply(SchedulingSolution solution)
         {

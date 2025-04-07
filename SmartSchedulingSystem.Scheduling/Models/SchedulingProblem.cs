@@ -54,6 +54,7 @@ namespace SmartSchedulingSystem.Scheduling.Models
 
         /// 要生成的替代排课方案数量
         public int AlternativeCount { get; set; } = 3;
+        public List<CoursePrerequisite> Prerequisites { get; internal set; }
 
         /// 根据输入的基本数据校验问题的有效性
         /// <returns>错误消息列表，如果为空则表示有效</returns>
@@ -138,8 +139,9 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// 课程ID
 
         public int CourseId { get; set; }
+        public Course Course { get; set; }
 
-        
+
         /// 课程代码
 
         public string CourseCode { get; set; }
@@ -210,10 +212,6 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public bool RequiresSameRoom { get; set; }
 
         
-        /// 性别限制（男生、女生、混合等）
-
-        public string GenderRestriction { get; set; }
-
         
         /// 课程的跨列课程ID（如果有）
 
@@ -367,8 +365,25 @@ namespace SmartSchedulingSystem.Scheduling.Models
 
         public string Type { get; set; } = "Regular";
     }
+    /// <summary>
+    /// 表示课程之间的先修关系（Course A 是 Course B 的先修）
+    /// </summary>
+    public class CoursePrerequisite
+    {
+        public int id { get; set; }
+        /// <summary>
+        /// 后续课程的 ID（被约束的课程）
+        /// </summary>
+        public int CourseId { get; set; }
+        public Course Course { get; set; }                // 当前课程
 
-    
+        /// <summary>
+        /// 先修课程的 ID（必须先修完这个）
+        /// </summary>
+        public int PrerequisiteCourseId { get; set; }
+    }
+
+
     /// 教师课程偏好
     /// </summary>
     public class TeacherCoursePreference

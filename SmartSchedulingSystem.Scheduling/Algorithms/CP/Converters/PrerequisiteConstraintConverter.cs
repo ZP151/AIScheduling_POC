@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
+namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
 {
     /// <summary>
     /// 将先修课程约束转换为CP模型约束

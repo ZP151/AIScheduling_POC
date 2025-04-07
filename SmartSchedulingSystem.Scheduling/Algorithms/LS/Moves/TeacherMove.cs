@@ -17,7 +17,8 @@ namespace SmartSchedulingSystem.Scheduling.Engine.LS.Moves
             _assignmentId = assignmentId;
             _newTeacherId = newTeacherId;
         }
-
+        public int NewTeacherId => _newTeacherId;
+        public int AssignmentId => _assignmentId;
         public SchedulingSolution Apply(SchedulingSolution solution)
         {
             // 创建解决方案的深拷贝
