@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using SmartSchedulingSystem.Scheduling.Algorithms.CP;
 using SmartSchedulingSystem.Scheduling.Engine;
-using SmartSchedulingSystem.Scheduling.Engine.LS;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using System;

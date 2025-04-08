@@ -1,6 +1,7 @@
 ﻿using SmartSchedulingSystem.Scheduling.Algorithms.CP;
-using SmartSchedulingSystem.Scheduling.Engine.LS;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
+using SmartSchedulingSystem.Scheduling.Engine;
 using SmartSchedulingSystem.Scheduling.Utils;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,7 +11,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
+namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
     /// Complete implementation of the Constraint Programming + Local Search hybrid scheduler

@@ -1,190 +1,264 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿// SmartSchedulingSystem.Test/Program.cs
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SmartSchedulingSystem.Scheduling;
-using SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters;
 using SmartSchedulingSystem.Scheduling.Engine;
-using SmartSchedulingSystem.Scheduling.Engine.Hybrid;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
-using SmartSchedulingSystem.Test;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace SmartSchedulingSystem.Test
 {
     class Program
     {
-        static async Task Main(string[] args)
-        {
-            // 配置依赖注入容器
-            var serviceProvider = ConfigureServices();
+        private static SolutionEvaluator _evaluator;
 
-            // 创建日志记录器
+        static void Main(string[] args)
+        {
+            Console.WriteLine("智能排课系统算法测试");
+            Console.WriteLine("===================");
+
+            // 配置依赖注入
+            var services = new ServiceCollection();
+            services.AddLogging(configure => configure.AddConsole().SetMinimumLevel(LogLevel.Information));
+
+            // 注册排课服务
+            services.AddSchedulingServices();
+
+            // 添加测试数据生成器
+            services.AddSingleton<TestDataGenerator>();
+
+            var serviceProvider = services.BuildServiceProvider();
+
+            // 获取所需服务
             var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
-            logger.LogInformation("智能排课系统算法测试开始");
+            var schedulingEngine = serviceProvider.GetRequiredService<SchedulingEngine>();
+            var testDataGenerator = serviceProvider.GetRequiredService<TestDataGenerator>();
+            _evaluator = serviceProvider.GetRequiredService<SolutionEvaluator>();
 
             try
             {
-                // 获取测试数据生成器
-                var testDataGenerator = serviceProvider.GetRequiredService<TestDataGenerator>();
-
-                // 生成测试排课问题
-                int courseSectionCount = 20;  // 课程班级数量
-                int teacherCount = 10;        // 教师数量
-                int classroomCount = 15;      // 教室数量
-                int timeSlotCount = 30;       // 时间槽数量
-
-                logger.LogInformation($"生成测试排课问题: {courseSectionCount}个班级, {teacherCount}个教师, {classroomCount}个教室, {timeSlotCount}个时间槽");
-
-                var problem = testDataGenerator.GenerateTestProblem(
-                    courseSectionCount,
-                    teacherCount,
-                    classroomCount,
-                    timeSlotCount);
-
-                // 获取排课引擎
-                var schedulingEngine = serviceProvider.GetRequiredService<SchedulingEngine>();
-
-                // 执行排课
-                logger.LogInformation("开始执行排课算法...");
-                var result = schedulingEngine.GenerateSchedule(problem);
-
-                // 分析结果
-                AnalyzeResult(result, logger);
+                RunSmallTest(schedulingEngine, testDataGenerator);
+                RunMediumTest(schedulingEngine, testDataGenerator);
+                RunConflictTest(schedulingEngine, testDataGenerator);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "排课测试过程中发生错误");
+                logger.LogError(ex, "测试过程中发生错误");
+                Console.WriteLine($"错误: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
             }
 
-            logger.LogInformation("智能排课系统算法测试结束");
-            Console.WriteLine("按任意键退出...");
+            Console.WriteLine("\n测试完成。按任意键退出...");
             Console.ReadKey();
         }
 
-        private static ServiceProvider ConfigureServices()
+        static void RunSmallTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
         {
-            var services = new ServiceCollection();
+            Console.WriteLine("\n=== 小规模测试 (10门课) ===");
 
-            // 添加日志
-            services.AddLogging(builder =>
-            {
-                builder.AddConsole();
-                builder.SetMinimumLevel(LogLevel.Debug);
-            });
-            // 注册容量提供者（必须）
-            services.AddSingleton<IClassroomCapacityProvider, TestClassroomCapacityProvider>();
-            services.AddSingleton(new Dictionary<int, int>()); // <-- 就是它！
-            services.AddSingleton(new Dictionary<int, List<int>>());
+            // 生成小规模测试问题(10门课)
+            var problem = testDataGenerator.GenerateTestProblem(10, 5, 8, 20);
 
-            // 添加排课服务
-            services.AddSchedulingServices();
+            Console.WriteLine($"生成了 {problem.CourseSections.Count} 门课程, {problem.Teachers.Count} 位教师, " +
+                            $"{problem.Classrooms.Count} 间教室, {problem.TimeSlots.Count} 个时间槽");
 
-            // 添加测试数据生成器s
-            services.AddSingleton<TestDataGenerator>();
+            // 执行排课
+            Console.WriteLine("开始排课...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            return services.BuildServiceProvider();
+            var result = schedulingEngine.GenerateSchedule(problem);
+
+            sw.Stop();
+            Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms");
+
+            // 分析结果
+            AnalyzeResult(result);
         }
 
-        private static void AnalyzeResult(SchedulingResult result, ILogger logger)
+        static void RunMediumTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
         {
-            if (result.Solutions.Count == 0)
+            Console.WriteLine("\n=== 中等规模测试 (30门课) ===");
+
+            // 生成中等规模测试问题(30门课)
+            var problem = testDataGenerator.GenerateTestProblem(30, 10, 15, 30);
+
+            Console.WriteLine($"生成了 {problem.CourseSections.Count} 门课程, {problem.Teachers.Count} 位教师, " +
+                            $"{problem.Classrooms.Count} 间教室, {problem.TimeSlots.Count} 个时间槽");
+
+            // 执行排课
+            Console.WriteLine("开始排课...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = schedulingEngine.GenerateSchedule(problem);
+
+            sw.Stop();
+            Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms");
+
+            // 分析结果
+            AnalyzeResult(result);
+        }
+
+        static void RunConflictTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
+        {
+            Console.WriteLine("\n=== 冲突处理测试 ===");
+
+            // 生成包含冲突的测试问题
+            var problem = testDataGenerator.GenerateTestProblem(15, 3, 10, 20);
+
+            // 创建人为冲突：让某个教师在某个时间段不可用
+            var teacher = problem.Teachers.First();
+            var timeSlot = problem.TimeSlots.First();
+
+            problem.TeacherAvailabilities.Add(new TeacherAvailability
             {
-                logger.LogWarning("未找到可行的排课方案");
-                return;
+                TeacherId = teacher.Id,
+                TimeSlotId = timeSlot.Id,
+                IsAvailable = false
+            });
+
+            Console.WriteLine($"人为创建教师冲突: 教师{teacher.Id}在时间槽{timeSlot.Id}不可用");
+
+            // 执行排课
+            Console.WriteLine("开始排课...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = schedulingEngine.GenerateSchedule(problem);
+
+            sw.Stop();
+            Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms");
+
+            // 分析结果
+            AnalyzeResult(result);
+
+            // 检查冲突是否被解决
+            if (result.Solutions.Count > 0)
+            {
+                var bestSolution = result.Solutions.First();
+                bool hasConflict = bestSolution.Assignments.Any(a =>
+                    a.TeacherId == teacher.Id && a.TimeSlotId == timeSlot.Id);
+
+                Console.WriteLine($"检查人为创建的冲突是否被解决: {(hasConflict ? "未解决" : "已解决")}");
             }
+        }
 
-            logger.LogInformation($"排课结果状态: {result.Status}");
-            logger.LogInformation($"执行时间: {result.ExecutionTimeMs}ms");
-            logger.LogInformation($"找到 {result.Solutions.Count} 个解决方案");
-
-            // 分析最佳解决方案
-            var bestSolution = result.Solutions[0];
-            logger.LogInformation($"最佳方案ID: {bestSolution.Id}, 分配数量: {bestSolution.Assignments.Count}");
-
-            // 输出统计信息
-            if (result.Statistics != null)
+        static void AnalyzeResult(SchedulingResult result)
+        {
+            if (result.Status == SchedulingStatus.Success)
             {
-                logger.LogInformation("\n统计信息:");
-                logger.LogInformation($"总班级数: {result.Statistics.TotalSections}, 已安排: {result.Statistics.ScheduledSections}, 未安排: {result.Statistics.UnscheduledSections}");
-                logger.LogInformation($"总教师数: {result.Statistics.TotalTeachers}, 已分配: {result.Statistics.AssignedTeachers}");
-                logger.LogInformation($"总教室数: {result.Statistics.TotalClassrooms}, 已使用: {result.Statistics.UsedClassrooms}");
-                logger.LogInformation($"平均教室利用率: {result.Statistics.AverageClassroomUtilization:P2}");
-                logger.LogInformation($"平均时间槽利用率: {result.Statistics.AverageTimeSlotUtilization:P2}");
-                logger.LogInformation($"教师工作量标准差: {result.Statistics.TeacherWorkloadStdDev:F2}");
-            }
+                Console.WriteLine("排课成功！");
+                Console.WriteLine($"生成了 {result.Solutions.Count} 个排课方案");
 
-            // 创建可视化工具
-            var visualizer = new ScheduleVisualizer(logger);
-
-            // 获取并显示冲突信息
-            var conflicts = GetConflicts(bestSolution);
-            if (conflicts.Count > 0)
-            {
-                logger.LogWarning($"检测到 {conflicts.Count} 个冲突");
-                visualizer.GenerateConflictReport(conflicts);
-            }
-            else
-            {
-                logger.LogInformation("排课方案没有冲突");
-            }
-
-            logger.LogInformation("\n是否显示详细排课结果? (y/n)");
-            var input = Console.ReadLine()?.ToLower();
-
-            if (input == "y")
-            {
-                // 显示各种排课视图
-                visualizer.GenerateTeacherView(bestSolution);
-                Console.WriteLine("\n按任意键显示教室视图...");
-                Console.ReadKey();
-
-                visualizer.GenerateClassroomView(bestSolution);
-                Console.WriteLine("\n按任意键继续...");
-                Console.ReadKey();
-
-                // 时间表格视图需要时间槽信息
-                if (bestSolution.Problem != null && bestSolution.Problem.TimeSlots != null)
+                if (result.Solutions.Count > 0)
                 {
-                    visualizer.GenerateTimeTableView(bestSolution, bestSolution.Problem.TimeSlots);
+                    var bestSolution = result.Solutions.First();
+                    Console.WriteLine($"最优方案评分: {_evaluator.Evaluate(bestSolution).Score:F4}");
+                    Console.WriteLine($"课程分配数量: {bestSolution.Assignments.Count}");
+
+                    // 计算有效分配率
+                    int totalSections = bestSolution.Problem?.CourseSections?.Count ?? 0;
+                    int assignedSections = bestSolution.Assignments.Select(a => a.SectionId).Distinct().Count();
+
+                    if (totalSections > 0)
+                    {
+                        double assignmentRate = (double)assignedSections / totalSections;
+                        Console.WriteLine($"课程班级分配率: {assignmentRate:P2} ({assignedSections}/{totalSections})");
+                    }
+
+                    // 输出统计信息
+                    if (result.Statistics != null)
+                    {
+                        PrintStatistics(result.Statistics);
+                    }
+                }
+            }
+            else if (result.Status == SchedulingStatus.PartialSuccess)
+            {
+                Console.WriteLine("排课部分成功。");
+                Console.WriteLine($"生成了 {result.Solutions.Count} 个排课方案，但未能满足全部约束。");
+
+                if (result.Solutions.Count > 0)
+                {
+                    var bestSolution = result.Solutions.First();
+                    Console.WriteLine($"最优方案评分: {_evaluator.Evaluate(bestSolution).Score:F4}");
+                    Console.WriteLine($"课程分配数量: {bestSolution.Assignments.Count}");
+
+                    // 计算有效分配率
+                    int totalSections = bestSolution.Problem?.CourseSections?.Count ?? 0;
+                    int assignedSections = bestSolution.Assignments.Select(a => a.SectionId).Distinct().Count();
+
+                    if (totalSections > 0)
+                    {
+                        double assignmentRate = (double)assignedSections / totalSections;
+                        Console.WriteLine($"课程班级分配率: {assignmentRate:P2} ({assignedSections}/{totalSections})");
+                    }
+
+                    // 输出统计信息
+                    if (result.Statistics != null)
+                    {
+                        PrintStatistics(result.Statistics);
+                    }
                 }
             }
             else
             {
-                // 只显示简单摘要
-                PrintSampleSchedule(bestSolution, logger);
+                Console.WriteLine($"排课失败。状态: {result.Status}");
+                Console.WriteLine($"错误信息: {result.Message}");
             }
         }
 
-        private static List<SchedulingConflict> GetConflicts(SchedulingSolution solution)
+        static void PrintStatistics(SchedulingStatistics stats)
         {
-            var evaluator = new SimpleEvaluator(null);
-            return evaluator.CheckHardConstraints(solution);
+            if (stats == null)
+                return;
+
+            Console.WriteLine("\n----- 排课统计信息 -----");
+            Console.WriteLine($"总课程班级数: {stats.TotalSections}");
+            Console.WriteLine($"已安排课程班级数: {stats.ScheduledSections}");
+            Console.WriteLine($"未安排课程班级数: {stats.UnscheduledSections}");
+            Console.WriteLine($"总教师数: {stats.TotalTeachers}");
+            Console.WriteLine($"已分配教师数: {stats.AssignedTeachers}");
+            Console.WriteLine($"总教室数: {stats.TotalClassrooms}");
+            Console.WriteLine($"已使用教室数: {stats.UsedClassrooms}");
+
+            if (stats.AverageClassroomUtilization > 0)
+                Console.WriteLine($"平均教室利用率: {stats.AverageClassroomUtilization:P2}");
+
+            if (stats.AverageTimeSlotUtilization > 0)
+                Console.WriteLine($"平均时间槽利用率: {stats.AverageTimeSlotUtilization:P2}");
+
+            if (stats.TeacherWorkloadStdDev > 0)
+                Console.WriteLine($"教师工作量标准差: {stats.TeacherWorkloadStdDev:F2}");
+
+            // 输出高峰和低谷时段
+            if (stats.TimeSlotUtilization != null &&
+                stats.TimeSlotUtilization.ContainsKey(stats.PeakTimeSlotId) &&
+                stats.TimeSlotUtilization.ContainsKey(stats.LowestTimeSlotId))
+            {
+                var peakSlot = stats.TimeSlotUtilization[stats.PeakTimeSlotId];
+                var lowestSlot = stats.TimeSlotUtilization[stats.LowestTimeSlotId];
+
+                Console.WriteLine($"高峰时段: 星期{GetDayName(peakSlot.DayOfWeek)} {peakSlot.StartTime}-{peakSlot.EndTime}, 利用率: {peakSlot.UtilizationRate:P2}");
+                Console.WriteLine($"低谷时段: 星期{GetDayName(lowestSlot.DayOfWeek)} {lowestSlot.StartTime}-{lowestSlot.EndTime}, 利用率: {lowestSlot.UtilizationRate:P2}");
+            }
         }
 
-        private static void PrintSampleSchedule(SchedulingSolution solution, ILogger logger)
+        private static string GetDayName(int day)
         {
-            // 打印前10个排课分配作为示例
-            int count = Math.Min(10, solution.Assignments.Count);
-
-            logger.LogInformation("\n排课方案样本:");
-            for (int i = 0; i < count; i++)
+            return day switch
             {
-                var assignment = solution.Assignments[i];
-                logger.LogInformation(
-                    $"分配 #{i + 1}: 课程={assignment.SectionCode}, " +
-                    $"教师={assignment.TeacherName}, " +
-                    $"教室={assignment.ClassroomName}, " +
-                    $"时间=周{assignment.DayOfWeek} {assignment.StartTime}-{assignment.EndTime}");
-            }
-
-            if (solution.Assignments.Count > 10)
-            {
-                logger.LogInformation($"... 还有 {solution.Assignments.Count - 10} 个分配");
-            }
+                1 => "一",
+                2 => "二",
+                3 => "三",
+                4 => "四",
+                5 => "五",
+                6 => "六",
+                7 => "日",
+                _ => "未知"
+            };
         }
     }
 }

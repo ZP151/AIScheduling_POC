@@ -7,8 +7,8 @@ using SmartSchedulingSystem.Scheduling.Constraints.PhysicalSoft;
 using SmartSchedulingSystem.Scheduling.Constraints.QualitySoft;
 using SmartSchedulingSystem.Scheduling.Constraints.Soft;
 using SmartSchedulingSystem.Scheduling.Engine;
-using SmartSchedulingSystem.Scheduling.Engine.Hybrid;
-using SmartSchedulingSystem.Scheduling.Engine.LS;
+using SmartSchedulingSystem.Scheduling.Algorithms.Hybrid;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using System;
@@ -46,6 +46,34 @@ namespace SmartSchedulingSystem.Scheduling
             services.AddTransient<ICPConstraintConverter, ClassroomConflictConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, PrerequisiteConstraintConverter>();
 
+            services.AddSingleton<IClassroomCapacityProvider, TestClassroomCapacityProvider>();
+            services.AddSingleton<Dictionary<int, int>>(provider =>
+            {
+                return new Dictionary<int, int>
+                {
+                    [1] = 50,
+                    [2] = 40,
+                    [3] = 60,
+                    [4] = 35,
+                    [5] = 45,
+                    [6] = 55,
+                    [7] = 70,
+                    [8] = 30,
+                    [9] = 65,
+                    [10] = 50,
+                    [11] = 40,
+                    [12] = 60,
+                    [13] = 45,
+                    [14] = 50,
+                    [15] = 55
+                };
+            });
+            services.AddSingleton<Dictionary<int, List<int>>>(provider => new Dictionary<int, List<int>>
+            {
+                [2] = new List<int> { 1 },
+                [3] = new List<int> { 1, 2 },
+                [5] = new List<int> { 4 }
+            });
             // 注册CP模型构建器
             services.AddTransient<CPModelBuilder>();
 
@@ -69,6 +97,9 @@ namespace SmartSchedulingSystem.Scheduling
 
             // 注册冲突解析器
             services.AddTransient<ConflictResolver>();
+            // 注册冲突处理器
+            services.AddTransient<IConflictHandler, TeacherConflictHandler>();
+            services.AddTransient<IConflictHandler, ClassroomConflictHandler>(); // 添加这一行
 
             // 注册硬约束
             services.AddTransient<IConstraint, TeacherConflictConstraint>();

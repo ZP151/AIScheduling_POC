@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
+namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
     /// 根据问题特征自动调整算法参数

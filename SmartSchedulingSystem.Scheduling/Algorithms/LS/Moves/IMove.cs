@@ -1,6 +1,6 @@
 ﻿using SmartSchedulingSystem.Scheduling.Models;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS.Moves
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
 {
     /// <summary>
     /// 表示局部搜索中的移动操作接口

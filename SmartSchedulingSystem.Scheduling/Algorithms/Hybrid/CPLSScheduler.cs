@@ -1,5 +1,6 @@
 ﻿using SmartSchedulingSystem.Scheduling.Algorithms.CP;
-using SmartSchedulingSystem.Scheduling.Engine.LS;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS;
+using SmartSchedulingSystem.Scheduling.Engine;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Google.OrTools.Sat;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
+namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
     /// 结合约束规划(CP)和局部搜索(LS)的混合排课引擎

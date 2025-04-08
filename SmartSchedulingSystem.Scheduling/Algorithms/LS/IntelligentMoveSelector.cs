@@ -1,11 +1,11 @@
-﻿using SmartSchedulingSystem.Scheduling.Engine.LS.Moves;
+﻿using SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves;
 using SmartSchedulingSystem.Scheduling.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
     /// 智能移动选择器，为不同类型的约束冲突选择合适的移动操作

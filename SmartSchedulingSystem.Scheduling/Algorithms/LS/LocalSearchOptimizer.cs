@@ -1,13 +1,14 @@
-﻿using SmartSchedulingSystem.Scheduling.Engine.LS.Moves;
+﻿using SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves;
 using SmartSchedulingSystem.Scheduling.Models;
-using SmartSchedulingSystem.Scheduling.Engine.Hybrid;
+using SmartSchedulingSystem.Scheduling.Algorithms.Hybrid;
+using SmartSchedulingSystem.Scheduling.Engine;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
     /// 局部搜索优化器，用于优化一个已经满足硬约束的解的软约束满足度

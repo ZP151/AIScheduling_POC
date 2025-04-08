@@ -1,11 +1,12 @@
 ﻿using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Models;
+using SmartSchedulingSystem.Scheduling.Engine;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.Hybrid
+namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
     /// 分析解的约束满足情况，用于指导局部搜索

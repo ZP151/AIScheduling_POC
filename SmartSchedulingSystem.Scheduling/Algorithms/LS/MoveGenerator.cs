@@ -1,12 +1,12 @@
 ﻿using SmartSchedulingSystem.Scheduling.Engine;
-using SmartSchedulingSystem.Scheduling.Engine.LS.Moves;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves;
 using SmartSchedulingSystem.Scheduling.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
     /// 负责在局部搜索阶段生成有效的优化移动

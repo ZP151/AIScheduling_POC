@@ -1,8 +1,8 @@
-﻿using SmartSchedulingSystem.Scheduling.Engine.LS.Moves;
+﻿using SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves;
 using SmartSchedulingSystem.Scheduling.Models;
 using System.Linq;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS.Moves
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
 {
     /// <summary>
     /// 表示更改课程教室的移动

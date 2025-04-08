@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 
-namespace SmartSchedulingSystem.Scheduling.Engine.LS
+namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
     /// 实现模拟退火控制逻辑的类，用于指导局部搜索过程

@@ -1,6 +1,6 @@
 ﻿using SmartSchedulingSystem.Scheduling.Algorithms.CP;
-using SmartSchedulingSystem.Scheduling.Engine.Hybrid;
-using SmartSchedulingSystem.Scheduling.Engine.LS;
+using SmartSchedulingSystem.Scheduling.Algorithms.Hybrid;
+using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using System;

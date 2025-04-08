@@ -1,4 +1,4 @@
-﻿// 创建TeacherConflictHandler.cs实现冲突处理
+﻿// SmartSchedulingSystem.Scheduling/Engine/ClassroomConflictHandler.cs
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +11,16 @@ using SmartSchedulingSystem.Scheduling.Models;
 
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
-    public class TeacherConflictHandler : IConflictHandler
+    public class ClassroomConflictHandler : IConflictHandler
     {
-        private readonly ILogger<TeacherConflictHandler> _logger;
+        private readonly ILogger<ClassroomConflictHandler> _logger;
         private readonly MoveGenerator _moveGenerator;
         private readonly SolutionEvaluator _evaluator;
 
-        public SchedulingConflictType ConflictType => SchedulingConflictType.TeacherConflict;
+        public SchedulingConflictType ConflictType => SchedulingConflictType.ClassroomConflict;
 
-        public TeacherConflictHandler(
-            ILogger<TeacherConflictHandler> logger,
+        public ClassroomConflictHandler(
+            ILogger<ClassroomConflictHandler> logger,
             MoveGenerator moveGenerator,
             SolutionEvaluator evaluator)
         {
@@ -41,9 +41,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 ? sections
                 : new List<int>();
 
-            if (involvedSectionIds.Count < 2)
+            var involvedClassroomIds = conflict.InvolvedEntities.TryGetValue("Classrooms", out var classrooms)
+                ? classrooms
+                : new List<int>();
+
+            if (involvedSectionIds.Count < 2 || involvedClassroomIds.Count < 1)
             {
-                _logger.LogWarning("教师冲突信息不完整，无法生成解决方案");
+                _logger.LogWarning("教室冲突信息不完整，无法生成解决方案");
                 return options;
             }
 
@@ -58,35 +62,44 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 return options;
             }
 
-            // 为每个分配生成移动
             foreach (var assignment in assignments)
             {
-                // 1. 生成时间移动
-                var availableTimeSlots = _moveGenerator.GenerateValidMoves(
+                // 1. 生成替代教室移动
+                var availableRooms = _moveGenerator.GenerateValidMoves(
                     solution, assignment)
-                    .OfType<TimeMove>()
+                    .OfType<RoomMove>()
                     .ToList();
 
-                foreach (var move in availableTimeSlots)
+                foreach (var move in availableRooms)
                 {
+                    var roomMove = (RoomMove)move;
+
+                    // 获取新教室信息
+                    var newRoom = solution.Problem?.Classrooms
+                        .FirstOrDefault(r => r.Id == roomMove.NewClassroomId);
+
+                    if (newRoom == null)
+                        continue;
+
                     // 创建解决方案选项
                     var option = new ConflictResolutionOption
                     {
                         Id = options.Count + 1,
                         ConflictId = conflict.Id,
-                        Description = $"将课程 {assignment.SectionCode} 移动到其他时间段",
-                        Compatibility = 80, // 较高兼容性
+                        Description = $"将课程 {assignment.SectionCode} 移动到教室 {newRoom.Name}",
+                        Compatibility = 90, // 很高兼容性
                         Impacts = new List<string>
                         {
-                            "改变课程时间",
-                            "可能影响学生上课计划"
+                            "改变课程所在教室",
+                            "可能影响教学设备可用性"
                         },
                         Actions = new List<ResolutionAction>
                         {
-                            new ReassignTimeSlotAction
+                            new ReassignClassroomAction
                             {
                                 AssignmentId = assignment.Id,
-                                NewTimeSlotId = ((TimeMove)move).NewTimeSlotId
+                                NewClassroomId = newRoom.Id,
+                                NewClassroomName = newRoom.Name
                             }
                         }
                     };
@@ -101,21 +114,22 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 if (options.Count >= 5)
                     break;
 
-                // 2. 生成教师移动
-                var availableTeachers = _moveGenerator.GenerateValidMoves(
+                // 2. 生成时间移动
+                var timeMovesOptions = _moveGenerator.GenerateValidMoves(
                     solution, assignment)
-                    .OfType<TeacherMove>()
+                    .OfType<TimeMove>()
+                    .Take(3)
                     .ToList();
 
-                foreach (var move in availableTeachers)
+                foreach (var move in timeMovesOptions)
                 {
-                    var teacherMove = (TeacherMove)move;
+                    var timeMove = (TimeMove)move;
 
-                    // 获取新教师信息
-                    var newTeacher = solution.Problem?.Teachers
-                        .FirstOrDefault(t => t.Id == teacherMove.NewTeacherId);
+                    // 获取新时间槽信息
+                    var newTimeSlot = solution.Problem?.TimeSlots
+                        .FirstOrDefault(t => t.Id == timeMove.NewTimeSlotId);
 
-                    if (newTeacher == null)
+                    if (newTimeSlot == null)
                         continue;
 
                     // 创建解决方案选项
@@ -123,20 +137,22 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     {
                         Id = options.Count + 1,
                         ConflictId = conflict.Id,
-                        Description = $"将课程 {assignment.SectionCode} 分配给教师 {newTeacher.Name}",
+                        Description = $"将课程 {assignment.SectionCode} 调整到 {newTimeSlot.DayName} {newTimeSlot.StartTime}-{newTimeSlot.EndTime}",
                         Compatibility = 70, // 中等兼容性
                         Impacts = new List<string>
                         {
-                            "改变授课教师",
-                            "可能影响教学质量"
+                            "改变课程时间",
+                            "可能影响学生和教师安排"
                         },
                         Actions = new List<ResolutionAction>
                         {
-                            new ReassignTeacherAction
+                            new ReassignTimeSlotAction
                             {
                                 AssignmentId = assignment.Id,
-                                NewTeacherId = newTeacher.Id,
-                                NewTeacherName = newTeacher.Name
+                                NewTimeSlotId = newTimeSlot.Id,
+                                NewDayOfWeek = newTimeSlot.DayOfWeek,
+                                NewStartTime = newTimeSlot.StartTime,
+                                NewEndTime = newTimeSlot.EndTime
                             }
                         }
                     };
@@ -152,23 +168,23 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     break;
             }
 
-            // 3. 生成课程交换移动
+            // 3. 如果有两个相关分配，考虑交换操作
             if (assignments.Count >= 2)
             {
                 var assignment1 = assignments[0];
                 var assignment2 = assignments[1];
 
-                // 创建时间交换选项
+                // 创建教室交换选项
                 var swapOption = new ConflictResolutionOption
                 {
                     Id = options.Count + 1,
                     ConflictId = conflict.Id,
                     Description = $"交换课程 {assignment1.SectionCode} 和 {assignment2.SectionCode} 的时间",
-                    Compatibility = 90, // 很高兼容性
+                    Compatibility = 85,
                     Impacts = new List<string>
                     {
-                        "保持教师分配不变",
-                        "仅改变课程时间顺序"
+                        "两门课程时间互换",
+                        "避免改变教室分配"
                     },
                     Actions = new List<ResolutionAction>
                     {
@@ -222,7 +238,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             var resolvedSolution = solution.Clone();
 
-            // 按优先级排序冲突（严重程度、影响课程数等）
+            // 按冲突严重程度排序
             var sortedConflicts = conflicts
                 .OrderByDescending(c => c.Severity)
                 .ThenByDescending(c => c.InvolvedEntities?.GetValueOrDefault("Sections")?.Count ?? 0)
@@ -230,7 +246,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             foreach (var conflict in sortedConflicts)
             {
-                // 生成解决选项
+                // 为每个冲突生成解决选项
                 var options = await GetResolutionOptionsAsync(conflict, resolvedSolution, cancellationToken);
 
                 // 选择最佳选项
@@ -270,7 +286,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 // 评估解决方案
                 double score = _evaluator.Evaluate(tempSolution).Score;
 
-                // 加上选项兼容性的权重
+                // 考虑选项兼容性的权重
                 score = score * 0.8 + (option.Compatibility / 100.0) * 0.2;
 
                 scoredOptions.Add((option, score));
@@ -281,45 +297,6 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 .OrderByDescending(so => so.Score)
                 .FirstOrDefault()
                 .Option;
-        }
-    }
-
-    // 添加交换时间操作
-    public class SwapTimeAction : ResolutionAction
-    {
-        public int Assignment1Id { get; set; }
-        public int Assignment2Id { get; set; }
-
-        public SwapTimeAction()
-        {
-            Type = ResolutionActionType.Other;
-        }
-
-        public override void Execute(SchedulingSolution solution)
-        {
-            var assignment1 = solution.Assignments.FirstOrDefault(a => a.Id == Assignment1Id);
-            var assignment2 = solution.Assignments.FirstOrDefault(a => a.Id == Assignment2Id);
-
-            if (assignment1 != null && assignment2 != null)
-            {
-                // 交换时间槽
-                int tempTimeSlotId = assignment1.TimeSlotId;
-                assignment1.TimeSlotId = assignment2.TimeSlotId;
-                assignment2.TimeSlotId = tempTimeSlotId;
-
-                // 交换日期和时间信息
-                int tempDayOfWeek = assignment1.DayOfWeek;
-                TimeSpan tempStartTime = assignment1.StartTime;
-                TimeSpan tempEndTime = assignment1.EndTime;
-
-                assignment1.DayOfWeek = assignment2.DayOfWeek;
-                assignment1.StartTime = assignment2.StartTime;
-                assignment1.EndTime = assignment2.EndTime;
-
-                assignment2.DayOfWeek = tempDayOfWeek;
-                assignment2.StartTime = tempStartTime;
-                assignment2.EndTime = tempEndTime;
-            }
         }
     }
 }
