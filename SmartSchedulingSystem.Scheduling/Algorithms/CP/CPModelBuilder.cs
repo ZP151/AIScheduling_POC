@@ -62,7 +62,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
         {
             var variables = new Dictionary<string, IntVar>();
-
+            int variableCount = 0;
             // 为每个课程-时间-教室-教师的可能组合创建二元变量
             foreach (var course in problem.CourseSections)
             {
@@ -76,35 +76,37 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
                         foreach (var teacher in problem.Teachers)
                         {
-                            // 基本筛选：检查教师是否可以教授此课程
-                            bool teacherCanTeachCourse =
-                                problem.TeacherCoursePreferences
-                                    .Any(tcp => tcp.TeacherId == teacher.Id &&
-                                               tcp.CourseId == course.CourseId &&
-                                               tcp.ProficiencyLevel >= 2);
+                            Console.WriteLine($"考虑变量: 课程={course.Id}, 时间={timeSlot.Id}, 教室={classroom.Id}, 教师={teacher.Id}");
 
-                            if (!teacherCanTeachCourse)
-                                continue;
+                            //// 基本筛选：检查教师是否可以教授此课程
+                            //bool teacherCanTeachCourse =
+                            //    problem.TeacherCoursePreferences
+                            //        .Any(tcp => tcp.TeacherId == teacher.Id &&
+                            //                   tcp.CourseId == course.CourseId &&
+                            //                   tcp.ProficiencyLevel >= 2);
 
-                            // 检查教师在此时间段是否可用
-                            bool teacherAvailable =
-                                !problem.TeacherAvailabilities
-                                    .Any(ta => ta.TeacherId == teacher.Id &&
-                                              ta.TimeSlotId == timeSlot.Id &&
-                                              !ta.IsAvailable);
+                            //if (!teacherCanTeachCourse)
+                            //    continue;
 
-                            if (!teacherAvailable)
-                                continue;
+                            //// 检查教师在此时间段是否可用
+                            //bool teacherAvailable =
+                            //    !problem.TeacherAvailabilities
+                            //        .Any(ta => ta.TeacherId == teacher.Id &&
+                            //                  ta.TimeSlotId == timeSlot.Id &&
+                            //                  !ta.IsAvailable);
 
-                            // 检查教室在此时间段是否可用
-                            bool classroomAvailable =
-                                !problem.ClassroomAvailabilities
-                                    .Any(ca => ca.ClassroomId == classroom.Id &&
-                                              ca.TimeSlotId == timeSlot.Id &&
-                                              !ca.IsAvailable);
+                            //if (!teacherAvailable)
+                            //    continue;
 
-                            if (!classroomAvailable)
-                                continue;
+                            //// 检查教室在此时间段是否可用
+                            //bool classroomAvailable =
+                            //    !problem.ClassroomAvailabilities
+                            //        .Any(ca => ca.ClassroomId == classroom.Id &&
+                            //                  ca.TimeSlotId == timeSlot.Id &&
+                            //                  !ca.IsAvailable);
+
+                            //if (!classroomAvailable)
+                            //    continue;
 
                             // 创建唯一标识符
                             string varName = $"c{course.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
@@ -112,10 +114,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                             // 创建0-1整数变量(0=不分配，1=分配)
                             var variable = model.NewBoolVar(varName);
                             variables[varName] = variable;
+                            variableCount++;
+
                         }
                     }
                 }
             }
+            Console.WriteLine($"总共创建了 {variableCount} 个决策变量");
 
             // 如果某门课程没有可行的分配，记录日志
             foreach (var course in problem.CourseSections)

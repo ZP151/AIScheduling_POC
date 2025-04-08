@@ -27,6 +27,12 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
             _maxDailyHours = maxDailyHours;
         }
 
+        public TeacherWorkloadConstraint()
+        {
+            _maxWeeklyHours = new Dictionary<int, int>();
+            _maxDailyHours = new Dictionary<int, int>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             var conflicts = new List<SchedulingConflict>();

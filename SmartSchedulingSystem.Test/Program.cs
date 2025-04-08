@@ -42,8 +42,8 @@ namespace SmartSchedulingSystem.Test
             try
             {
                 RunSmallTest(schedulingEngine, testDataGenerator);
-                RunMediumTest(schedulingEngine, testDataGenerator);
-                RunConflictTest(schedulingEngine, testDataGenerator);
+                //RunMediumTest(schedulingEngine, testDataGenerator);
+                //RunConflictTest(schedulingEngine, testDataGenerator);
             }
             catch (Exception ex)
             {

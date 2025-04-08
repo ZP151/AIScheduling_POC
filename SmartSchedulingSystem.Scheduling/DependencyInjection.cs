@@ -12,6 +12,7 @@ using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using System;
+using SchedulSmartSchedulingSystemingSystem.Scheduling.Constraints.Soft;
 
 namespace SmartSchedulingSystem.Scheduling
 {
@@ -113,6 +114,7 @@ namespace SmartSchedulingSystem.Scheduling
             services.AddTransient<IConstraint, TimeAvailabilityConstraint>();
             services.AddTransient<IConstraint, EquipmentRequirementConstraint>();
             services.AddTransient<IConstraint, LocationProximityConstraint>();
+            services.AddTransient<IConstraint, ClassroomTypeMatchConstraint>();
 
             // 注册质量软约束
             services.AddTransient<IConstraint, TeacherPreferenceConstraint>();

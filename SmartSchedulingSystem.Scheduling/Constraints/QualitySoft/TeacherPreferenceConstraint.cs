@@ -22,6 +22,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
             _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
         }
 
+        public TeacherPreferenceConstraint()
+        {
+            _preferences = new Dictionary<(int TeacherId, int TimeSlotId), int>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

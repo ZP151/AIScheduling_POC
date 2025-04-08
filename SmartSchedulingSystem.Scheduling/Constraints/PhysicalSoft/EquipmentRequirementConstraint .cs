@@ -29,6 +29,12 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Soft
             _classroomEquipment = classroomEquipment ?? throw new ArgumentNullException(nameof(classroomEquipment));
         }
 
+        public EquipmentRequirementConstraint()
+        {
+            _sectionRequiredEquipment = new Dictionary<int, List<string>>();
+            _classroomEquipment = new Dictionary<int, List<string>>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

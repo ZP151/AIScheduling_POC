@@ -47,6 +47,13 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
             _prerequisiteTypes = prerequisiteTypes ?? new Dictionary<int, PrerequisiteType>();
         }
 
+        public PrerequisiteConstraint()
+        {
+            _prerequisites = new Dictionary<int, List<int>>();
+            _courseSectionMap = new Dictionary<int, int>();
+            _prerequisiteTypes = new Dictionary<int, PrerequisiteType>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

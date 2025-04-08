@@ -23,7 +23,17 @@ namespace SmartSchedulingSystem.Scheduling.Engine
     {
         private readonly List<IConstraint> _constraints = new List<IConstraint>();
         private readonly Dictionary<int, IConstraint> _constraintsById = new Dictionary<int, IConstraint>();
-
+        public ConstraintManager()
+        {
+        }
+        // 添加新构造函数，自动注册所有约束
+        public ConstraintManager(IEnumerable<IConstraint> constraints)
+        {
+            if (constraints != null)
+            {
+                RegisterConstraints(constraints);
+            }
+        }
         public void RegisterConstraint(IConstraint constraint)
         {
             if (constraint == null)

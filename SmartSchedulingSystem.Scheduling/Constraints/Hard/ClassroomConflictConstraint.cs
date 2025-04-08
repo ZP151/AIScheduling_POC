@@ -8,6 +8,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
 {
     public class ClassroomConflictConstraint : IConstraint
     {
+        public ClassroomConflictConstraint()
+        {
+            // 构造函数
+        }
+
         public int Id { get; } = 2;
         public string Name { get; } = "Classroom Time Conflict";
         public string Description { get; } = "A classroom cannot be used for two different courses at the same time";
@@ -16,6 +21,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
         public double Weight { get; set; } = 1.0;
         public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level1_Hard;
         public string Category => "Scheduling Logic";
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

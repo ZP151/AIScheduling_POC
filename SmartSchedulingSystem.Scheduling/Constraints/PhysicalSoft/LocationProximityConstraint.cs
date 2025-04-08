@@ -32,6 +32,14 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.PhysicalSoft
             _campusTravelTimes = campusTravelTimes;
         }
 
+        public LocationProximityConstraint()
+        {
+            // 默认构造函数
+            _teacherDepartmentIds = new Dictionary<int, int>();
+            _buildingCampusIds = new Dictionary<int, int>();
+            _campusTravelTimes = new Dictionary<(int, int), int>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             var conflicts = new List<SchedulingConflict>();

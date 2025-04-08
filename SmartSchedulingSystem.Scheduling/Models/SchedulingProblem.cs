@@ -54,7 +54,7 @@ namespace SmartSchedulingSystem.Scheduling.Models
 
         /// 要生成的替代排课方案数量
         public int AlternativeCount { get; set; } = 3;
-        public List<CoursePrerequisite> Prerequisites { get; internal set; }
+        public List<CoursePrerequisite> Prerequisites { get;  set; }
 
         /// 根据输入的基本数据校验问题的有效性
         /// <returns>错误消息列表，如果为空则表示有效</returns>

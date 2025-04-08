@@ -19,13 +19,19 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
         public double Weight { get; set; } = 1.0;
         public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level1_Hard;
         public string Category => "Physical Resources";
-
+        
         public ClassroomCapacityConstraint(
             Dictionary<int, int> classroomCapacities,
             Dictionary<int, int> expectedEnrollments)
         {
             _classroomCapacities = classroomCapacities ?? throw new ArgumentNullException(nameof(classroomCapacities));
             _expectedEnrollments = expectedEnrollments ?? throw new ArgumentNullException(nameof(expectedEnrollments));
+        }
+
+        public ClassroomCapacityConstraint()
+        {
+            _classroomCapacities = new Dictionary<int, int>();
+            _expectedEnrollments = new Dictionary<int, int>();
         }
 
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)

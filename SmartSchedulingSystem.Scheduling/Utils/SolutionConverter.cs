@@ -18,6 +18,8 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         /// <returns>排课系统解决方案</returns>
         public SchedulingSolution ConvertToSchedulingSolution(Dictionary<string, long> cpSolution, SchedulingProblem problem)
         {
+            Console.WriteLine($"开始转换CP解，解大小: {cpSolution.Count}");
+
             var solution = new SchedulingSolution
             {
                 ProblemId = problem.Id,
@@ -30,6 +32,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 .Where(kv => kv.Key.Contains("_") && kv.Value == 1)
                 .Select(kv => kv.Key)
                 .ToList();
+            Console.WriteLine($"找到 {assignmentVariables.Count} 个值为1的决策变量");
 
             int assignmentId = 1;
             foreach (var varName in assignmentVariables)
@@ -59,6 +62,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                 solution.Assignments.Add(assignment);
             }
+            Console.WriteLine($"转换完成，创建了 {solution.Assignments.Count} 个分配");
 
             return solution;
         }

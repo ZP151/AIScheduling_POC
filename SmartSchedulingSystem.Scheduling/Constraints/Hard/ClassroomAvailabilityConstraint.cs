@@ -18,7 +18,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
         public double Weight { get; set; } = 1.0;
         public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level1_Hard;
         public string Category => "Resource Availability";
-
+        public ClassroomAvailabilityConstraint()
+        {
+            // 默认构造函数
+            _classroomAvailability = new Dictionary<(int, int), bool>();
+        }
         public ClassroomAvailabilityConstraint(Dictionary<(int ClassroomId, int TimeSlotId), bool> classroomAvailability)
         {
             _classroomAvailability = classroomAvailability ?? throw new ArgumentNullException(nameof(classroomAvailability));

@@ -25,6 +25,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Hard
             _teacherAvailability = teacherAvailability ?? throw new ArgumentNullException(nameof(teacherAvailability));
         }
 
+        public TeacherAvailabilityConstraint()
+        {
+            _teacherAvailability = new Dictionary<(int TeacherId, int TimeSlotId), bool>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

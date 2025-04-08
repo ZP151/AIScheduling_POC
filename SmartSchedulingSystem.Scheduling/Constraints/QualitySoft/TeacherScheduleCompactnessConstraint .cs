@@ -25,6 +25,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
             _maxConsecutiveHours = maxConsecutiveHours;
         }
 
+        public TeacherScheduleCompactnessConstraint()
+        {
+            _maxConsecutiveHours = 3; // Default value
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             var conflicts = new List<SchedulingConflict>();

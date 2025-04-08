@@ -29,6 +29,12 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Soft
             _semesterDates = semesterDates ?? throw new ArgumentNullException(nameof(semesterDates));
         }
 
+        public TimeAvailabilityConstraint()
+        {
+            _unavailablePeriods = new List<(DateTime Start, DateTime End, string Reason)>();
+            _semesterDates = new Dictionary<int, (DateTime Start, DateTime End)>();
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)

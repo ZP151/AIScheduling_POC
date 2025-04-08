@@ -29,6 +29,13 @@ namespace SchedulSmartSchedulingSystemingSystem.Scheduling.Constraints.Soft
             _classroomTypes = classroomTypes ?? throw new ArgumentNullException(nameof(classroomTypes));
         }
 
+        public ClassroomTypeMatchConstraint()
+        {
+            _courseSectionTypes = new Dictionary<int, string>();
+            _classroomTypes = new Dictionary<int, string>();
+
+        }
+
         public (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (solution == null)
