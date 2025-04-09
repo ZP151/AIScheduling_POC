@@ -25,7 +25,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             int courseSectionCount = 20,
             int teacherCount = 10,
             int classroomCount = 15,
-            int timeSlotCount = 30)
+            int timeSlotCount = 30) 
         {
             var problem = new SchedulingProblem
             {
@@ -52,16 +52,17 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             GenerateTeachers(problem, teacherCount);
 
             // 4. 生成课程班级 - 确保班级大小合理
-            GenerateCourseSections(problem, courseSectionCount);
+            GenerateCourseSectionsRealistic(problem, courseSectionCount);
 
-            // 5. 确保每门课程至少有一位合格的教师
-            EnsureQualifiedTeachersForAllCourses(problem);
+            // 5. 创建更现实的教师课程偏好：每位教师只教1-3门课，每门课有1-3位教师
+            CreateRealisticTeacherPreferences(problem);
+            Console.WriteLine($"生成了 {problem.TeacherCoursePreferences.Count} 个教师课程偏好");
 
-            // 6. 限制不可用时间段的数量
-            LimitUnavailabilityPeriods(problem);
+            // 6. 添加少量不可用时间段
+            AddLimitedUnavailableTimes(problem);
+            Console.WriteLine($"生成了 {problem.TeacherAvailabilities.Count} 个教师不可用时间段");
+            Console.WriteLine($"生成了 {problem.ClassroomAvailabilities.Count} 个教室不可用时间段");
 
-            // 7. 谨慎处理先修课程关系
-            GenerateSafePrerequisites(problem);
 
             return problem;
         }
@@ -72,73 +73,112 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         // 生成合理的时间槽
         private void GenerateTimeSlots(SchedulingProblem problem, int count)
         {
-            // 确保有足够的时间槽
-            int slotsPerDay = Math.Min(6, (count + 4) / 5); // 每天最多6个时间段
-            int daysNeeded = Math.Min(5, (count + slotsPerDay - 1) / slotsPerDay); // 最多5天
-
-            // 确保有足够的时间槽容纳所有课程
-            int totalSlots = daysNeeded * slotsPerDay;
-            if (totalSlots < count)
-            {
-                // 如果不够，增加每天的时间段
-                slotsPerDay = (int)Math.Ceiling((double)count / daysNeeded);
-            }
+            // 每天5个时间段，一周5天
+            int slotsPerDay = 5;
+            int maxDays = 5;
 
             int slotId = 1;
-            for (int day = 1; day <= daysNeeded; day++)
+            for (int day = 1; day <= maxDays && slotId <= count; day++)
             {
-                for (int slot = 0; slot < slotsPerDay && slotId <= count; slot++, slotId++)
+                for (int slot = 0; slot < slotsPerDay && slotId <= count; slot++)
                 {
-                    // 创建均匀分布的时间段
-                    var startHour = 8 + slot * 2; // 从8点开始，每段2小时
-                    var endHour = startHour + 1;  // 每节课1小时
+                    // 8:00-9:30, 10:00-11:30, 13:00-14:30, 15:00-16:30, 18:30-20:00
+                    TimeSpan startTime;
+                    TimeSpan endTime;
+
+                    switch (slot)
+                    {
+                        case 0: // 上午第一节
+                            startTime = new TimeSpan(8, 0, 0);
+                            endTime = new TimeSpan(9, 30, 0);
+                            break;
+                        case 1: // 上午第二节
+                            startTime = new TimeSpan(10, 0, 0);
+                            endTime = new TimeSpan(11, 30, 0);
+                            break;
+                        case 2: // 下午第一节
+                            startTime = new TimeSpan(13, 0, 0);
+                            endTime = new TimeSpan(14, 30, 0);
+                            break;
+                        case 3: // 下午第二节
+                            startTime = new TimeSpan(15, 0, 0);
+                            endTime = new TimeSpan(16, 30, 0);
+                            break;
+                        case 4: // 晚上
+                            startTime = new TimeSpan(18, 30, 0);
+                            endTime = new TimeSpan(20, 0, 0);
+                            break;
+                        default:
+                            startTime = new TimeSpan(8 + slot * 2, 0, 0);
+                            endTime = new TimeSpan(9 + slot * 2, 30, 0);
+                            break;
+                    }
 
                     problem.TimeSlots.Add(new TimeSlotInfo
                     {
                         Id = slotId,
                         DayOfWeek = day,
                         DayName = GetDayName(day),
-                        StartTime = new TimeSpan(startHour, 0, 0),
-                        EndTime = new TimeSpan(endHour, 30, 0)
+                        StartTime = startTime,
+                        EndTime = endTime
                     });
+
+                    slotId++;
                 }
             }
         }
+
 
         /// <summary>
         /// 生成测试教室
         /// </summary>
         private void GenerateClassrooms(SchedulingProblem problem, int count)
         {
-            string[] buildings = { "A", "B", "Science", "Library" };
+            // 不同类型、不同容量的教室
             string[] types = { "Regular", "Computer", "Lab", "Lecture" };
+            string[] buildings = { "A楼", "B楼", "C楼", "实验楼", "图书馆" };
 
             for (int i = 1; i <= count; i++)
             {
-                string building = buildings[_random.Next(buildings.Length)];
                 string type = types[_random.Next(types.Length)];
+                string building = buildings[_random.Next(buildings.Length)];
 
-                // 根据教室类型决定容量
-                int capacity = type switch
+                // 根据教室类型设置合理的容量
+                int capacity;
+                bool hasComputers = false;
+                bool hasProjector = _random.NextDouble() > 0.2; // 80%有投影仪
+
+                switch (type)
                 {
-                    "Regular" => _random.Next(30, 51),
-                    "Computer" => _random.Next(20, 31),
-                    "Lab" => _random.Next(15, 26),
-                    "Lecture" => _random.Next(60, 121),
-                    _ => _random.Next(30, 51)
-                };
+                    case "Regular":
+                        capacity = _random.Next(30, 61); // 30-60人
+                        break;
+                    case "Computer":
+                        capacity = _random.Next(20, 41); // 20-40人
+                        hasComputers = true;
+                        break;
+                    case "Lab":
+                        capacity = _random.Next(20, 36); // 20-35人
+                        break;
+                    case "Lecture":
+                        capacity = _random.Next(80, 201); // 80-200人
+                        break;
+                    default:
+                        capacity = _random.Next(30, 61);
+                        break;
+                }
 
                 problem.Classrooms.Add(new ClassroomInfo
                 {
                     Id = i,
                     Name = $"{building}-{100 + i}",
                     Building = building,
-                    CampusId = _random.Next(1, 3), // 1或2，表示不同校区
-                    CampusName = _random.Next(1, 3) == 1 ? "Main Campus" : "East Campus",
+                    CampusId = _random.Next(1, 3), // 1或2，表示主校区或分校区
+                    CampusName = _random.Next(1, 3) == 1 ? "主校区" : "分校区",
                     Capacity = capacity,
                     Type = type,
-                    HasComputers = type == "Computer",
-                    HasProjector = _random.NextDouble() > 0.2 // 80%的概率有投影仪
+                    HasComputers = hasComputers,
+                    HasProjector = hasProjector
                 });
             }
         }
@@ -179,118 +219,398 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void GenerateTeachers(SchedulingProblem problem, int count)
         {
-            string[] firstNames = { "John", "Mary", "David", "Sarah", "Michael", "Linda", "Robert", "Patricia" };
-            string[] lastNames = { "Smith", "Johnson", "Williams", "Brown", "Jones", "Miller", "Davis", "Garcia" };
-            string[] titles = { "Professor", "Associate Professor", "Assistant Professor", "Lecturer" };
-            string[] departments = { "Computer Science", "Mathematics", "Physics", "Engineering" };
+            string[] surnames = { "张", "王", "李", "赵", "刘", "陈", "杨", "黄", "周", "吴", "郑", "马", "孙", "朱", "胡" };
+            string[] titles = { "教授", "副教授", "讲师", "助教" };
+            string[] departments = { "计算机科学", "数学", "物理", "工程", "经济", "管理", "外语" };
 
             for (int i = 1; i <= count; i++)
             {
-                string firstName = firstNames[_random.Next(firstNames.Length)];
-                string lastName = lastNames[_random.Next(lastNames.Length)];
+                string surname = surnames[_random.Next(surnames.Length)];
                 string title = titles[_random.Next(titles.Length)];
                 int departmentId = _random.Next(1, departments.Length + 1);
+
+                // 根据职称设置合理的工作负荷
+                int maxWeeklyHours, maxDailyHours, maxConsecutiveHours;
+
+                switch (title)
+                {
+                    case "教授":
+                        maxWeeklyHours = _random.Next(10, 17); // 10-16小时
+                        maxDailyHours = 6;
+                        maxConsecutiveHours = 4;
+                        break;
+                    case "副教授":
+                        maxWeeklyHours = _random.Next(12, 19); // 12-18小时
+                        maxDailyHours = 6;
+                        maxConsecutiveHours = 4;
+                        break;
+                    case "讲师":
+                        maxWeeklyHours = _random.Next(14, 21); // 14-20小时
+                        maxDailyHours = 8;
+                        maxConsecutiveHours = 6;
+                        break;
+                    case "助教":
+                        maxWeeklyHours = _random.Next(16, 23); // 16-22小时
+                        maxDailyHours = 8;
+                        maxConsecutiveHours = 6;
+                        break;
+                    default:
+                        maxWeeklyHours = _random.Next(12, 21); // 12-20小时
+                        maxDailyHours = 6;
+                        maxConsecutiveHours = 4;
+                        break;
+                }
 
                 problem.Teachers.Add(new TeacherInfo
                 {
                     Id = i,
-                    Name = $"{firstName} {lastName}",
+                    Name = $"{surname}{_random.Next(1, 10)}",
                     Title = title,
                     DepartmentId = departmentId,
                     DepartmentName = departments[departmentId - 1],
-                    MaxWeeklyHours = _random.Next(12, 21),
-                    MaxDailyHours = _random.Next(4, 7),
-                    MaxConsecutiveHours = _random.Next(2, 4)
+                    MaxWeeklyHours = maxWeeklyHours,
+                    MaxDailyHours = maxDailyHours,
+                    MaxConsecutiveHours = maxConsecutiveHours
                 });
             }
         }
 
         // 生成课程班级，确保班级大小合理
-        private void GenerateCourseSections(SchedulingProblem problem, int count)
+        private void GenerateCourseSectionsRealistic(SchedulingProblem problem, int count)
         {
-            string[] subjects = { "CS", "MATH", "PHYS", "ENG" };
-            string[] courseNames = {
-        "Introduction to Programming", "Data Structures", "Algorithms",
-        "Calculus I", "Linear Algebra", "Mechanics",
-        "Electricity and Magnetism", "Engineering Principles", "Database Systems",
-        "Computer Networks", "Operating Systems", "Artificial Intelligence",
-        "Software Engineering", "Web Development", "Mobile Computing",
-        "Computer Graphics", "Human-Computer Interaction", "Cryptography",
-        "Machine Learning", "Robotics"
-    };
+            string[] subjects = { "CS", "MATH", "PHYS", "ENG", "ECON", "MGT", "LANG" };
+            string[] courseTypes = { "Regular", "Computer", "Lab", "Regular" }; // 普通课程更常见
 
-            // 确保有足够的课程名称
-            if (count > courseNames.Length)
+            Dictionary<string, string[]> subjectCourses = new Dictionary<string, string[]>
             {
-                // 扩展课程名称列表
-                var extraNames = Enumerable.Range(1, count - courseNames.Length)
-                    .Select(i => $"Course {courseNames.Length + i}")
-                    .ToList();
-                courseNames = courseNames.Concat(extraNames).ToArray();
-            }
+                { "CS", new[] { "程序设计", "数据结构", "算法", "数据库", "计算机网络", "操作系统", "软件工程", "人工智能" } },
+                { "MATH", new[] { "高等数学", "线性代数", "概率论", "离散数学", "数值分析", "统计学", "运筹学" } },
+                { "PHYS", new[] { "力学", "电磁学", "热学", "光学", "原子物理", "量子力学", "相对论" } },
+                { "ENG", new[] { "工程力学", "材料力学", "电路原理", "信号与系统", "自动控制", "微电子技术" } },
+                { "ECON", new[] { "微观经济学", "宏观经济学", "计量经济学", "金融学", "国际贸易", "财政学" } },
+                { "MGT", new[] { "管理学原理", "市场营销", "人力资源", "财务管理", "战略管理", "运营管理" } },
+                { "LANG", new[] { "英语", "日语", "德语", "法语", "俄语", "西班牙语", "汉语" } }
+            };
 
-            // 生成课程，确保每门课程最多有少量班级
-            int numCourses = Math.Max(count / 2, 1); // 至少一门课程
-            var courses = new List<(int Id, string Code, string Name, int Credits, string Type)>();
+            // 为每门课程生成1-3个班级
+            int sectionId = 1;
+            int courseId = 1;
 
-            for (int i = 1; i <= numCourses; i++)
+            while (sectionId <= count)
             {
                 string subject = subjects[_random.Next(subjects.Length)];
-                string name = courseNames[i - 1];
-                int credits = _random.Next(2, 5);
-                string type = _random.NextDouble() > 0.7 ? (_random.NextDouble() > 0.5 ? "Lab" : "Computer") : "Regular";
+                string[] courseNames = subjectCourses[subject];
+                string courseName = courseNames[_random.Next(courseNames.Length)];
+                string courseType = courseTypes[_random.Next(courseTypes.Length)];
 
-                courses.Add((i, $"{subject}{100 + i}", name, credits, type));
-            }
+                int courseNumber = 100 + courseId;
+                string courseCode = $"{subject}{courseNumber}";
 
-            // 生成班级 - 限制学生人数不超过30人，确保能放进任何教室
-            for (int i = 1; i <= count; i++)
-            {
-                var course = courses[_random.Next(courses.Count)];
-                int enrollment = _random.Next(15, 31); // 最大30人
+                // 确定此课程有几个班级
+                int sectionCount = Math.Min(_random.Next(1, 4), count - sectionId + 1); // 1-3个班级，但不超过剩余数量
 
-                problem.CourseSections.Add(new CourseSectionInfo
+                for (int section = 0; section < sectionCount; section++)
                 {
-                    Id = i,
-                    CourseId = course.Id,
-                    CourseCode = course.Code,
-                    CourseName = course.Name,
-                    SectionCode = $"{course.Code}-{(char)('A' + _random.Next(3))}",
-                    Credits = course.Credits,
-                    Hours = course.Credits * 2,
-                    CourseType = course.Type,
-                    DepartmentId = _random.Next(1, 5),
-                    DepartmentName = "Department " + _random.Next(1, 5),
-                    Enrollment = enrollment,
-                    MaxEnrollment = enrollment + _random.Next(5, 11),
-                    RequiredRoomType = course.Type
-                });
+                    char sectionChar = (char)('A' + section);
+
+                    // 根据课程类型设置班级大小
+                    int enrollment;
+                    string requiredRoomType;
+
+                    switch (courseType)
+                    {
+                        case "Regular":
+                            enrollment = _random.Next(20, 61); // 20-60人
+                            requiredRoomType = "Regular";
+                            break;
+                        case "Computer":
+                            enrollment = _random.Next(15, 31); // 15-30人
+                            requiredRoomType = "Computer";
+                            break;
+                        case "Lab":
+                            enrollment = _random.Next(10, 26); // 10-25人
+                            requiredRoomType = "Lab";
+                            break;
+                        default:
+                            enrollment = _random.Next(20, 51);
+                            requiredRoomType = "Regular";
+                            break;
+                    }
+
+                    problem.CourseSections.Add(new CourseSectionInfo
+                    {
+                        Id = sectionId,
+                        CourseId = courseId,
+                        CourseCode = courseCode,
+                        CourseName = courseName,
+                        SectionCode = $"{courseCode}-{sectionChar}",
+                        Credits = 3,
+                        Hours = 6,
+                        Enrollment = enrollment,
+                        MaxEnrollment = enrollment + _random.Next(5, 11),
+                        DepartmentId = _random.Next(1, 5),
+                        DepartmentName = "学院" + _random.Next(1, 5),
+                        CourseType = courseType,
+                        RequiredRoomType = requiredRoomType
+                    });
+
+                    sectionId++;
+                    if (sectionId > count) break;
+                }
+
+                courseId++;
             }
         }
 
-        private void GenerateTeacherCoursePreferences(SchedulingProblem problem)
+        private void CreateRealisticTeacherPreferences(SchedulingProblem problem)
         {
-            // 为每个教师生成一些课程偏好
-            foreach (var teacher in problem.Teachers)
+            // 清除现有偏好
+            problem.TeacherCoursePreferences.Clear();
+
+            // 获取所有不同的课程ID
+            var distinctCourseIds = problem.CourseSections
+                .Select(s => s.CourseId)
+                .Distinct()
+                .ToList();
+
+            // 为每门课程分配1-3位教师
+            foreach (var courseId in distinctCourseIds)
             {
-                // 随机选择2-4门课程
-                int numCourses = _random.Next(2, Math.Min(5, problem.CourseSections.Count + 1));
-                var courseIds = problem.CourseSections
-                    .Select(s => s.CourseId)
-                    .Distinct()
+                // 获取课程信息
+                var course = problem.CourseSections.First(s => s.CourseId == courseId);
+
+                // 确定这门课需要几位教师
+                int teacherCount = _random.Next(1, 4); // 1-3位教师
+
+                // 随机选择教师
+                var selectedTeachers = problem.Teachers
                     .OrderBy(x => _random.Next())
-                    .Take(numCourses)
+                    .Take(teacherCount)
                     .ToList();
 
-                foreach (var courseId in courseIds)
+                foreach (var teacher in selectedTeachers)
+                {
+                    // 添加偏好，设置较高的能力值和偏好值
+                    problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
+                    {
+                        TeacherId = teacher.Id,
+                        CourseId = courseId,
+                        ProficiencyLevel = _random.Next(3, 6), // 3-5，确保有资格
+                        PreferenceLevel = _random.Next(3, 6)   // 3-5，确保有较高偏好
+                    });
+                }
+            }
+
+            // 检查是否有教师没有分配课程
+            var teachersWithoutCourses = problem.Teachers
+                .Where(t => !problem.TeacherCoursePreferences.Any(p => p.TeacherId == t.Id))
+                .ToList();
+
+            // 为没有课程的教师随机分配1-2门课
+            foreach (var teacher in teachersWithoutCourses)
+            {
+                int courseCount = _random.Next(1, 3); // 1-2门课
+
+                var coursesToAssign = distinctCourseIds
+                    .OrderBy(x => _random.Next())
+                    .Take(courseCount);
+
+                foreach (var courseId in coursesToAssign)
                 {
                     problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
                     {
                         TeacherId = teacher.Id,
                         CourseId = courseId,
                         ProficiencyLevel = _random.Next(3, 6), // 3-5
-                        PreferenceLevel = _random.Next(2, 6)   // 2-5
+                        PreferenceLevel = _random.Next(3, 6)   // 3-5
                     });
+                }
+            }
+
+            // 检查限制：确保每位教师最多教授3门不同课程
+            foreach (var teacher in problem.Teachers)
+            {
+                var teacherCourses = problem.TeacherCoursePreferences
+                    .Where(p => p.TeacherId == teacher.Id)
+                    .Select(p => p.CourseId)
+                    .Distinct()
+                    .ToList();
+
+                if (teacherCourses.Count > 3)
+                {
+                    // 如果超过3门，随机删除多余的课程
+                    var coursesToKeep = teacherCourses
+                        .OrderBy(x => _random.Next())
+                        .Take(3)
+                        .ToHashSet();
+
+                    var prefsToRemove = problem.TeacherCoursePreferences
+                        .Where(p => p.TeacherId == teacher.Id && !coursesToKeep.Contains(p.CourseId))
+                        .ToList();
+
+                    foreach (var pref in prefsToRemove)
+                    {
+                        problem.TeacherCoursePreferences.Remove(pref);
+                    }
+                }
+            }
+        }
+        private void AddLimitedUnavailableTimes(SchedulingProblem problem)
+        {
+            // 清除现有的可用性设置
+            problem.TeacherAvailabilities.Clear();
+            problem.ClassroomAvailabilities.Clear();
+
+            // 1. 为教师添加少量不可用时间段
+            foreach (var teacher in problem.Teachers)
+            {
+                // 每个教师有1-2个不可用时间段
+                int unavailableCount = _random.Next(1, 3);
+
+                var unavailableSlots = problem.TimeSlots
+                    .OrderBy(x => _random.Next())
+                    .Take(unavailableCount)
+                    .ToList();
+
+                foreach (var slot in unavailableSlots)
+                {
+                    problem.TeacherAvailabilities.Add(new TeacherAvailability
+                    {
+                        TeacherId = teacher.Id,
+                        TimeSlotId = slot.Id,
+                        IsAvailable = false,
+                        PreferenceLevel = 0
+                    });
+                }
+            }
+
+            // 2. 为教室添加少量不可用时间段
+            foreach (var classroom in problem.Classrooms)
+            {
+                // 教室有0-1个不可用时间段
+                int unavailableCount = _random.Next(2) == 0 ? 1 : 0;
+
+                if (unavailableCount > 0)
+                {
+                    var unavailableSlot = problem.TimeSlots
+                        .OrderBy(x => _random.Next())
+                        .First();
+
+                    problem.ClassroomAvailabilities.Add(new ClassroomAvailability
+                    {
+                        ClassroomId = classroom.Id,
+                        TimeSlotId = unavailableSlot.Id,
+                        IsAvailable = false,
+                        UnavailableReason = _random.Next(2) == 0 ? "维护" : "预留"
+                    });
+                }
+            }
+
+            // 检查：确保我们不会添加太多约束导致问题无解
+            EnsureFeasibility(problem);
+        }
+
+        /// <summary>
+        /// 确保问题的可行性，避免添加太多导致无解的约束
+        /// </summary>
+        private void EnsureFeasibility(SchedulingProblem problem)
+        {
+            // 简单检查：确保每门课程至少有一种可行的安排方式
+            foreach (var section in problem.CourseSections)
+            {
+                // 1. 找出可以教授这门课的教师
+                var qualifiedTeachers = problem.TeacherCoursePreferences
+                    .Where(p => p.CourseId == section.CourseId)
+                    .Select(p => p.TeacherId)
+                    .ToList();
+
+                if (qualifiedTeachers.Count == 0)
+                {
+                    // 如果没有教师可以教，随机选择一位教师并添加偏好
+                    var randomTeacher = problem.Teachers[_random.Next(problem.Teachers.Count)];
+
+                    problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
+                    {
+                        TeacherId = randomTeacher.Id,
+                        CourseId = section.CourseId,
+                        ProficiencyLevel = 5,
+                        PreferenceLevel = 4
+                    });
+
+                    qualifiedTeachers.Add(randomTeacher.Id);
+                }
+
+                // 2. 找出适合这门课的教室
+                var suitableRooms = problem.Classrooms
+                    .Where(r => r.Capacity >= section.Enrollment &&
+                               (string.IsNullOrEmpty(section.RequiredRoomType) ||
+                                r.Type == section.RequiredRoomType ||
+                                section.RequiredRoomType == "Regular"))
+                    .Select(r => r.Id)
+                    .ToList();
+
+                if (suitableRooms.Count == 0)
+                {
+                    // 如果没有合适的教室，修改一个教室使其适合
+                    var largestRoom = problem.Classrooms
+                        .OrderByDescending(r => r.Capacity)
+                        .First();
+
+                    largestRoom.Capacity = Math.Max(largestRoom.Capacity, section.Enrollment + 10);
+
+                    if (!string.IsNullOrEmpty(section.RequiredRoomType) &&
+                        section.RequiredRoomType != "Regular" &&
+                        largestRoom.Type != section.RequiredRoomType)
+                    {
+                        largestRoom.Type = section.RequiredRoomType;
+                    }
+
+                    suitableRooms.Add(largestRoom.Id);
+                }
+
+                // 3. 确保每位合格教师在每个合适教室至少有一个可用时间段
+                foreach (var teacherId in qualifiedTeachers)
+                {
+                    var unavailableTimeSlots = problem.TeacherAvailabilities
+                        .Where(a => a.TeacherId == teacherId && !a.IsAvailable)
+                        .Select(a => a.TimeSlotId)
+                        .ToHashSet();
+
+                    if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
+                    {
+                        // 如果教师所有时间都不可用，移除一些不可用性约束
+                        var availabilitiesToRemove = problem.TeacherAvailabilities
+                            .Where(a => a.TeacherId == teacherId)
+                            .Take(problem.TeacherAvailabilities.Count - 3) // 确保至少有3个时间段可用
+                            .ToList();
+
+                        foreach (var a in availabilitiesToRemove)
+                        {
+                            problem.TeacherAvailabilities.Remove(a);
+                        }
+                    }
+                }
+
+                foreach (var roomId in suitableRooms)
+                {
+                    var unavailableTimeSlots = problem.ClassroomAvailabilities
+                        .Where(a => a.ClassroomId == roomId && !a.IsAvailable)
+                        .Select(a => a.TimeSlotId)
+                        .ToHashSet();
+
+                    if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
+                    {
+                        // 如果教室所有时间都不可用，移除一些不可用性约束
+                        var availabilitiesToRemove = problem.ClassroomAvailabilities
+                            .Where(a => a.ClassroomId == roomId)
+                            .Take(problem.ClassroomAvailabilities.Count - 3) // 确保至少有3个时间段可用
+                            .ToList();
+
+                        foreach (var a in availabilitiesToRemove)
+                        {
+                            problem.ClassroomAvailabilities.Remove(a);
+                        }
+                    }
                 }
             }
         }

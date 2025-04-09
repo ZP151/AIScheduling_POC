@@ -42,9 +42,16 @@ namespace SmartSchedulingSystem.Test
 
             try
             {
-                RunSmallTest(schedulingEngine, testDataGenerator);
+                //RunSmallTest(schedulingEngine, testDataGenerator);
                 //RunMediumTest(schedulingEngine, testDataGenerator);
                 //RunConflictTest(schedulingEngine, testDataGenerator);
+                Console.WriteLine("\n=== 第一步：验证简单可行问题 ===");
+                // 先验证CreateDebugFeasibleProblem是否成功
+                RunSimpleTest(schedulingEngine, testDataGenerator);
+
+                Console.WriteLine("\n=== 第二步：测试现实场景数据 ===");
+                // 再运行现实场景测试
+                RunRealisticTests(schedulingEngine, testDataGenerator);
             }
             catch (Exception ex)
             {
@@ -55,6 +62,98 @@ namespace SmartSchedulingSystem.Test
 
             Console.WriteLine("\n测试完成。按任意键退出...");
             Console.ReadKey();
+        }
+        static void RunSimpleTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
+        {
+            Console.WriteLine("运行简单可行性测试...");
+
+            // 使用DebugFeasibleProblem
+            var problem = testDataGenerator.CreateDebugFeasibleProblem();
+
+            Console.WriteLine($"生成了简单问题: {problem.CourseSections.Count}门课程, " +
+                            $"{problem.Teachers.Count}位教师, {problem.Classrooms.Count}间教室, " +
+                            $"{problem.TimeSlots.Count}个时间槽");
+
+            // 设置算法参数
+            var parameters = new SchedulingParameters
+            {
+                InitialSolutionCount = 1,
+                CpTimeLimit = 60,
+                MaxLsIterations = 100,
+                EnableParallelOptimization = false
+            };
+
+            // 执行排课
+            Console.WriteLine("开始排课...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = schedulingEngine.GenerateSchedule(problem, parameters);
+
+            sw.Stop();
+            Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms, 状态: {result.Status}");
+
+            // 验证结果
+            Assert.Equal(SchedulingStatus.Success, result.Status);
+            Assert.True(result.Solutions.Count > 0, "应该生成至少一个解");
+
+            // 分析结果
+            AnalyzeResult(result);
+        }
+
+        static void RunRealisticTests(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
+        {
+            // 使用改进的测试数据生成器
+            RunRealisticTest(schedulingEngine, testDataGenerator, "小型现实场景 (5门课)", 5);
+            RunRealisticTest(schedulingEngine, testDataGenerator, "中型现实场景 (10门课)", 10);
+            RunRealisticTest(schedulingEngine, testDataGenerator, "大型现实场景 (20门课)", 20);
+        }
+
+        static void RunRealisticTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator, string testName, int courseCount)
+        {
+            Console.WriteLine($"\n=== {testName} ===");
+
+            // 生成现实场景测试数据
+            var problem = testDataGenerator.GenerateTestProblem(
+                courseSectionCount: courseCount,
+                teacherCount: courseCount * 2, // 多一些教师选择
+                classroomCount: courseCount * 3, // 多一些教室选择
+                timeSlotCount: courseCount * 4 // 多一些时间选择
+            );
+
+            Console.WriteLine($"生成了现实场景测试数据: {problem.CourseSections.Count}门课程, " +
+                            $"{problem.Teachers.Count}位教师, {problem.Classrooms.Count}间教室, " +
+                            $"{problem.TimeSlots.Count}个时间槽");
+            Console.WriteLine($"教师课程偏好: {problem.TeacherCoursePreferences.Count}个");
+            Console.WriteLine($"教师不可用时间段: {problem.TeacherAvailabilities.Count}个");
+            Console.WriteLine($"教室不可用时间段: {problem.ClassroomAvailabilities.Count}个");
+
+            // 设置算法参数 - 增加超时时间
+            var parameters = new SchedulingParameters
+            {
+                InitialSolutionCount = 2,
+                CpTimeLimit = courseCount * 10, // 根据课程数量动态设置CP超时时间
+                MaxLsIterations = 200,
+                EnableParallelOptimization = true,
+                MaxParallelism = 4
+            };
+
+            // 执行排课
+            Console.WriteLine("开始排课...");
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            var result = schedulingEngine.GenerateSchedule(problem, parameters);
+
+            sw.Stop();
+            Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms, 状态: {result.Status}");
+
+            // 分析结果
+            AnalyzeResult(result);
+
+            // 如果成功，分析排课质量更详细指标
+            if (result.Status == SchedulingStatus.Success && result.Solutions.Count > 0)
+            {
+                AnalyzeScheduleQuality(result.Solutions.First(), problem);
+            }
         }
 
         static void RunSmallTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
@@ -269,7 +368,91 @@ namespace SmartSchedulingSystem.Test
                 Console.WriteLine($"低谷时段: 星期{GetDayName(lowestSlot.DayOfWeek)} {lowestSlot.StartTime}-{lowestSlot.EndTime}, 利用率: {lowestSlot.UtilizationRate:P2}");
             }
         }
+        static void AnalyzeScheduleQuality(SchedulingSolution solution, SchedulingProblem problem)
+        {
+            Console.WriteLine("\n----- 排课质量分析 -----");
 
+            // 1. 教师负荷分析
+            var teacherWorkloads = solution.Assignments
+                .GroupBy(a => a.TeacherId)
+                .Select(g => new {
+                    TeacherId = g.Key,
+                    TeacherName = g.First().TeacherName,
+                    CourseCount = g.Count(),
+                    SectionIds = g.Select(a => a.SectionId).Distinct().Count()
+                })
+                .OrderByDescending(x => x.CourseCount)
+                .ToList();
+
+            Console.WriteLine("教师负荷分布:");
+            foreach (var teacher in teacherWorkloads.Take(5))
+            {
+                Console.WriteLine($"  {teacher.TeacherName}: {teacher.CourseCount}次课，{teacher.SectionIds}门不同课程");
+            }
+
+            double avgTeacherWorkload = teacherWorkloads.Select(t => t.CourseCount).Average();
+            double stdDevTeacherWorkload = Math.Sqrt(
+                teacherWorkloads.Sum(t => Math.Pow(t.CourseCount - avgTeacherWorkload, 2)) / teacherWorkloads.Count);
+
+            Console.WriteLine($"平均教师负荷: {avgTeacherWorkload:F2}次课，标准差: {stdDevTeacherWorkload:F2}");
+
+            // 2. 教室利用率分析
+            var roomUtilizations = solution.Assignments
+                .GroupBy(a => a.ClassroomId)
+                .Select(g => new {
+                    RoomId = g.Key,
+                    RoomName = g.First().ClassroomName,
+                    UsageCount = g.Count()
+                })
+                .OrderByDescending(x => x.UsageCount)
+                .ToList();
+
+            Console.WriteLine("\n教室利用率:");
+            foreach (var room in roomUtilizations.Take(5))
+            {
+                Console.WriteLine($"  {room.RoomName}: {room.UsageCount}次课");
+            }
+
+            // 3. 时间槽分布
+            var timeSlotDistribution = solution.Assignments
+                .GroupBy(a => a.DayOfWeek)
+                .Select(g => new {
+                    Day = g.Key,
+                    DayName = GetDayName(g.Key),
+                    Count = g.Count()
+                })
+                .OrderBy(x => x.Day)
+                .ToList();
+
+            Console.WriteLine("\n各天课程分布:");
+            foreach (var day in timeSlotDistribution)
+            {
+                Console.WriteLine($"  {day.DayName}: {day.Count}次课");
+            }
+
+            // 4. 匹配度分析
+            int matchingRoomTypes = 0;
+            int totalAssignments = solution.Assignments.Count;
+
+            foreach (var assignment in solution.Assignments)
+            {
+                var section = problem.CourseSections.FirstOrDefault(s => s.Id == assignment.SectionId);
+                var room = problem.Classrooms.FirstOrDefault(r => r.Id == assignment.ClassroomId);
+
+                if (section != null && room != null)
+                {
+                    if (string.IsNullOrEmpty(section.RequiredRoomType) ||
+                        section.RequiredRoomType == "Regular" ||
+                        section.RequiredRoomType == room.Type)
+                    {
+                        matchingRoomTypes++;
+                    }
+                }
+            }
+
+            double roomTypeMatchRate = totalAssignments > 0 ? (double)matchingRoomTypes / totalAssignments : 0;
+            Console.WriteLine($"\n教室类型匹配率: {roomTypeMatchRate:P2}");
+        }
         private static string GetDayName(int day)
         {
             return day switch

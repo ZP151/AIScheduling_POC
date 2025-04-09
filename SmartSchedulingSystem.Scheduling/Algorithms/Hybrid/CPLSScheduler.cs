@@ -469,6 +469,22 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 {
                     _logger.LogError($"课程 {section.CourseCode} 找不到合格的教师!");
                 }
+                else
+                {
+                    // 检查这些教师是否有足够的可用时间
+                    foreach (var teacherId in qualifiedTeachers)
+                    {
+                        var unavailableTimes = problem.TeacherAvailabilities
+                            .Where(ta => ta.TeacherId == teacherId && !ta.IsAvailable)
+                            .Select(ta => ta.TimeSlotId)
+                            .ToList();
+
+                        if (unavailableTimes.Count >= problem.TimeSlots.Count)
+                        {
+                            _logger.LogError($"教师 ID:{teacherId} 没有任何可用时间段!");
+                        }
+                    }
+                }
             }
 
             // 检查教室可用性
@@ -497,6 +513,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 {
                     _logger.LogError($"教师 {teacher.Name} 没有可用的时间段!");
                 }
+            }
+            // 检查资源总量是否足够
+            if (problem.TimeSlots.Count < problem.CourseSections.Count)
+            {
+                _logger.LogError($"时间槽总数({problem.TimeSlots.Count})少于课程数({problem.CourseSections.Count})，无法完成排课!");
             }
         }
         /// <summary>

@@ -259,6 +259,20 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                         break;
                     case CpSolverStatus.Infeasible:
                         _logger.LogInformation("排课问题无可行解，约束冲突");
+                        // 添加更详细的问题诊断
+                        _logger.LogWarning("问题被确定为不可行，详细诊断中...");
+
+                        // 记录资源和约束的基本信息
+                        _logger.LogWarning($"课程数量: {problem.CourseSections.Count}");
+                        _logger.LogWarning($"教师数量: {problem.Teachers.Count}");
+                        _logger.LogWarning($"教室数量: {problem.Classrooms.Count}");
+                        _logger.LogWarning($"时间槽数量: {problem.TimeSlots.Count}");
+                        _logger.LogWarning($"教师课程偏好数量: {problem.TeacherCoursePreferences.Count}");
+                        _logger.LogWarning($"教师不可用时间段数量: {problem.TeacherAvailabilities.Count}");
+                        _logger.LogWarning($"教室不可用时间段数量: {problem.ClassroomAvailabilities.Count}");
+
+                        // 检查一些可能的问题原因
+                        DiagnoseInfeasibilityReasons(problem);
                         break;
                     case CpSolverStatus.Unknown:
                         _logger.LogInformation("排课问题不确定是否有解，求解时间不足");
@@ -275,6 +289,81 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 _logger.LogError(ex, "检查可行性过程中发生异常");
                 status = CpSolverStatus.Unknown;
                 return false;
+            }
+        }
+        private void DiagnoseInfeasibilityReasons(SchedulingProblem problem)
+        {
+            // 检查课程和教师的匹配情况
+            foreach (var section in problem.CourseSections)
+            {
+                var qualifiedTeachers = problem.TeacherCoursePreferences
+                    .Where(p => p.CourseId == section.CourseId && p.ProficiencyLevel >= 3)
+                    .Select(p => p.TeacherId)
+                    .ToList();
+
+                if (qualifiedTeachers.Count == 0)
+                {
+                    _logger.LogError($"课程 {section.CourseName} (ID: {section.Id}) 没有合格的教师可以教授！");
+                }
+                else
+                {
+                    // 检查所有合格教师是否都有不可用时间冲突
+                    bool allTeachersUnavailable = true;
+                    foreach (var teacherId in qualifiedTeachers)
+                    {
+                        var unavailableTimes = problem.TeacherAvailabilities
+                            .Where(a => a.TeacherId == teacherId && !a.IsAvailable)
+                            .Select(a => a.TimeSlotId)
+                            .ToHashSet();
+
+                        if (unavailableTimes.Count < problem.TimeSlots.Count)
+                        {
+                            allTeachersUnavailable = false;
+                            break;
+                        }
+                    }
+
+                    if (allTeachersUnavailable)
+                    {
+                        _logger.LogError($"课程 {section.CourseName} (ID: {section.Id}) 的所有合格教师都没有可用时间段！");
+                    }
+                }
+            }
+
+            // 检查教室容量是否满足课程需求
+            foreach (var section in problem.CourseSections)
+            {
+                var suitableRooms = problem.Classrooms
+                    .Where(r => r.Capacity >= section.Enrollment)
+                    .ToList();
+
+                if (suitableRooms.Count == 0)
+                {
+                    _logger.LogError($"课程 {section.CourseName} (ID: {section.Id}, 学生数: {section.Enrollment}) 没有容量足够的教室！");
+                }
+                else if (section.RequiredRoomType != null && section.RequiredRoomType != "Regular")
+                {
+                    // 检查是否有符合要求类型的教室
+                    var typeMatchingRooms = suitableRooms
+                        .Where(r => r.Type == section.RequiredRoomType)
+                        .ToList();
+
+                    if (typeMatchingRooms.Count == 0)
+                    {
+                        _logger.LogError($"课程 {section.CourseName} (ID: {section.Id}) 需要类型为 {section.RequiredRoomType} 的教室，但没有符合条件的教室！");
+                    }
+                }
+            }
+
+            // 分析时间槽和教室的可用性
+            if (problem.TimeSlots.Count < problem.CourseSections.Count)
+            {
+                _logger.LogError($"时间槽数量 ({problem.TimeSlots.Count}) 小于课程数量 ({problem.CourseSections.Count})，可能导致无法分配所有课程！");
+            }
+
+            if (problem.Classrooms.Count < problem.CourseSections.Count)
+            {
+                _logger.LogError($"教室数量 ({problem.Classrooms.Count}) 小于课程数量 ({problem.CourseSections.Count})，如果有同时段课程，将无法分配所有课程！");
             }
         }
         // 构建松弛模型，仅保留最基本的约束
