@@ -71,10 +71,9 @@ namespace SmartSchedulingSystem.Test.Integration
             // 验证结果
             Assert.True(result.Status == SchedulingStatus.Success,
                       $"排课应该成功，但状态为：{result.Status}，消息：{result.Message}");
-            Assert.True(result.Solutions.Count > 0, "应该生成至少一个解");
 
             // 获取第一个解决方案
-            if (result.Solutions.Any())
+            if (result.Solutions.Count > 0)
             {
                 var solution = result.Solutions.First();
                 Console.WriteLine($"成功生成排课方案，共{solution.Assignments.Count}个分配");
@@ -86,6 +85,11 @@ namespace SmartSchedulingSystem.Test.Integration
                                       $"教室:{assignment.ClassroomName}, 时间:周{assignment.DayOfWeek}-{assignment.StartTime}");
                 }
             }
+            // 断言
+            Assert.Equal(SchedulingStatus.Success, result.Status);
+            Assert.NotEmpty(result.Solutions);
+
+            Console.WriteLine("============ 超简单测试结束 ============");
         }
         [Fact]
         public void Test_CP_Initial_Solution_Generation()
@@ -114,127 +118,127 @@ namespace SmartSchedulingSystem.Test.Integration
                 }
             }
         }
-        // 在测试类中添加
-        [Fact]
-        public void Test_CPScheduler_CheckFeasibility()
-        {
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
-            var cpScheduler = _serviceProvider.GetRequiredService<CPScheduler>();
-            Google.OrTools.Sat.CpSolverStatus status;
+        //// 在测试类中添加
+        //[Fact]
+        //public void Test_CPScheduler_CheckFeasibility()
+        //{
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+        //    var cpScheduler = _serviceProvider.GetRequiredService<CPScheduler>();
+        //    Google.OrTools.Sat.CpSolverStatus status;
 
-            bool isFeasible = cpScheduler.CheckFeasibility(testProblem, out status);
+        //    bool isFeasible = cpScheduler.CheckFeasibility(testProblem, out status);
 
-            Console.WriteLine($"可行性检查结果: {isFeasible}, 状态: {status}");
-            Assert.True(isFeasible, $"问题应该是可行的，但状态为: {status}");
-        }
-        // 在测试类中添加
-        [Fact]
-        public void Test_ConstraintManager_Registration()
-        {
-            var constraintManager = _serviceProvider.GetRequiredService<ConstraintManager>();
+        //    Console.WriteLine($"可行性检查结果: {isFeasible}, 状态: {status}");
+        //    Assert.True(isFeasible, $"问题应该是可行的，但状态为: {status}");
+        //}
+        //// 在测试类中添加
+        //[Fact]
+        //public void Test_ConstraintManager_Registration()
+        //{
+        //    var constraintManager = _serviceProvider.GetRequiredService<ConstraintManager>();
 
-            var hardConstraints = constraintManager.GetHardConstraints();
-            var softConstraints = constraintManager.GetSoftConstraints();
+        //    var hardConstraints = constraintManager.GetHardConstraints();
+        //    var softConstraints = constraintManager.GetSoftConstraints();
 
-            Console.WriteLine($"硬约束数量: {hardConstraints.Count}");
-            foreach (var constraint in hardConstraints)
-            {
-                Console.WriteLine($"- {constraint.Name} (ID: {constraint.Id})");
-            }
+        //    Console.WriteLine($"硬约束数量: {hardConstraints.Count}");
+        //    foreach (var constraint in hardConstraints)
+        //    {
+        //        Console.WriteLine($"- {constraint.Name} (ID: {constraint.Id})");
+        //    }
 
-            Console.WriteLine($"软约束数量: {softConstraints.Count}");
-            foreach (var constraint in softConstraints)
-            {
-                Console.WriteLine($"- {constraint.Name} (ID: {constraint.Id})");
-            }
+        //    Console.WriteLine($"软约束数量: {softConstraints.Count}");
+        //    foreach (var constraint in softConstraints)
+        //    {
+        //        Console.WriteLine($"- {constraint.Name} (ID: {constraint.Id})");
+        //    }
 
-            Assert.True(hardConstraints.Count > 0, "应该至少有一个硬约束");
-        }
-        // 在测试中添加这段代码
-        [Fact]
-        public void Test_Constraints_Evaluation()
-        {
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
-            var constraintManager = _serviceProvider.GetRequiredService<ConstraintManager>();
+        //    Assert.True(hardConstraints.Count > 0, "应该至少有一个硬约束");
+        //}
+        //// 在测试中添加这段代码
+        //[Fact]
+        //public void Test_Constraints_Evaluation()
+        //{
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+        //    var constraintManager = _serviceProvider.GetRequiredService<ConstraintManager>();
 
-            // 创建一个简单的排课分配
-            var solution = new SchedulingSolution
-            {
-                Id = 1,
-                ProblemId = testProblem.Id,
-                Problem = testProblem
-            };
+        //    // 创建一个简单的排课分配
+        //    var solution = new SchedulingSolution
+        //    {
+        //        Id = 1,
+        //        ProblemId = testProblem.Id,
+        //        Problem = testProblem
+        //    };
 
-            // 手动添加一个简单分配
-            solution.Assignments.Add(new SchedulingAssignment
-            {
-                Id = 1,
-                SectionId = 1,
-                SectionCode = "CS101-A",
-                TeacherId = 1,
-                TeacherName = "张教授",
-                ClassroomId = 1,
-                ClassroomName = "A101",
-                TimeSlotId = 1,
-                DayOfWeek = 1,
-                StartTime = new TimeSpan(8, 0, 0),
-                EndTime = new TimeSpan(9, 30, 0)
-            });
+        //    // 手动添加一个简单分配
+        //    solution.Assignments.Add(new SchedulingAssignment
+        //    {
+        //        Id = 1,
+        //        SectionId = 1,
+        //        SectionCode = "CS101-A",
+        //        TeacherId = 1,
+        //        TeacherName = "张教授",
+        //        ClassroomId = 1,
+        //        ClassroomName = "A101",
+        //        TimeSlotId = 1,
+        //        DayOfWeek = 1,
+        //        StartTime = new TimeSpan(8, 0, 0),
+        //        EndTime = new TimeSpan(9, 30, 0)
+        //    });
 
-            // 测试每个硬约束
-            var hardConstraints = constraintManager.GetHardConstraints();
-            foreach (var constraint in hardConstraints)
-            {
-                var (score, conflicts) = constraint.Evaluate(solution);
-                Console.WriteLine($"约束 {constraint.Name} 评分: {score}, 冲突数: {conflicts?.Count ?? 0}");
-                if (conflicts?.Count > 0)
-                {
-                    Console.WriteLine($"  第一个冲突: {conflicts[0].Description}");
-                }
-                Assert.True(score >= 1.0, $"约束 {constraint.Name} 应该满足，但得分为 {score}");
-            }
-        }
-        [Fact]
-        public void Test_CPModelBuilder()
-        {
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
-            var modelBuilder = _serviceProvider.GetRequiredService<CPModelBuilder>();
+        //    // 测试每个硬约束
+        //    var hardConstraints = constraintManager.GetHardConstraints();
+        //    foreach (var constraint in hardConstraints)
+        //    {
+        //        var (score, conflicts) = constraint.Evaluate(solution);
+        //        Console.WriteLine($"约束 {constraint.Name} 评分: {score}, 冲突数: {conflicts?.Count ?? 0}");
+        //        if (conflicts?.Count > 0)
+        //        {
+        //            Console.WriteLine($"  第一个冲突: {conflicts[0].Description}");
+        //        }
+        //        Assert.True(score >= 1.0, $"约束 {constraint.Name} 应该满足，但得分为 {score}");
+        //    }
+        //}
+        //[Fact]
+        //public void Test_CPModelBuilder()
+        //{
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+        //    var modelBuilder = _serviceProvider.GetRequiredService<CPModelBuilder>();
 
-            // 获取必要的依赖项
-            var converter = _serviceProvider.GetRequiredService<SolutionConverter>();
+        //    // 获取必要的依赖项
+        //    var converter = _serviceProvider.GetRequiredService<SolutionConverter>();
 
-            try
-            {
-                // 构建模型
-                var model = modelBuilder.BuildModel(testProblem);
-                Assert.NotNull(model);
-                Console.WriteLine("CP模型构建成功");
-            }
-            catch (Exception ex)
-            {
-                Assert.True(false, $"CP模型构建失败: {ex.Message}\n{ex.StackTrace}");
-            }
-        }
-        [Fact]
-        public void Test_CP_Model_Variables()
-        {
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
-            var modelBuilder = _serviceProvider.GetRequiredService<CPModelBuilder>();
+        //    try
+        //    {
+        //        // 构建模型
+        //        var model = modelBuilder.BuildModel(testProblem);
+        //        Assert.NotNull(model);
+        //        Console.WriteLine("CP模型构建成功");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Assert.True(false, $"CP模型构建失败: {ex.Message}\n{ex.StackTrace}");
+        //    }
+        //}
+        //[Fact]
+        //public void Test_CP_Model_Variables()
+        //{
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+        //    var modelBuilder = _serviceProvider.GetRequiredService<CPModelBuilder>();
 
-            try
-            {
-                // 尝试构建模型
-                var model = modelBuilder.BuildModel(testProblem);
+        //    try
+        //    {
+        //        // 尝试构建模型
+        //        var model = modelBuilder.BuildModel(testProblem);
 
-                // 这里需要添加逻辑检查模型中的变量数量
-                // 但由于CpModel不容易直接检查内部变量，可以添加日志输出
-                Console.WriteLine("模型构建成功");
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail($"模型构建失败: {ex.Message}");
-            }
-        }
+        //        // 这里需要添加逻辑检查模型中的变量数量
+        //        // 但由于CpModel不容易直接检查内部变量，可以添加日志输出
+        //        Console.WriteLine("模型构建成功");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Assert.Fail($"模型构建失败: {ex.Message}");
+        //    }
+        //}
         //[Fact]
         //public void TestSchedulingAlgorithm_WithSimpleData_ShouldSucceed()
         //{

@@ -24,7 +24,7 @@ namespace SmartSchedulingSystem.Test.TestData
                 {
                     Id = 1,
                     DayOfWeek = 1,
-                    DayName = "周一",
+                    DayName = "Monday",
                     StartTime = new TimeSpan(8, 0, 0),
                     EndTime = new TimeSpan(9, 30, 0),
                     Type = "Regular"
@@ -33,7 +33,7 @@ namespace SmartSchedulingSystem.Test.TestData
                 {
                     Id = 2,
                     DayOfWeek = 1,
-                    DayName = "周一",
+                    DayName = "Monday",
                     StartTime = new TimeSpan(10, 0, 0),
                     EndTime = new TimeSpan(11, 30, 0),
                     Type = "Regular"
@@ -64,7 +64,7 @@ namespace SmartSchedulingSystem.Test.TestData
                 new TeacherInfo
                 {
                     Id = 1,
-                    Name = "张教授",
+                    Name = "Test Teacher",
                     Title = "Professor",
                     DepartmentId = 1,
                     DepartmentName = "Computer Science",
@@ -110,10 +110,70 @@ namespace SmartSchedulingSystem.Test.TestData
             };
 
             // 明确设置所有可用性和约束（空而非null）
-            problem.TeacherAvailabilities = new List<TeacherAvailability>();
-            problem.ClassroomAvailabilities = new List<ClassroomAvailability>();
-            problem.Prerequisites = new List<CoursePrerequisite>();
-            problem.Constraints = new List<IConstraint>(); // 这个可能是关键
+            problem.TeacherAvailabilities = new List<TeacherAvailability>
+            {
+                new TeacherAvailability
+                {
+                    TeacherId = 1,
+                    TimeSlotId = 1,
+                    IsAvailable = true
+                },
+                new TeacherAvailability
+                {
+                    TeacherId = 1,
+                    TimeSlotId = 2,
+                    IsAvailable = true
+                }
+            };
+            problem.ClassroomAvailabilities = new List<ClassroomAvailability>
+            {
+                new ClassroomAvailability
+                {
+                    ClassroomId = 1,
+                    TimeSlotId = 1,
+                    IsAvailable = true
+                },
+                new ClassroomAvailability
+                {
+                    ClassroomId = 1,
+                    TimeSlotId = 2,
+                    IsAvailable = true
+                }
+            };
+            problem.TeacherCoursePreferences = new List<TeacherCoursePreference>
+            {
+                new TeacherCoursePreference
+                {
+                    TeacherId = 1,
+                    CourseId = 1,
+                    ProficiencyLevel = 5,
+                    PreferenceLevel = 5
+                }
+            };
+            problem.Prerequisites = new List<CoursePrerequisite>
+            {
+                new CoursePrerequisite
+                {
+                    CourseId = 1,
+                    PrerequisiteCourseId = 0 // 没有先修课程
+                }
+            };
+            //需要注意的是，这里我们没有添加任何冲突约束，但是这个简单测试必须需要冲突才能执行吗？？还是说约束已经在注册了？
+            //problem.Constraints = new List<IConstraint>
+            //{
+            //    new ClassroomConflictConstraint
+            //    {
+            //        ClassroomId = 1,
+            //        TimeSlotId = 1,
+            //        ConflictType = ConflictType.Classroom
+            //    },
+            //    new TeacherConflictConstraint
+            //    {
+            //        TeacherId = 1,
+            //        TimeSlotId = 1,
+            //        ConflictType = ConflictType.Teacher
+            //    }
+            //}; // 这个可能是关键
 
             return problem;
         }

@@ -25,19 +25,34 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
         public override void OnSolutionCallback()
         {
+            Console.WriteLine("收到回调，找到新解!");
+            // 为了调试，输出一些变量的值
+            var activeVariables = _variables.Where(v => Value(v.Value) > 0).ToList();
+            Console.WriteLine($"发现 {activeVariables.Count} 个活跃变量(值>0)");
+
             // 存储当前解
             var solution = new Dictionary<string, long>();
             foreach (var entry in _variables)
             {
-                solution[entry.Key] = Value(entry.Value);
+                long value = Value(entry.Value);
+                solution[entry.Key] = value;
+
+                // 输出活跃变量
+                if (value > 0)
+                {
+                    Console.WriteLine($"变量 {entry.Key} = {value}");
+                }
             }
 
             Solutions.Add(solution);
             _solutionCount++;
 
+            Console.WriteLine($"当前已收集 {_solutionCount} 个解");
+
             // 如果达到最大解数，停止搜索
             if (_solutionCount >= _maxSolutions)
             {
+                Console.WriteLine("达到最大解数，停止搜索");
                 StopSearch();
             }
         }

@@ -16,42 +16,56 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
     {
         private readonly IEnumerable<ICPConstraintConverter> _constraintConverters;
         private readonly ConstraintManager _constraintManager;
+        private Dictionary<string, IntVar> _variables = new Dictionary<string, IntVar>();
 
         public CPModelBuilder(IEnumerable<ICPConstraintConverter> constraintConverters, ConstraintManager constraintManager)
         {
             _constraintConverters = constraintConverters ?? throw new ArgumentNullException(nameof(constraintConverters));
             _constraintManager = constraintManager ?? throw new ArgumentNullException(nameof(constraintManager));
         }
-
+        public Dictionary<string, IntVar> GetVariables()
+        {
+            return _variables;
+        }
         /// <summary>
         /// 为排课问题构建CP模型
         /// </summary>
         public CpModel BuildModel(SchedulingProblem problem)
         {
+            _variables.Clear();
+
+            Console.WriteLine("============ CP模型构建开始 ============");
+            Console.WriteLine($"Problem详情: {problem.Name}, {problem.CourseSections.Count}门课程");
+
             if (problem == null)
                 throw new ArgumentNullException(nameof(problem));
 
             var model = new CpModel();
-            var variables = CreateDecisionVariables(model, problem);
+            _variables = CreateDecisionVariables(model, problem);
 
             // 添加核心约束
-            AddOneCourseOneAssignmentConstraints(model, variables, problem);  // 每门课必须分配一次
-            AddTeacherConflictConstraints(model, variables, problem);   // 教师不能同时教两门课
-            AddClassroomConflictConstraints(model, variables, problem); // 教室不能同时安排两门课
-            AddTeacherAvailabilityConstraints(model, variables, problem); // 教师可用性约束
-            AddClassroomAvailabilityConstraints(model, variables, problem); // 教室可用性约束
-            AddClassroomCapacityConstraints(model, variables, problem); // 教室容量约束
-            AddPrerequisiteConstraints(model, variables, problem);      // 先修课程约束
+            Console.WriteLine("添加OneCourseOneAssignment约束");
+            AddOneCourseOneAssignmentConstraints(model, _variables, problem);  // 每门课必须分配一次
+            Console.WriteLine("添加教师冲突约束");
+            AddTeacherConflictConstraints(model, _variables, problem);   // 教师不能同时教两门课
+
+            AddClassroomConflictConstraints(model, _variables, problem); // 教室不能同时安排两门课
+            AddTeacherAvailabilityConstraints(model, _variables, problem); // 教师可用性约束
+            AddClassroomAvailabilityConstraints(model, _variables, problem); // 教室可用性约束
+            AddClassroomCapacityConstraints(model, _variables, problem); // 教室容量约束
+            AddPrerequisiteConstraints(model, _variables, problem);      // 先修课程约束
 
 
             // 应用所有自定义约束转换器
             foreach (var converter in _constraintConverters)
             {
-                converter.AddToModel(model, variables, problem);
+                converter.AddToModel(model, _variables, problem);
             }
 
             // 设置目标函数（最大化软约束满足度）
-            SetupObjectiveFunction(model, variables, problem);
+            Console.WriteLine("设置目标函数");
+            SetupObjectiveFunction(model, _variables, problem);
+            Console.WriteLine("============ CP模型构建完成 ============");
 
             return model;
         }
@@ -61,7 +75,6 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         /// </summary>
         private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
         {
-            var variables = new Dictionary<string, IntVar>();
             int variableCount = 0;
             // 为每个课程-时间-教室-教师的可能组合创建二元变量
             foreach (var course in problem.CourseSections)
@@ -113,7 +126,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
                             // 创建0-1整数变量(0=不分配，1=分配)
                             var variable = model.NewBoolVar(varName);
-                            variables[varName] = variable;
+                            _variables[varName] = variable;
                             variableCount++;
 
                         }
@@ -125,20 +138,20 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             // 如果某门课程没有可行的分配，记录日志
             foreach (var course in problem.CourseSections)
             {
-                var courseVars = variables.Where(kv => kv.Key.StartsWith($"c{course.Id}_")).ToList();
+                var courseVars = _variables.Where(kv => kv.Key.StartsWith($"c{course.Id}_")).ToList();
                 if (courseVars.Count == 0)
                 {
                     Console.WriteLine($"警告: 课程 {course.Id} ({course.CourseName}) 没有可行的分配，可能无法生成有效解");
                 }
             }
 
-            return variables;
+            return _variables;
         }
 
         /// <summary>
         /// 设置目标函数，优化软约束满足度
         /// </summary>
-        private void SetupObjectiveFunction(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void SetupObjectiveFunction(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             // 创建目标函数表达式
             LinearExpr objective = LinearExpr.Constant(0);
@@ -160,7 +173,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     }
 
                     // 找到所有教师在此时间段的变量
-                    var teacherTimeVars = variables
+                    var teacherTimeVars = _variables
                         .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_") && kv.Key.EndsWith($"_f{teacher.Id}"))
                         .Select(kv => kv.Value)
                         .ToList();
@@ -185,7 +198,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     int matchScore = CalculateRoomTypeMatchScore(course, classroom, problem);
 
                     // 找到所有此课程使用此教室的变量
-                    var courseRoomVars = variables
+                    var courseRoomVars = _variables
                         .Where(kv => kv.Key.StartsWith($"c{course.Id}_") && kv.Key.Contains($"_r{classroom.Id}_"))
                         .Select(kv => kv.Value)
                         .ToList();
@@ -210,7 +223,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     int capacityScore = CalculateCapacityScore(course.Enrollment, classroom.Capacity);
 
                     // 找到所有此课程使用此教室的变量
-                    var courseRoomVars = variables
+                    var courseRoomVars = _variables
                         .Where(kv => kv.Key.StartsWith($"c{course.Id}_") && kv.Key.Contains($"_r{classroom.Id}_"))
                         .Select(kv => kv.Value)
                         .ToList();
@@ -314,32 +327,40 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             // 其他情况视为不兼容
             return false;
         }
-        private void AddOneCourseOneAssignmentConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddOneCourseOneAssignmentConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var course in problem.CourseSections)
             {
+                Console.WriteLine("添加每门课程必须分配一次的约束");
+
                 // 找出所有涉及此课程班级的变量
-                var courseVars = variables
+                var courseVars = _variables
                     .Where(kv => kv.Key.StartsWith($"c{course.Id}_"))
                     .Select(kv => kv.Value)
                     .ToList();
+                Console.WriteLine($"课程 {course.Id} 找到 {courseVars.Count} 个变量");
 
                 if (courseVars.Count > 0)
                 {
                     // 约束：每门课程必须且只能分配一次
                     model.Add(LinearExpr.Sum(courseVars) == 1);
+                    Console.WriteLine($"为课程 {course.Id} 添加了OneCourseOneAssignment约束");
+                }
+                else
+                {
+                    Console.WriteLine($"警告：课程 {course.Id} 没有找到相关变量，无法添加约束!");
                 }
             }
         }
 
-        private void AddTeacherConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddTeacherConflictConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var timeSlot in problem.TimeSlots)
                 {
                     // 找出该教师在该时间段的所有可能分配
-                    var teacherTimeVars = variables
+                    var teacherTimeVars = _variables
                         .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_") &&
                                    kv.Key.EndsWith($"_f{teacher.Id}"))
                         .Select(kv => kv.Value)
@@ -354,14 +375,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddClassroomConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddClassroomConflictConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var classroom in problem.Classrooms)
             {
                 foreach (var timeSlot in problem.TimeSlots)
                 {
                     // 找出该教室在该时间段的所有可能分配
-                    var roomTimeVars = variables
+                    var roomTimeVars = _variables
                         .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_r{classroom.Id}_"))
                         .Select(kv => kv.Value)
                         .ToList();
@@ -375,14 +396,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddTeacherAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddTeacherAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var availability in problem.TeacherAvailabilities)
             {
                 if (!availability.IsAvailable)
                 {
                     // 找出教师在不可用时间段的所有可能分配
-                    var unavailableVars = variables
+                    var unavailableVars = _variables
                         .Where(kv => kv.Key.Contains($"_t{availability.TimeSlotId}_") &&
                                    kv.Key.EndsWith($"_f{availability.TeacherId}"))
                         .Select(kv => kv.Value)
@@ -397,14 +418,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddClassroomAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddClassroomAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var availability in problem.ClassroomAvailabilities)
             {
                 if (!availability.IsAvailable)
                 {
                     // 找出教室在不可用时间段的所有可能分配
-                    var unavailableVars = variables
+                    var unavailableVars = _variables
                         .Where(kv => kv.Key.Contains($"_t{availability.TimeSlotId}_r{availability.ClassroomId}_"))
                         .Select(kv => kv.Value)
                         .ToList();
@@ -418,7 +439,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddClassroomCapacityConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddClassroomCapacityConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             foreach (var section in problem.CourseSections)
             {
@@ -427,7 +448,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     if (classroom.Capacity < section.Enrollment)
                     {
                         // 找出教室容量不足的所有可能分配
-                        var invalidVars = variables
+                        var invalidVars = _variables
                             .Where(kv => kv.Key.StartsWith($"c{section.Id}_") &&
                                        kv.Key.Contains($"_r{classroom.Id}_"))
                             .Select(kv => kv.Value)
@@ -443,7 +464,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddPrerequisiteConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
+        private void AddPrerequisiteConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
             // 创建课程ID到班级ID的映射
             var courseToSections = new Dictionary<int, List<int>>();
@@ -477,12 +498,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                             {
                                 foreach (var prereqSectionId in prereqSectionIds)
                                 {
-                                    var sectionTimeVars = variables
+                                    var sectionTimeVars = _variables
                                         .Where(kv => kv.Key.StartsWith($"c{sectionId}_t{timeSlot.Id}_"))
                                         .Select(kv => kv.Value)
                                         .ToList();
 
-                                    var prereqTimeVars = variables
+                                    var prereqTimeVars = _variables
                                         .Where(kv => kv.Key.StartsWith($"c{prereqSectionId}_t{timeSlot.Id}_"))
                                         .Select(kv => kv.Value)
                                         .ToList();

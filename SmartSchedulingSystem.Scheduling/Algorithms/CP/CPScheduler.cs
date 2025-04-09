@@ -39,6 +39,9 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             try
             {
                 _logger.LogInformation($"开始使用CP求解器生成初始解，目标数量：{solutionCount}");
+                Console.WriteLine("============ CP求解开始 ============");
+                Console.WriteLine($"问题ID: {problem.Id}, 名称: {problem.Name}");
+                Console.WriteLine($"请求解决方案数量: {solutionCount}");
 
                 var sw = Stopwatch.StartNew();
 
@@ -49,6 +52,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
                 // 创建CP求解器
                 var solver = new CpSolver();
+                Console.WriteLine("求解器参数设置...");
 
                 // 配置求解器
                 solver.StringParameters = $"num_search_workers:{Math.Max(1, Environment.ProcessorCount / 2)}"; // 使用部分CPU核心
@@ -58,32 +62,65 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     solver.StringParameters += $";max_time_in_seconds:{_parameters.CpTimeLimit}";
                     _logger.LogInformation($"设置CP求解时间限制：{_parameters.CpTimeLimit}秒");
                 }
-
-                // 创建多样化解回调
+                Console.WriteLine($"求解器参数: {solver.StringParameters}");
+                
+                // 创建变量字典
                 var variableDict = ExtractVariablesDictionary(model);
-                var callback = new DiverseSolutionCallback(variableDict, solutionCount, model);
+                Console.WriteLine($"变量字典大小: {variableDict.Count}");
+                
+                // 创建多样化解回调
+                //var callback = new DiverseSolutionCallback(variableDict, solutionCount, model);
+
+                // 使用基本回调代替DiverseSolutionCallback进行测试
+                var callback = new CPSolutionCallback(variableDict, solutionCount);
 
                 // 求解模型
                 _logger.LogInformation("开始CP求解...");
+
                 sw.Restart();
 
+                Console.WriteLine("开始CP求解...");
                 var status = solver.Solve(model, callback);
+                Console.WriteLine($"CP求解完成，状态: {status}, 找到解数量: {callback.SolutionCount}");
 
                 sw.Stop();
                 _logger.LogInformation($"CP求解完成，状态：{status}，耗时：{sw.ElapsedMilliseconds}ms，找到解数量：{callback.SolutionCount}");
 
-                // 检查是否找到解
-                if (status == CpSolverStatus.Unknown)
+                //// 检查是否找到解
+                //if (status == CpSolverStatus.Unknown)
+                //{
+                //    _logger.LogWarning("CP求解器无法在给定时间内找到解");
+                //    return new List<SchedulingSolution>();
+                //}
+
+                //if (callback.SolutionCount == 0)
+                //{
+                //    _logger.LogWarning("CP求解器未找到满足所有硬约束的解");
+                //    return new List<SchedulingSolution>();
+                //}
+                // 关键调试点：检查回调中的解
+                if (callback.SolutionCount > 0)
                 {
-                    _logger.LogWarning("CP求解器无法在给定时间内找到解");
-                    return new List<SchedulingSolution>();
+                    Console.WriteLine("解详情:");
+                    foreach (var solution in callback.Solutions)
+                    {
+                        Console.WriteLine($"  解包含 {solution.Count} 个变量赋值");
+
+                        // 查看值为1的变量
+                        var assignments = solution.Where(kv => kv.Value == 1).ToList();
+                        Console.WriteLine($"  其中 {assignments.Count} 个变量值为1");
+
+                        foreach (var kvp in assignments)
+                        {
+                            Console.WriteLine($"    {kvp.Key} = {kvp.Value}");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("未找到任何解!");
                 }
 
-                if (callback.SolutionCount == 0)
-                {
-                    _logger.LogWarning("CP求解器未找到满足所有硬约束的解");
-                    return new List<SchedulingSolution>();
-                }
 
                 // 转换为排课系统解
                 var solutions = new List<SchedulingSolution>();
@@ -96,9 +133,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     var solution = _solutionConverter.ConvertToSchedulingSolution(cpSolution, problem);
                     solution.Algorithm = "CP";
                     solutions.Add(solution);
+                    Console.WriteLine($"转换后的解包含 {solution.Assignments.Count} 个分配");
+
                 }
 
                 sw.Stop();
+                Console.WriteLine("============ CP求解结束 ============");
                 _logger.LogInformation($"解转换完成，耗时：{sw.ElapsedMilliseconds}ms，共{solutions.Count}个解");
 
                 return solutions;
@@ -120,7 +160,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
             // 为了演示目的，我们返回一个空字典
             _logger.LogWarning("使用空变量字典，这在实际项目中需要替换为真实实现");
-            return new Dictionary<string, IntVar>();
+            //return new Dictionary<string, IntVar>();
+
+            return _modelBuilder.GetVariables();
+
         }
 
         /// <summary>
