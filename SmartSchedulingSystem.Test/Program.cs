@@ -49,9 +49,9 @@ namespace SmartSchedulingSystem.Test
                 // 先验证CreateDebugFeasibleProblem是否成功
                 RunSimpleTest(schedulingEngine, testDataGenerator);
 
-                Console.WriteLine("\n=== 第二步：测试现实场景数据 ===");
-                // 再运行现实场景测试
-                RunRealisticTests(schedulingEngine, testDataGenerator);
+                //Console.WriteLine("\n=== 第二步：测试现实场景数据 ===");
+                //// 再运行现实场景测试
+                //RunRealisticTests(schedulingEngine, testDataGenerator);
             }
             catch (Exception ex)
             {

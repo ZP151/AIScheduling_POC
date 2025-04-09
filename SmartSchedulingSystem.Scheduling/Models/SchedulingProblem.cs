@@ -166,15 +166,10 @@ namespace SmartSchedulingSystem.Scheduling.Models
 
         public int Hours { get; set; }
 
-        
-        /// 选课学生人数
 
+        /// 该课学生容量
+        /// 后面要该改变量名，改成该课程的学生容量
         public int Enrollment { get; set; }
-
-        
-        /// 最大容量
-
-        public int MaxEnrollment { get; set; }
 
         
         /// 部门ID

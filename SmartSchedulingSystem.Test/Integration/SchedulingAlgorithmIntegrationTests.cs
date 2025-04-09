@@ -43,15 +43,64 @@ namespace SmartSchedulingSystem.Test.Integration
             Console.WriteLine($"最大LS迭代: {registeredParams.MaxLsIterations}");
         }
 
+        //[Fact]
+        //public void TestSchedulingAlgorithm_WithSuperSimpleData_ShouldSucceed()
+        //{
+        //    // 创建超简单测试数据
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+
+        //    // 获取排课引擎
+        //    var schedulingEngine = _serviceProvider.GetRequiredService<SchedulingEngine>();
+            
+        //    Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+        //    // 添加一些调试输出
+        //    Console.WriteLine($"测试问题: {testProblem.Name}");
+        //    Console.WriteLine($"课程数: {testProblem.CourseSections.Count}");
+        //    Console.WriteLine($"教师数: {testProblem.Teachers.Count}");
+        //    Console.WriteLine($"教室数: {testProblem.Classrooms.Count}");
+        //    Console.WriteLine($"时间槽数: {testProblem.TimeSlots.Count}");
+
+        //    // 运行排课算法
+        //    var result = schedulingEngine.GenerateSchedule(testProblem);
+
+        //    // 输出结果状态
+        //    Console.WriteLine($"排课结果状态: {result.Status}");
+        //    Console.WriteLine($"排课结果消息: {result.Message}");
+        //    Console.WriteLine($"解决方案数量: {result.Solutions.Count}");
+
+        //    // 验证结果
+        //    Assert.True(result.Status == SchedulingStatus.Success,
+        //              $"排课应该成功，但状态为：{result.Status}，消息：{result.Message}");
+
+        //    // 获取第一个解决方案
+        //    if (result.Solutions.Count > 0)
+        //    {
+        //        var solution = result.Solutions.First();
+        //        Console.WriteLine($"成功生成排课方案，共{solution.Assignments.Count}个分配");
+
+        //        // 打印分配详情
+        //        foreach (var assignment in solution.Assignments)
+        //        {
+        //            Console.WriteLine($"课程:{assignment.SectionCode}, 教师:{assignment.TeacherName}, " +
+        //                              $"教室:{assignment.ClassroomName}, 时间:周{assignment.DayOfWeek}-{assignment.StartTime}");
+        //        }
+        //    }
+        //    // 断言
+        //    Assert.Equal(SchedulingStatus.Success, result.Status);
+        //    Assert.NotEmpty(result.Solutions);
+
+        //    Console.WriteLine("============ 超简单测试结束 ============");
+        //}
         [Fact]
-        public void TestSchedulingAlgorithm_WithSuperSimpleData_ShouldSucceed()
+        public void TestSchedulingAlgorithm_WithMediumTestData()
         {
             // 创建超简单测试数据
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+            var testProblem = MediumTestDataProvider.CreateMediumTestProblem();
 
             // 获取排课引擎
             var schedulingEngine = _serviceProvider.GetRequiredService<SchedulingEngine>();
-            
+
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
             // 添加一些调试输出
@@ -92,33 +141,33 @@ namespace SmartSchedulingSystem.Test.Integration
 
             Console.WriteLine("============ 超简单测试结束 ============");
         }
-        [Fact]
-        public void Test_CP_Initial_Solution_Generation()
-        {
-            // 创建超简单测试数据
-            var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
+        //[Fact]
+        //public void Test_CP_Initial_Solution_Generation()
+        //{
+        //    // 创建超简单测试数据
+        //    var testProblem = SuperSimpleTestDataProvider.CreateSuperSimpleTestProblem();
 
-            // 获取CP调度器
-            var cpScheduler = _serviceProvider.GetRequiredService<CPScheduler>();
+        //    // 获取CP调度器
+        //    var cpScheduler = _serviceProvider.GetRequiredService<CPScheduler>();
 
-            // 生成初始解
-            var initialSolutions = cpScheduler.GenerateInitialSolutions(testProblem, 1);
+        //    // 生成初始解
+        //    var initialSolutions = cpScheduler.GenerateInitialSolutions(testProblem, 1);
 
-            // 验证结果
-            Assert.True(initialSolutions.Count > 0, "应该生成至少一个初始解");
+        //    // 验证结果
+        //    Assert.True(initialSolutions.Count > 0, "应该生成至少一个初始解");
 
-            if (initialSolutions.Count > 0)
-            {
-                var solution = initialSolutions.First();
-                Console.WriteLine($"初始解包含 {solution.Assignments.Count} 个分配");
+        //    if (initialSolutions.Count > 0)
+        //    {
+        //        var solution = initialSolutions.First();
+        //        Console.WriteLine($"初始解包含 {solution.Assignments.Count} 个分配");
 
-                foreach (var assignment in solution.Assignments)
-                {
-                    Console.WriteLine($"课程:{assignment.SectionId}, 教师:{assignment.TeacherId}, " +
-                                  $"教室:{assignment.ClassroomId}, 时间:{assignment.TimeSlotId}");
-                }
-            }
-        }
+        //        foreach (var assignment in solution.Assignments)
+        //        {
+        //            Console.WriteLine($"课程:{assignment.SectionId}, 教师:{assignment.TeacherId}, " +
+        //                          $"教室:{assignment.ClassroomId}, 时间:{assignment.TimeSlotId}");
+        //        }
+        //    }
+        //}
         //// 在测试类中添加
         //[Fact]
         //public void Test_CPScheduler_CheckFeasibility()

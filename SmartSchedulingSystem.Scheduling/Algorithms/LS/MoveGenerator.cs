@@ -887,127 +887,178 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
         private List<int> GetAvailableTimeSlots(SchedulingSolution solution, SchedulingAssignment assignment)
         {
-            // 实现逻辑：找出所有不与当前分配冲突的时间槽
-            var availableSlots = new List<int>();
-
             if (solution.Problem == null)
-                return availableSlots;
+                return new List<int>();
 
-            foreach (var timeSlot in solution.Problem.TimeSlots)
+            // 创建教师和教室不可用时间的缓存
+            var teacherUnavailableTimes = new HashSet<int>();
+            var classroomUnavailableTimes = new HashSet<int>();
+
+            // 添加教师已经被安排的时间
+            foreach (var assign in solution.Assignments.Where(a => a.TeacherId == assignment.TeacherId && a.Id != assignment.Id))
             {
-                // 排除当前时间槽
-                if (timeSlot.Id == assignment.TimeSlotId)
-                    continue;
-
-                // 检查教师在此时间段是否已有其他课程
-                if (solution.HasTeacherConflict(assignment.TeacherId, timeSlot.Id, assignment.SectionId))
-                    continue;
-
-                // 检查教室在此时间段是否已有其他课程
-                if (solution.HasClassroomConflict(assignment.ClassroomId, timeSlot.Id, assignment.SectionId))
-                    continue;
-
-                // 检查教师在此时间段是否可用
-                var teacherAvailability = solution.Problem.TeacherAvailabilities
-                    .FirstOrDefault(ta => ta.TeacherId == assignment.TeacherId && ta.TimeSlotId == timeSlot.Id);
-
-                if (teacherAvailability != null && !teacherAvailability.IsAvailable)
-                    continue;
-
-                // 时间槽可用
-                availableSlots.Add(timeSlot.Id);
+                teacherUnavailableTimes.Add(assign.TimeSlotId);
             }
 
-            return availableSlots;
+            // 添加教室已经被安排的时间
+            foreach (var assign in solution.Assignments.Where(a => a.ClassroomId == assignment.ClassroomId && a.Id != assignment.Id))
+            {
+                classroomUnavailableTimes.Add(assign.TimeSlotId);
+            }
+
+            // 添加教师不可用的时间
+            foreach (var avail in solution.Problem.TeacherAvailabilities.Where(ta =>
+                         ta.TeacherId == assignment.TeacherId && !ta.IsAvailable))
+            {
+                teacherUnavailableTimes.Add(avail.TimeSlotId);
+            }
+
+            // 添加教室不可用的时间
+            foreach (var avail in solution.Problem.ClassroomAvailabilities.Where(ca =>
+                         ca.ClassroomId == assignment.ClassroomId && !ca.IsAvailable))
+            {
+                classroomUnavailableTimes.Add(avail.TimeSlotId);
+            }
+
+            // 返回教师和教室都可用的时间槽
+            return solution.Problem.TimeSlots
+                .Select(ts => ts.Id)
+                .Where(tsId => tsId != assignment.TimeSlotId && // 排除当前时间槽
+                       !teacherUnavailableTimes.Contains(tsId) && // 教师可用
+                       !classroomUnavailableTimes.Contains(tsId)) // 教室可用
+                .ToList();
         }
+
+        // 添加类成员变量用于缓存
+        private Dictionary<(int sectionId, int classroomId), bool> _roomSuitabilityCache;
 
         private List<int> GetSuitableRooms(SchedulingSolution solution, SchedulingAssignment assignment)
         {
-            // 实现逻辑：找出所有适合当前课程的教室
-            var suitableRooms = new List<int>();
-
             if (solution.Problem == null)
-                return suitableRooms;
+                return new List<int>();
 
             var courseSection = solution.Problem.CourseSections
                 .FirstOrDefault(s => s.Id == assignment.SectionId);
 
             if (courseSection == null)
-                return suitableRooms;
+                return new List<int>();
 
-            foreach (var room in solution.Problem.Classrooms)
+            // 初始化或更新教室适合度缓存
+            if (_roomSuitabilityCache == null)
             {
-                // 排除当前教室
-                if (room.Id == assignment.ClassroomId)
-                    continue;
-
-                // 检查容量是否足够
-                if (room.Capacity < courseSection.Enrollment)
-                    continue;
-
-                // 检查教室在此时间段是否已有其他课程
-                if (solution.HasClassroomConflict(room.Id, assignment.TimeSlotId, assignment.SectionId))
-                    continue;
-
-                // 检查教室在此时间段是否可用
-                var roomAvailability = solution.Problem.ClassroomAvailabilities
-                    .FirstOrDefault(ra => ra.ClassroomId == room.Id && ra.TimeSlotId == assignment.TimeSlotId);
-
-                if (roomAvailability != null && !roomAvailability.IsAvailable)
-                    continue;
-
-                // 教室适合
-                suitableRooms.Add(room.Id);
+                InitializeRoomSuitabilityCache(solution.Problem);
             }
 
-            return suitableRooms;
+            // 使用缓存快速筛选合适的教室
+            return solution.Problem.Classrooms
+                .Where(classroom =>
+                    // 1. 使用缓存检查教室是否适合
+                    _roomSuitabilityCache.TryGetValue((courseSection.Id, classroom.Id), out bool isSuitable) &&
+                    isSuitable &&
+                    // 2. 检查教室在此时间段是否已有其他课程
+                    !solution.HasClassroomConflict(classroom.Id, assignment.TimeSlotId, assignment.SectionId))
+                .Select(c => c.Id)
+                .ToList();
         }
+
+        // 初始化教室适合度缓存
+        private void InitializeRoomSuitabilityCache(SchedulingProblem problem)
+        {
+            _roomSuitabilityCache = new Dictionary<(int sectionId, int classroomId), bool>();
+
+            foreach (var section in problem.CourseSections)
+            {
+                foreach (var classroom in problem.Classrooms)
+                {
+                    bool isSuitable = classroom.Capacity >= section.Enrollment;
+
+                    // 如果需要考虑教室类型匹配，可以添加更多条件
+                    if (!string.IsNullOrEmpty(section.RequiredRoomType) &&
+                        !string.IsNullOrEmpty(classroom.Type))
+                    {
+                        isSuitable = isSuitable && IsCompatibleRoomType(section.RequiredRoomType, classroom.Type);
+                    }
+
+                    _roomSuitabilityCache[(section.Id, classroom.Id)] = isSuitable;
+                }
+            }
+        }
+
+        // 判断两种教室类型是否兼容
+        private bool IsCompatibleRoomType(string requiredType, string actualType)
+        {
+            // 相同类型，完全兼容
+            if (requiredType.Equals(actualType, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // 实验课必须在实验室
+            if (requiredType.Contains("Lab", StringComparison.OrdinalIgnoreCase))
+                return actualType.Contains("Lab", StringComparison.OrdinalIgnoreCase);
+
+            // 计算机课必须在计算机房
+            if (requiredType.Contains("Computer", StringComparison.OrdinalIgnoreCase))
+                return actualType.Contains("Computer", StringComparison.OrdinalIgnoreCase);
+
+            // 普通课程可以在多种类型教室
+            if (requiredType.Contains("Regular", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            // 默认不兼容
+            return false;
+        }
+        private Dictionary<(int teacherId, int courseId), bool> _teacherQualificationCache;
 
         private List<int> GetQualifiedTeachers(SchedulingSolution solution, SchedulingAssignment assignment)
         {
-            // 实现逻辑：找出所有有资格教授当前课程的教师
-            var qualifiedTeachers = new List<int>();
-
             if (solution.Problem == null)
-                return qualifiedTeachers;
+                return new List<int>();
 
             var courseSection = solution.Problem.CourseSections
                 .FirstOrDefault(s => s.Id == assignment.SectionId);
 
             if (courseSection == null)
-                return qualifiedTeachers;
+                return new List<int>();
 
-            foreach (var teacher in solution.Problem.Teachers)
+            // 初始化或更新资格缓存
+            if (_teacherQualificationCache == null)
             {
-                // 排除当前教师
-                if (teacher.Id == assignment.TeacherId)
-                    continue;
-
-                // 检查教师是否有资格教授此课程
-                var preference = solution.Problem.TeacherCoursePreferences
-                    .FirstOrDefault(p => p.TeacherId == teacher.Id &&
-                                       p.CourseId == courseSection.CourseId &&
-                                       p.ProficiencyLevel >= 3);
-
-                if (preference == null)
-                    continue;
-
-                // 检查教师在此时间段是否已有其他课程
-                if (solution.HasTeacherConflict(teacher.Id, assignment.TimeSlotId, assignment.SectionId))
-                    continue;
-
-                // 检查教师在此时间段是否可用
-                var teacherAvailability = solution.Problem.TeacherAvailabilities
-                    .FirstOrDefault(ta => ta.TeacherId == teacher.Id && ta.TimeSlotId == assignment.TimeSlotId);
-
-                if (teacherAvailability != null && !teacherAvailability.IsAvailable)
-                    continue;
-
-                // 教师合格
-                qualifiedTeachers.Add(teacher.Id);
+                InitializeQualificationCache(solution.Problem);
             }
 
-            return qualifiedTeachers;
+            // 使用缓存快速筛选有资格的教师
+            return solution.Problem.Teachers
+                .Where(teacher =>
+                    // 1. 使用缓存检查教师是否有资格
+                    _teacherQualificationCache.TryGetValue((teacher.Id, courseSection.CourseId), out bool isQualified) &&
+                    isQualified &&
+                    // 2. 检查教师在此时间段是否已有其他课程
+                    !solution.HasTeacherConflict(teacher.Id, assignment.TimeSlotId, assignment.SectionId))
+                .Select(t => t.Id)
+                .ToList();
+        }
+
+        // 初始化教师资格缓存
+        private void InitializeQualificationCache(SchedulingProblem problem)
+        {
+            _teacherQualificationCache = new Dictionary<(int teacherId, int courseId), bool>();
+
+            foreach (var pref in problem.TeacherCoursePreferences)
+            {
+                _teacherQualificationCache[(pref.TeacherId, pref.CourseId)] = pref.ProficiencyLevel >= 3;
+            }
+
+            // 确保所有教师-课程组合都在缓存中
+            foreach (var teacher in problem.Teachers)
+            {
+                foreach (var section in problem.CourseSections)
+                {
+                    var key = (teacher.Id, section.CourseId);
+                    if (!_teacherQualificationCache.ContainsKey(key))
+                    {
+                        _teacherQualificationCache[key] = false; // 默认不合格
+                    }
+                }
+            }
         }
 
         /// <summary>

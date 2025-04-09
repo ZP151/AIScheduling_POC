@@ -88,7 +88,6 @@ namespace SmartSchedulingSystem.Test.TestData
                     Credits = 3,
                     Hours = 3,
                     Enrollment = 30,
-                    MaxEnrollment = 40,
                     CourseType = "Regular",
                     DepartmentId = 1,
                     DepartmentName = "Computer Science",

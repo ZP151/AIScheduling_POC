@@ -76,115 +76,141 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         /// <summary>
         /// 创建决策变量
         /// </summary>
-        // 在CPModelBuilder.cs的CreateDecisionVariables方法中添加错误处理
         private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
         {
-            // 添加健壮性检查
+            var variables = new Dictionary<string, IntVar>();
+
             if (problem.CourseSections == null || problem.CourseSections.Count == 0)
             {
                 _logger.LogWarning("课程列表为空，无法创建变量");
-                return new Dictionary<string, IntVar>();
+                return variables;
             }
 
-            var variables = new Dictionary<string, IntVar>();
-            bool anyVariablesCreated = false;
-
-            // 输出问题规模
             _logger.LogInformation($"创建决策变量: 课程数={problem.CourseSections.Count}, " +
-                                 $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
-                                 $"时间槽数={problem.TimeSlots.Count}");
+                                  $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
+                                  $"时间槽数={problem.TimeSlots.Count}");
+
+            // 1. 预处理教师课程偏好，创建快速查找字典
+            var teacherCoursePrefs = new Dictionary<(int teacherId, int courseId), int>();
+            foreach (var pref in problem.TeacherCoursePreferences)
+            {
+                teacherCoursePrefs[(pref.TeacherId, pref.CourseId)] = pref.ProficiencyLevel;
+            }
+
+            // 2. 预处理教室容量与课程需求的匹配关系
+            var courseRoomMatches = new Dictionary<int, List<int>>();
+            foreach (var section in problem.CourseSections)
+            {
+                courseRoomMatches[section.Id] = problem.Classrooms
+                    .Where(room => room.Capacity >= section.Enrollment)
+                    .Select(room => room.Id)
+                    .ToList();
+            }
+
+            // 3. 预处理教师和时间槽的可用性
+            var teacherTimeAvailability = new Dictionary<(int teacherId, int timeSlotId), bool>();
+            foreach (var avail in problem.TeacherAvailabilities)
+            {
+                teacherTimeAvailability[(avail.TeacherId, avail.TimeSlotId)] = avail.IsAvailable;
+            }
+
+            // 变量限制，避免创建过多变量
+            int maxVarsPerCourse = Math.Min(5000,
+                problem.TimeSlots.Count * problem.Classrooms.Count * problem.Teachers.Count / 10); // 限制每门课程的变量数量
 
             foreach (var section in problem.CourseSections)
             {
+                int varCount = 0;
                 bool courseHasVariables = false;
+
+                // 只考虑容量足够的教室
+                var suitableRooms = courseRoomMatches[section.Id];
+                if (suitableRooms.Count == 0)
+                {
+                    _logger.LogWarning($"课程 {section.CourseCode} 没有找到容量足够的教室！");
+                    // 为此课程创建几个应急变量，以确保模型可解
+                    var room = problem.Classrooms.OrderByDescending(r => r.Capacity).FirstOrDefault();
+                    if (room != null)
+                    {
+                        suitableRooms = new List<int> { room.Id };
+                        _logger.LogWarning($"为课程 {section.CourseCode} 分配应急教室 {room.Name} (容量: {room.Capacity})");
+                    }
+                }
 
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    foreach (var classroom in problem.Classrooms)
+                    foreach (var roomId in suitableRooms)
                     {
-                        // 容量检查 - 但不要过滤，只记录警告
-                        if (classroom.Capacity < section.Enrollment)
-                        {
-                            _logger.LogWarning($"警告: 课程 {section.CourseCode} 学生数 {section.Enrollment} 超过教室 {classroom.Name} 容量 {classroom.Capacity}");
-                            // 继续创建变量，不要跳过
-                        }
-
+                        // 找出有资格教授此课程的教师
+                        var qualifiedTeachers = new List<int>();
                         foreach (var teacher in problem.Teachers)
                         {
-                            // 资格检查 - 但更宽容地处理
-                            bool isQualified = true;
+                            // 快速查询教师是否有资格教授此课程
+                            bool isQualified = teacherCoursePrefs.TryGetValue((teacher.Id, section.CourseId), out int level) && level >= 3;
 
-                            if (problem.TeacherCoursePreferences.Any())
+                            // 检查教师在此时间是否可用
+                            bool teacherAvailable = !teacherTimeAvailability.TryGetValue((teacher.Id, timeSlot.Id), out bool available) || available;
+
+                            if (isQualified && teacherAvailable)
                             {
-                                var preference = problem.TeacherCoursePreferences
-                                    .FirstOrDefault(tcp => tcp.TeacherId == teacher.Id &&
-                                                         tcp.CourseId == section.CourseId);
-
-                                if (preference == null)
-                                {
-                                    _logger.LogWarning($"警告: 教师 {teacher.Name} 没有教授课程 {section.CourseCode} 的偏好记录");
-                                    // 对测试数据宽容处理 - 仍然创建变量
-                                }
-                                else if (preference.ProficiencyLevel < 3)
-                                {
-                                    _logger.LogWarning($"警告: 教师 {teacher.Name} 教授课程 {section.CourseCode} 的能力值 {preference.ProficiencyLevel} 偏低");
-                                    // 仍然创建变量
-                                }
-                            }
-
-                            if (isQualified)
-                            {
-                                // 创建变量 (无论如何都至少创建一些变量)
-                                string varName = $"c{section.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
-                                var variable = model.NewBoolVar(varName);
-                                variables[varName] = variable;
-                                courseHasVariables = true;
-                                anyVariablesCreated = true;
+                                qualifiedTeachers.Add(teacher.Id);
                             }
                         }
+
+                        // 如果没有合格的教师，记录警告
+                        if (qualifiedTeachers.Count == 0)
+                        {
+                            // 允许任何教师教授，作为备选方案
+                            qualifiedTeachers = problem.Teachers.Select(t => t.Id).Take(3).ToList();
+                            _logger.LogWarning($"课程 {section.CourseCode} 在时间槽 {timeSlot.Id} 没有合格教师，使用备选教师");
+                        }
+
+                        // 为每个合格教师创建变量
+                        foreach (var teacherId in qualifiedTeachers)
+                        {
+                            string varName = $"c{section.Id}_t{timeSlot.Id}_r{roomId}_f{teacherId}";
+                            var variable = model.NewBoolVar(varName);
+                            variables[varName] = variable;
+                            courseHasVariables = true;
+                            varCount++;
+
+                            // 检查是否超过了每门课的最大变量数
+                            if (varCount >= maxVarsPerCourse)
+                            {
+                                break;
+                            }
+                        }
+
+                        // 检查是否超过了每门课的最大变量数
+                        if (varCount >= maxVarsPerCourse)
+                        {
+                            break;
+                        }
+                    }
+
+                    // 检查是否超过了每门课的最大变量数
+                    if (varCount >= maxVarsPerCourse)
+                    {
+                        break;
                     }
                 }
 
+                // 确保每门课程至少有一些变量
                 if (!courseHasVariables)
                 {
-                    _logger.LogError($"严重错误: 课程 {section.CourseCode} 没有创建任何变量!");
+                    _logger.LogError($"课程 {section.CourseCode} 没有创建任何变量，创建应急变量");
 
-                    // 应急措施 - 为此课程创建一些强制变量
-                    foreach (var timeSlot in problem.TimeSlots.Take(1))
+                    // 创建一些应急变量
+                    var timeSlot = problem.TimeSlots.FirstOrDefault();
+                    var room = problem.Classrooms.FirstOrDefault();
+                    var teacher = problem.Teachers.FirstOrDefault();
+
+                    if (timeSlot != null && room != null && teacher != null)
                     {
-                        foreach (var classroom in problem.Classrooms.Take(1))
-                        {
-                            foreach (var teacher in problem.Teachers.Take(1))
-                            {
-                                string varName = $"c{section.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
-                                var variable = model.NewBoolVar(varName);
-                                variables[varName] = variable;
-                                _logger.LogWarning($"已为课程 {section.CourseCode} 创建应急变量: {varName}");
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 最后一道保险
-            if (!anyVariablesCreated)
-            {
-                _logger.LogError("严重错误: 没有创建任何变量，手动创建一些应急变量");
-
-                // 创建一些应急变量
-                for (int c = 1; c <= problem.CourseSections.Count; c++)
-                {
-                    for (int t = 1; t <= Math.Min(1, problem.TimeSlots.Count); t++)
-                    {
-                        for (int r = 1; r <= Math.Min(1, problem.Classrooms.Count); r++)
-                        {
-                            for (int f = 1; f <= Math.Min(1, problem.Teachers.Count); f++)
-                            {
-                                string varName = $"c{c}_t{t}_r{r}_f{f}";
-                                var variable = model.NewBoolVar(varName);
-                                variables[varName] = variable;
-                            }
-                        }
+                        string varName = $"c{section.Id}_t{timeSlot.Id}_r{room.Id}_f{teacher.Id}";
+                        var variable = model.NewBoolVar(varName);
+                        variables[varName] = variable;
+                        _logger.LogWarning($"为课程 {section.CourseCode} 创建应急变量: {varName}");
                     }
                 }
             }
@@ -472,47 +498,88 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
         }
 
-        private void AddTeacherConflictConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
+        private void AddTeacherConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
         {
-            foreach (var teacher in problem.Teachers)
-            {
-                foreach (var timeSlot in problem.TimeSlots)
-                {
-                    // 找出该教师在该时间段的所有可能分配
-                    var teacherTimeVars = _variables
-                        .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_") &&
-                                   kv.Key.EndsWith($"_f{teacher.Id}"))
-                        .Select(kv => kv.Value)
-                        .ToList();
+            _logger.LogDebug("添加教师冲突约束...");
 
-                    if (teacherTimeVars.Count > 1)
-                    {
-                        // 约束：教师在同一时间段最多只能教一门课
-                        model.Add(LinearExpr.Sum(teacherTimeVars) <= 1);
-                    }
+            // 预处理：按教师和时间槽分组变量
+            var teacherTimeVarsMap = new Dictionary<(int teacherId, int timeSlotId), List<IntVar>>();
+
+            foreach (var entry in variables)
+            {
+                string key = entry.Key;
+
+                // 解析变量名 "c{sectionId}_t{timeSlotId}_r{roomId}_f{teacherId}"
+                var parts = key.Split('_');
+                if (parts.Length < 4) continue;
+
+                int timeSlotId = int.Parse(parts[1].Substring(1));
+                int teacherId = int.Parse(parts[3].Substring(1));
+
+                var mapKey = (teacherId, timeSlotId);
+                if (!teacherTimeVarsMap.ContainsKey(mapKey))
+                {
+                    teacherTimeVarsMap[mapKey] = new List<IntVar>();
+                }
+
+                teacherTimeVarsMap[mapKey].Add(entry.Value);
+            }
+
+            // 批量添加约束 - 同一教师在同一时间段最多只能教一门课
+            int constraintCount = 0;
+            foreach (var entry in teacherTimeVarsMap)
+            {
+                var conflictingVars = entry.Value;
+                if (conflictingVars.Count > 1)
+                {
+                    model.Add(LinearExpr.Sum(conflictingVars) <= 1);
+                    constraintCount++;
                 }
             }
+
+            _logger.LogDebug($"添加了 {constraintCount} 个教师冲突约束");
         }
 
-        private void AddClassroomConflictConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
+        private void AddClassroomConflictConstraints(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
         {
-            foreach (var classroom in problem.Classrooms)
-            {
-                foreach (var timeSlot in problem.TimeSlots)
-                {
-                    // 找出该教室在该时间段的所有可能分配
-                    var roomTimeVars = _variables
-                        .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_r{classroom.Id}_"))
-                        .Select(kv => kv.Value)
-                        .ToList();
+            _logger.LogDebug("添加教室冲突约束...");
 
-                    if (roomTimeVars.Count > 1)
-                    {
-                        // 约束：教室在同一时间段最多只能安排一门课
-                        model.Add(LinearExpr.Sum(roomTimeVars) <= 1);
-                    }
+            // 预处理：按教室和时间槽分组变量
+            var roomTimeVarsMap = new Dictionary<(int roomId, int timeSlotId), List<IntVar>>();
+
+            foreach (var entry in variables)
+            {
+                string key = entry.Key;
+
+                // 解析变量名 "c{sectionId}_t{timeSlotId}_r{roomId}_f{teacherId}"
+                var parts = key.Split('_');
+                if (parts.Length < 4) continue;
+
+                int timeSlotId = int.Parse(parts[1].Substring(1));
+                int roomId = int.Parse(parts[2].Substring(1));
+
+                var mapKey = (roomId, timeSlotId);
+                if (!roomTimeVarsMap.ContainsKey(mapKey))
+                {
+                    roomTimeVarsMap[mapKey] = new List<IntVar>();
+                }
+
+                roomTimeVarsMap[mapKey].Add(entry.Value);
+            }
+
+            // 批量添加约束 - 同一教室在同一时间段最多只能安排一门课
+            int constraintCount = 0;
+            foreach (var entry in roomTimeVarsMap)
+            {
+                var conflictingVars = entry.Value;
+                if (conflictingVars.Count > 1)
+                {
+                    model.Add(LinearExpr.Sum(conflictingVars) <= 1);
+                    constraintCount++;
                 }
             }
+
+            _logger.LogDebug($"添加了 {constraintCount} 个教室冲突约束");
         }
 
         private void AddTeacherAvailabilityConstraints(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)

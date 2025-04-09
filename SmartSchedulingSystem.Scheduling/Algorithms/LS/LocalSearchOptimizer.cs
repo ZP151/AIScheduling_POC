@@ -107,9 +107,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             _logger.LogInformation("开始局部搜索优化...");
 
+            // 深拷贝初始解
             var currentSolution = initialSolution.Clone();
             var bestSolution = initialSolution.Clone();
-            double bestScore = _evaluator.Evaluate(bestSolution).Score;
+
+            // 首次评估解
+            var currentEvaluation = _evaluator.Evaluate(currentSolution);
+            double bestScore = currentEvaluation.Score;
 
             _logger.LogInformation("初始解评分: {Score}", bestScore);
 
@@ -118,30 +122,56 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             int iteration = 0;
             int noImprovementCount = 0;
-            const int MAX_NO_IMPROVEMENT = 100; // 连续100次迭代无改进后提前终止
+            const int MAX_NO_IMPROVEMENT = 100;
 
-            // 迭代优化，直到满足终止条件
+            // 预计算并缓存每个约束的初始满足度
+            var constraintScores = new Dictionary<int, double>();
+            var allConstraints = _evaluator.GetAllActiveConstraints().ToList();
+
+            foreach (var constraint in allConstraints)
+            {
+                var (score, _) = constraint.Evaluate(currentSolution);
+                constraintScores[constraint.Id] = score;
+            }
+
+            // 迭代优化
             while (!_saController.Cool())
             {
                 iteration++;
 
                 try
                 {
-                    // 1. 分析当前解的软约束满足情况
-                    var constraintAnalysis = _constraintAnalyzer.AnalyzeSolution(currentSolution);
+                    // 找出满足度最低的约束
+                    int weakestConstraintId = -1;
+                    double lowestScore = double.MaxValue;
 
-                    // 2. 选择一个需要优化的约束
-                    var targetConstraint = constraintAnalysis.GetWeakestConstraint();
-                    if (targetConstraint == null)
+                    foreach (var entry in constraintScores)
                     {
-                        _logger.LogWarning("未找到需要优化的约束，跳过当前迭代");
+                        if (entry.Value < lowestScore)
+                        {
+                            lowestScore = entry.Value;
+                            weakestConstraintId = entry.Key;
+                        }
+                    }
+
+                    if (weakestConstraintId == -1)
+                    {
+                        _logger.LogDebug("没有找到需要优化的约束，跳过迭代");
                         continue;
                     }
 
-                    // 3. 找出与该约束相关的课程分配
+                    // 找到对应的约束对象
+                    var targetConstraint = allConstraints.FirstOrDefault(c => c.Id == weakestConstraintId);
+                    if (targetConstraint == null)
+                    {
+                        _logger.LogWarning("无法找到ID为{id}的约束", weakestConstraintId);
+                        continue;
+                    }
+
+                    // 分析约束并生成移动
+                    var constraintAnalysis = _constraintAnalyzer.AnalyzeSolution(currentSolution);
                     var assignments = constraintAnalysis.GetAssignmentsAffectedByConstraint(currentSolution, targetConstraint);
 
-                    // 4. 如果没有找到相关分配，随机选择一个
                     if (assignments.Count == 0)
                     {
                         assignments = currentSolution.Assignments
@@ -150,25 +180,37 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                             .ToList();
                     }
 
-                    // 5. 针对其中一个分配生成移动操作
+                    // 选择一个随机分配进行修改
                     var targetAssignment = assignments.OrderBy(a => Guid.NewGuid()).First();
                     var moves = _moveGenerator.GenerateValidMoves(currentSolution, targetAssignment, 5);
 
-                    // 6. 如果没有合法移动，继续下一轮
                     if (moves.Count == 0)
                     {
                         _logger.LogDebug("迭代 {Iteration}: 未找到合法移动", iteration);
                         continue;
                     }
-
-                    // 7. 评估每个移动，选择最佳移动
                     IMove bestMove = SelectBestMove(moves, currentSolution);
+                    //// 评估并选择最佳移动
+                    //IMove bestMove = null;
+                    //double bestMoveScore = double.MinValue;
 
-                    // 8. 应用移动生成新解
+                    //foreach (var move in moves)
+                    //{
+                    //    var newSolution = move.Apply(currentSolution);
+                    //    double score = _evaluator.Evaluate(newSolution).Score;
+
+                    //    if (score > bestMoveScore)
+                    //    {
+                    //        bestMove = move;
+                    //        bestMoveScore = score;
+                    //    }
+                    //}
+
+                    // 应用移动并评估
                     var newSolution = bestMove.Apply(currentSolution);
                     double newScore = _evaluator.Evaluate(newSolution).Score;
 
-                    // 9. 决定是否接受新解
+                    // 决定是否接受新解
                     bool acceptMove = _saController.ShouldAccept(bestScore, newScore);
 
                     if (acceptMove)
@@ -178,7 +220,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
                         currentSolution = newSolution;
 
-                        // 如果新解比当前最佳解更好，更新最佳解
+                        // 更新约束分数缓存
+                        foreach (var constraint in allConstraints)
+                        {
+                            var (score, _) = constraint.Evaluate(currentSolution);
+                            constraintScores[constraint.Id] = score;
+                        }
+
+                        // 如果新解更好，更新最佳解
                         if (newScore > bestScore)
                         {
                             bestSolution = newSolution;
@@ -210,7 +259,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     _logger.LogError(ex, "局部搜索迭代 {Iteration} 发生错误", iteration);
                 }
 
-                // 每50次迭代输出一次进度
+                // 定期记录进度
                 if (iteration % 50 == 0)
                 {
                     _logger.LogInformation("已完成 {Iteration} 次迭代，当前最佳评分: {Score}, 温度: {Temperature}",
