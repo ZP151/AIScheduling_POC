@@ -9,6 +9,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Xunit;
 
 namespace SmartSchedulingSystem.Test
 {
@@ -58,22 +59,45 @@ namespace SmartSchedulingSystem.Test
 
         static void RunSmallTest(SchedulingEngine schedulingEngine, TestDataGenerator testDataGenerator)
         {
-            Console.WriteLine("\n=== 小规模测试 (10门课) ===");
 
-            // 生成小规模测试问题(10门课)
-            var problem = testDataGenerator.GenerateTestProblem(10, 5, 8, 20);
+            //var problem = testDataGenerator.CreateSimpleValidProblem();
+            //var problem = testDataGenerator.CreateDebugFeasibleProblem();
+            var problem = testDataGenerator.GenerateTestProblem();
+            //var problem = testDataGenerator.CreateGuaranteedFeasibleProblem();
 
             Console.WriteLine($"生成了 {problem.CourseSections.Count} 门课程, {problem.Teachers.Count} 位教师, " +
                             $"{problem.Classrooms.Count} 间教室, {problem.TimeSlots.Count} 个时间槽");
 
+            // 设置算法参数
+            var parameters = new SchedulingParameters
+            {
+                InitialSolutionCount = 1,
+                CpTimeLimit = 120,
+                MaxLsIterations = 100,
+                EnableParallelOptimization = false
+            };
             // 执行排课
             Console.WriteLine("开始排课...");
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
-            var result = schedulingEngine.GenerateSchedule(problem);
+            var result = schedulingEngine.GenerateSchedule(problem, parameters);
 
             sw.Stop();
             Console.WriteLine($"排课完成！耗时: {sw.ElapsedMilliseconds}ms");
+            
+            // 验证结果
+            Assert.NotNull(result);
+            Assert.Equal(SchedulingStatus.Success, result.Status);
+            Assert.True(result.Solutions.Count > 0);
+
+            // 验证解决方案
+            var solution = result.Solutions.First();
+            Assert.NotNull(solution);
+            Assert.Equal(3, solution.Assignments.Count); // 应该有3个分配
+
+            // 验证所有课程都被分配
+            var assignedCourses = solution.Assignments.Select(a => a.SectionId).Distinct().ToList();
+            Assert.Equal(3, assignedCourses.Count);
 
             // 分析结果
             AnalyzeResult(result);

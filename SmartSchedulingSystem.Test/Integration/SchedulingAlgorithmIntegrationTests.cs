@@ -42,6 +42,7 @@ namespace SmartSchedulingSystem.Test.Integration
             Console.WriteLine($"初始解数量: {registeredParams.InitialSolutionCount}");
             Console.WriteLine($"最大LS迭代: {registeredParams.MaxLsIterations}");
         }
+
         [Fact]
         public void TestSchedulingAlgorithm_WithSuperSimpleData_ShouldSucceed()
         {

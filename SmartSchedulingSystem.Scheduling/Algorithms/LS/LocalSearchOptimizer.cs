@@ -245,5 +245,6 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             return bestMove;
         }
+
     }
 }

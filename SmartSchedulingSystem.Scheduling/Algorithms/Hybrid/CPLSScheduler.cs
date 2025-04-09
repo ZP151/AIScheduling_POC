@@ -394,10 +394,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
             try
             {
                 _logger.LogInformation("检查排课问题可行性...");
-
+                // 首先输出问题规模信息
+                _logger.LogInformation($"问题规模: 课程数={problem.CourseSections.Count}, " +
+                    $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
+                    $"时间槽数={problem.TimeSlots.Count}");
                 // 使用CP求解器检查是否存在可行解
                 CpSolverStatus status;
-                bool isFeasible = _cpScheduler.CheckFeasibility(problem, out status);
+                // 增加求解时间以提高找到可行解的概率
+                var tempParams = new SchedulingParameters
+                {
+                    CpTimeLimit = 120, // 给予更多时间
+                    InitialSolutionCount = 1 // 只需要一个解即可证明可行性
+                };
+                bool isFeasible = _cpScheduler.CheckFeasibility(problem, out status,tempParams);
 
                 if (isFeasible)
                 {
@@ -409,6 +418,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     {
                         case CpSolverStatus.Infeasible:
                             _logger.LogWarning("排课问题无可行解，约束冲突");
+                            DiagnoseConstraintConflicts(problem);
                             break;
                         case CpSolverStatus.Unknown:
                             _logger.LogWarning("排课问题不确定是否有解，求解时间不足");
@@ -429,7 +439,66 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 return true;
             }
         }
+        // 诊断约束冲突
+        private void DiagnoseConstraintConflicts(SchedulingProblem problem)
+        {
+            _logger.LogInformation("正在诊断可能导致问题不可行的约束冲突...");
 
+            // 检查教室容量
+            foreach (var section in problem.CourseSections)
+            {
+                var suitableRooms = problem.Classrooms
+                    .Where(r => r.Capacity >= section.Enrollment)
+                    .ToList();
+
+                if (suitableRooms.Count == 0)
+                {
+                    _logger.LogError($"课程 {section.CourseCode} (需容量: {section.Enrollment}) 无法找到容量足够的教室!");
+                }
+            }
+
+            // 检查教师资格
+            foreach (var section in problem.CourseSections)
+            {
+                var qualifiedTeachers = problem.TeacherCoursePreferences
+                    .Where(tcp => tcp.CourseId == section.CourseId && tcp.ProficiencyLevel >= 3)
+                    .Select(tcp => tcp.TeacherId)
+                    .ToList();
+
+                if (qualifiedTeachers.Count == 0)
+                {
+                    _logger.LogError($"课程 {section.CourseCode} 找不到合格的教师!");
+                }
+            }
+
+            // 检查教室可用性
+            foreach (var classroom in problem.Classrooms)
+            {
+                var unavailableTimeSlots = problem.ClassroomAvailabilities
+                    .Where(ca => ca.ClassroomId == classroom.Id && !ca.IsAvailable)
+                    .Select(ca => ca.TimeSlotId)
+                    .ToList();
+
+                if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
+                {
+                    _logger.LogError($"教室 {classroom.Name} 没有可用的时间段!");
+                }
+            }
+
+            // 检查教师可用性
+            foreach (var teacher in problem.Teachers)
+            {
+                var unavailableTimeSlots = problem.TeacherAvailabilities
+                    .Where(ta => ta.TeacherId == teacher.Id && !ta.IsAvailable)
+                    .Select(ta => ta.TimeSlotId)
+                    .ToList();
+
+                if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
+                {
+                    _logger.LogError($"教师 {teacher.Name} 没有可用的时间段!");
+                }
+            }
+        }
         /// <summary>
         /// 调整算法参数
         /// </summary>
