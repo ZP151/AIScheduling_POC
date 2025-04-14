@@ -44,6 +44,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 Console.WriteLine($"请求解决方案数量: {solutionCount}");
                 // 检查问题数据完整性
                 ValidateProblemData(problem);
+                DebugProblemData(problem); // 添加这行来调试问题数据
 
                 var sw = Stopwatch.StartNew();
 
@@ -184,6 +185,45 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 }
             }
         }
+
+        private void DebugProblemData(SchedulingProblem problem)
+        {
+            _logger.LogInformation("=== 调试问题数据 ===");
+            _logger.LogInformation($"问题ID: {problem.Id}, 名称: {problem.Name}");
+            _logger.LogInformation($"课程数: {problem.CourseSections.Count}");
+            if (problem.CourseSections.Count > 0)
+            {
+                _logger.LogInformation($"第一门课程: ID={problem.CourseSections[0].Id}, 名称={problem.CourseSections[0].CourseName}");
+            }
+
+            _logger.LogInformation($"教师数: {problem.Teachers.Count}");
+            if (problem.Teachers.Count > 0)
+            {
+                _logger.LogInformation($"第一位教师: ID={problem.Teachers[0].Id}, 名称={problem.Teachers[0].Name}");
+            }
+
+            _logger.LogInformation($"教室数: {problem.Classrooms.Count}");
+            if (problem.Classrooms.Count > 0)
+            {
+                _logger.LogInformation($"第一个教室: ID={problem.Classrooms[0].Id}, 名称={problem.Classrooms[0].Name}, 容量={problem.Classrooms[0].Capacity}");
+            }
+
+            _logger.LogInformation($"时间槽数: {problem.TimeSlots.Count}");
+            if (problem.TimeSlots.Count > 0)
+            {
+                _logger.LogInformation($"第一个时间槽: ID={problem.TimeSlots[0].Id}, 日期={problem.TimeSlots[0].DayOfWeek}, 时间={problem.TimeSlots[0].StartTime}-{problem.TimeSlots[0].EndTime}");
+            }
+
+            _logger.LogInformation($"教师课程偏好数: {problem.TeacherCoursePreferences.Count}");
+            if (problem.TeacherCoursePreferences.Count > 0)
+            {
+                var pref = problem.TeacherCoursePreferences[0];
+                _logger.LogInformation($"第一个偏好: 教师ID={pref.TeacherId}, 课程ID={pref.CourseId}, 能力级别={pref.ProficiencyLevel}");
+            }
+
+            _logger.LogInformation("=== 调试结束 ===");
+        }
+
         /// <summary>
         /// 从模型中提取变量字典
         /// </summary>

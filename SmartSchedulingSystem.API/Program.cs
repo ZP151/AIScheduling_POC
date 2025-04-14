@@ -5,6 +5,7 @@ using SmartSchedulingSystem.API.Middleware;
 using SmartSchedulingSystem.Core.Interfaces;
 using SmartSchedulingSystem.Core.Services;
 using SmartSchedulingSystem.Data.Context;
+using SmartSchedulingSystem.Scheduling;
 using SmartSchedulingSystem.Scheduling.Algorithms.CP;
 using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Constraints.Hard;
@@ -17,63 +18,72 @@ using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ìí¼Ó·şÎñµ½ÈİÆ÷
+// ï¿½ï¿½ï¿½Ó·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 builder.Services.AddControllers();
 
-// ÅäÖÃSwagger
+// ï¿½ï¿½ï¿½ï¿½Swagger
 builder.Services.AddEndpointsApiExplorer();
-// ×¢²áAutoMapper
+// ×¢ï¿½ï¿½AutoMapper
 builder.Services.AddAutoMapper(typeof(SmartSchedulingSystem.Core.Mapping.MappingProfile));
 builder.Services.AddSwaggerGen();
 
-// ÅäÖÃÊı¾İ¿âÉÏÏÂÎÄ
+// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ÔÚProgram.csÖĞ£¬ÆäËûÖĞ¼ä¼şÅäÖÃÖ®ºó
-//// Ìí¼ÓSPAÖ§³Ö
+// ï¿½ï¿½Program.csï¿½Ğ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
+//// ï¿½ï¿½ï¿½ï¿½SPAÖ§ï¿½ï¿½
 //app.UseSpa(spa =>
 //{
 //    spa.Options.SourcePath = "ClientApp";
 
 //    if (app.Environment.IsDevelopment())
 //    {
-//        // ÔÚ¿ª·¢»·¾³ÖĞ£¬Æô¶¯React¿ª·¢·şÎñÆ÷
+//        // ï¿½Ú¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½ï¿½ï¿½ï¿½ï¿½Reactï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //        spa.UseProxyToSpaDevelopmentServer("http://localhost:3000");
 
-//        // »òÕßÖ±½ÓÆô¶¯npm
+//        // ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½npm
 //        // spa.UseReactDevelopmentServer(npmScript: "start");
 //    }
 //});
-// ÅäÖÃCORS
+// é…ç½®CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ReactApp", builder =>
+    options.AddPolicy("ReactApp", policy =>
     {
-        builder.WithOrigins("http://localhost:3000")
-               .AllowAnyHeader()
-               .AllowAnyMethod();
+        policy.WithOrigins("http://localhost:3000") // Reacté»˜è®¤ç«¯å£
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
 
-// ×¢²áÅÅ¿ÎÒıÇæºÍÔ¼Êø
+// æ³¨å†ŒæœåŠ¡ï¼Œé¿å…ç”Ÿå‘½å‘¨æœŸå†²çªé—®é¢˜
+// ConstraintManageræ˜¯singletonï¼Œæ‰€ä»¥ä¾èµ–çš„IConstraintå®ç°ä¹Ÿå¿…é¡»æ˜¯singleton
 
-builder.Services.AddScoped<SchedulingEngine>();
+// ä¿®æ”¹æœåŠ¡æ³¨å†Œ
+builder.Services.AddTransient<SchedulingEngine>();
+builder.Services.AddTransient<CPScheduler>();
+builder.Services.AddSingleton<ConstraintManager>();
+builder.Services.AddTransient<CPModelBuilder>();
+builder.Services.AddSingleton<SolutionConverter>();
+// æ³¨å†ŒISolutionEvaluatoræ¥å£ï¼Œè§£å†³ConflictResolverä¾èµ–é—®é¢˜
+builder.Services.AddSingleton<ISolutionEvaluator, SolutionEvaluator>();
 
-// ×¢²á·şÎñ
-builder.Services.AddScoped<CPScheduler>();
-builder.Services.AddScoped<ConstraintManager>();
-builder.Services.AddScoped<CPModelBuilder>();
-builder.Services.AddScoped<SolutionConverter>();
+// æ³¨å†Œå†²çªè§£æå™¨å’Œå¤„ç†å™¨ä¸ºSingleton
+builder.Services.AddSingleton<ConflictResolver>();
+builder.Services.AddSingleton<IConflictHandler, TeacherConflictHandler>();
+builder.Services.AddSingleton<IConflictHandler, ClassroomConflictHandler>();
 
-builder.Services.AddScoped<IConstraint, TeacherConflictConstraint>();
-builder.Services.AddScoped<IConstraint, ClassroomConflictConstraint>();
-builder.Services.AddScoped<IConstraint, TeacherScheduleCompactnessConstraint>();
+// ä¿®æ”¹ä¾èµ–æ³¨å…¥ç”Ÿå‘½å‘¨æœŸï¼šIConstraintå¿…é¡»æ˜¯Singletonï¼Œå¦åˆ™ä¼šå‡ºç°ç”Ÿå‘½å‘¨æœŸä¾èµ–å†²çª
+builder.Services.AddSingleton<IConstraint, TeacherConflictConstraint>();
+builder.Services.AddSingleton<IConstraint, ClassroomConflictConstraint>();
+builder.Services.AddSingleton<IConstraint, TeacherScheduleCompactnessConstraint>();
 
 
 // Prerequisite
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var prereqs = db.Courses.ToDictionary(
@@ -85,24 +95,27 @@ builder.Services.AddScoped<IConstraint>(sp =>
 });
 
 // Teacher Availability
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
-    var avail = db.TeacherAvailabilities.ToDictionary(x => (x.TeacherId, x.TimeSlotId), x => x.IsAvailable);
-    return new TeacherAvailabilityConstraint(avail);
+    var teacherAva = db.TeacherAvailabilities.ToDictionary(
+        ta => (ta.TeacherId, ta.TimeSlotId),
+        ta => ta.IsAvailable
+    );
+    return new TeacherAvailabilityConstraint(teacherAva);
 });
 
 // Classroom Capacity
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
-    var cap = db.Classrooms.ToDictionary(c => c.ClassroomId, c => c.Capacity);
-    var expectCount = db.CourseSections.ToDictionary(s => s.CourseSectionId, s => s.ExpectedStudentCount);
-    return new ClassroomCapacityConstraint(cap, expectCount);
+    var courseEnroll = db.CourseSections.ToDictionary(c => c.CourseSectionId, c => c.ExpectedStudentCount);
+    var roomCapacity = db.Classrooms.ToDictionary(r => r.ClassroomId, r => r.Capacity);
+    return new ClassroomCapacityConstraint(courseEnroll, roomCapacity);
 });
 
 // Classroom Type Match
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var sectionTypes = db.CourseSections.ToDictionary(s => s.CourseSectionId, s => s.CourseType);
@@ -111,7 +124,7 @@ builder.Services.AddScoped<IConstraint>(sp =>
 });
 
 // Equipment Requirement
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var sectionEquip = db.CourseSections.ToDictionary(
@@ -127,7 +140,7 @@ builder.Services.AddScoped<IConstraint>(sp =>
 });
 
 // Location Proximity
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var teacherDept = db.Teachers.ToDictionary(t => t.TeacherId, t => t.DepartmentId);
@@ -137,7 +150,7 @@ builder.Services.AddScoped<IConstraint>(sp =>
 });
 
 // Time Availability
-builder.Services.AddScoped<IConstraint>(sp =>
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var unavailable = db.UnavailablePeriods
@@ -149,19 +162,16 @@ builder.Services.AddScoped<IConstraint>(sp =>
     return new TimeAvailabilityConstraint(unavailable, semester);
 });
 
-// Teacher Preference
-builder.Services.AddScoped<IConstraint>(sp =>
+// Teacher Preference - ä¿®æ”¹ä¸ºSingleton
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var prefs = db.TeacherPreferences.ToDictionary(p => (p.TeacherId, p.TimeSlotId), p => p.PreferenceLevel);
     return new TeacherPreferenceConstraint(prefs);
 });
 
-// Teacher Workload
-//Õâ¸öÔ¼ÊøĞèÒª´ÓÊı¾İ¿âÖĞ»ñÈ¡½ÌÊ¦µÄ×î´óÃ¿ÖÜºÍÃ¿ÈÕ¹¤×÷Ğ¡Ê±Êı
-//ÎÒÃÇ¼ÙÉè½ÌÊ¦µÄ×î´ó¹¤×÷Ğ¡Ê±Êı´æ´¢ÔÚ½ÌÊ¦±íÖĞ
-//Êµ¼ÊÉÏ£¬¿ÉÄÜĞèÒª¸ù¾İ¾ßÌåµÄÊı¾İ¿âÉè¼Æ½øĞĞµ÷Õû
-builder.Services.AddScoped<IConstraint>(sp =>
+// Teacher Workload - ä¿®æ”¹ä¸ºSingleton
+builder.Services.AddSingleton<IConstraint>(sp =>
 {
     var db = sp.GetRequiredService<AppDbContext>();
     var weekly = db.Teachers.ToDictionary(t => t.TeacherId, t => t.MaxWeeklyHours);
@@ -169,8 +179,16 @@ builder.Services.AddScoped<IConstraint>(sp =>
     return new TeacherWorkloadConstraint(weekly, daily);
 });
 
-
-
+// Classroom Availability
+builder.Services.AddSingleton<IConstraint>(sp =>
+{
+    var db = sp.GetRequiredService<AppDbContext>();
+    var classroomAva = db.ClassroomAvailabilities.ToDictionary(
+        ca => (ca.ClassroomId, ca.TimeSlotId),
+        ca => ca.IsAvailable
+    );
+    return new ClassroomAvailabilityConstraint(classroomAva);
+});
 
 builder.Services.AddScoped<ISchedulingService, SchedulingService>();
 builder.Services.AddScoped<ISemesterService, SemesterService>();
@@ -181,11 +199,13 @@ builder.Services.AddScoped<ICourseSectionService, CourseSectionService>();
 builder.Services.AddScoped<ITimeSlotService, TimeSlotService>();
 builder.Services.AddScoped<ISchedulingConstraintService, SchedulingConstraintService>();
 
+// æ³¨å†Œæ’è¯¾ç³»ç»ŸæœåŠ¡
+builder.Services.AddSchedulingServices();
 
-// TODO: ×¢²áÆäËû·şÎñ½Ó¿ÚÊµÏÖ
+// TODO: ×¢Ó¿Êµ
 var app = builder.Build();
 
-// ÅäÖÃHTTPÇëÇó¹ÜµÀ
+// HTTPÜµ
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -205,7 +225,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// Ìí¼ÓÒ»¸ö½¡¿µ¼ì²é¶Ëµã
+// Ò»Ëµ
 app.MapGet("/health", () => "Healthy");
 
 app.Run();

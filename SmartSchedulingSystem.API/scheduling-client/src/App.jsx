@@ -33,7 +33,8 @@ function App() {
     enableRamadanSchedule: false,
     allowCrossListedCourses: true,
     enableMultiCampusConstraints: true,
-    generateAlternatives: true,
+    generateMultipleSolutions: true,
+    solutionCount: 3,
     holidayExclusions: true,
     allowCrossSchoolEnrollment: true,
     allowCrossDepartmentTeaching: true,
@@ -81,21 +82,23 @@ function App() {
   };
  
   // In App.jsx, update handleScheduleGenerated
-  const handleScheduleGenerated = (primaryScheduleId, schedules = []) => {
-    // If schedules array is provided, store them
-    if (Array.isArray(schedules) && schedules.length > 0) {
-      setScheduleResults(schedules);
-    } else {
-      // For backward compatibility, create a single item array
-      setScheduleResults([{ id: primaryScheduleId }]);
-    }
-    // Set the primary schedule as active
-    setActiveScheduleResultId(primaryScheduleId);
-    setShowResults(true);
-    setTabValue(2); // Switch to results tab
+  const handleScheduleGenerated = (result) => {
+    // 确保schedules是一个数组
+    const validSchedules = Array.isArray(result.schedules) ? result.schedules : [];
     
-    console.log(`Schedule generated. Primary ID: ${primaryScheduleId}, Total schedules: ${schedules.length}`);
-
+    // 设置排课结果
+    setScheduleResults(validSchedules);
+    
+    // 设置活动排课方案ID
+    // 使用评分最高的方案作为默认显示方案
+    const activeId = validSchedules.length > 0 ? validSchedules[0].id : null;
+    setActiveScheduleResultId(activeId);
+    
+    // 显示结果并切换到结果标签页
+    setShowResults(true);
+    setTabValue(2);
+    
+    console.log(`Schedule generated. Total schedules: ${result.totalSolutions}, Best score: ${result.bestScore}, Average score: ${result.averageScore}`);
   };
 
   const handleHistoryItemClick = (scheduleId) => {

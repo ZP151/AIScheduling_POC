@@ -68,17 +68,17 @@ export const mockCourses = [
 
   // 修改mockTeachers，添加departmentId字段
   export const mockTeachers = [
-    { id: 1, name: 'Prof. Smith', department: 'Computer Science', departmentId: 1 },
-    { id: 2, name: 'Prof. Johnson', department: 'Computer Science', departmentId: 1 },
-    { id: 3, name: 'Prof. Williams', department: 'Mathematics', departmentId: 5 },
-    { id: 4, name: 'Prof. Brown', department: 'Physics', departmentId: 6 }
+    { id: 1, name: 'Prof. Smith', code: 'SMITH', department: 'Computer Science', departmentId: 1 },
+    { id: 2, name: 'Prof. Johnson', code: 'JOHN', department: 'Computer Science', departmentId: 1 },
+    { id: 3, name: 'Prof. Williams', code: 'WILL', department: 'Mathematics', departmentId: 5 },
+    { id: 4, name: 'Prof. Brown', code: 'BROWN', department: 'Physics', departmentId: 6 }
   ];
   
   export const mockClassrooms = [
-    { id: 1, name: '101', building: 'Building A', capacity: 120, hasComputers: true, type: 'ComputerLab' },
-    { id: 2, name: '201', building: 'Building A', capacity: 80, hasComputers: false, type: 'Lecture' },
-    { id: 3, name: '301', building: 'Building B', capacity: 150, hasComputers: false, type: 'LargeHall' },
-    { id: 4, name: '401', building: 'Building B', capacity: 60, hasComputers: true, type: 'Laboratory' }
+    { id: 1, name: '101', building: 'Building A', capacity: 120, hasComputers: true, type: 'ComputerLab', campusId: 1 },
+    { id: 2, name: '201', building: 'Building A', capacity: 80, hasComputers: false, type: 'Lecture', campusId: 1 },
+    { id: 3, name: '301', building: 'Building B', capacity: 150, hasComputers: false, type: 'LargeHall', campusId: 2 },
+    { id: 4, name: '401', building: 'Building B', capacity: 60, hasComputers: true, type: 'Laboratory', campusId: 2 }
   ];
   
   export const mockConstraints = [
@@ -88,13 +88,95 @@ export const mockCourses = [
     { id: 4, name: 'Classroom Type Match', type: 'Soft', description: 'Match courses with appropriate classroom types', weight: 0.7, isActive: true }
   ];
   
-  export const mockTimeSlots = [
-    { id: 1, day: 1, dayName: 'Monday', startTime: '08:00', endTime: '09:30' },
-    { id: 2, day: 1, dayName: 'Monday', startTime: '10:00', endTime: '11:30' },
-    { id: 3, day: 2, dayName: 'Tuesday', startTime: '08:00', endTime: '09:30' },
-    { id: 4, day: 2, dayName: 'Tuesday', startTime: '10:00', endTime: '11:30' },
-    { id: 5, day: 3, dayName: 'Wednesday', startTime: '08:00', endTime: '09:30' }
-  ];
+  // 修改时间槽模拟数据，采用GenerateStandardTimeSlots风格的时间段
+  export const mockTimeSlots = (() => {
+    // 模拟TestDataGenerator.GenerateStandardTimeSlots()的结果
+    const slots = [];
+    let slotId = 1;
+    
+    // 周一到周五
+    for (let day = 1; day <= 5; day++) {
+      const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+      const dayName = dayNames[day - 1];
+      
+      // 上午 8:00 - 10:00
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '08:00',
+        endTime: '10:00',
+        type: 'Regular'
+      });
+      
+      // 上午 10:00 - 12:00
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '10:00',
+        endTime: '12:00',
+        type: 'Regular'
+      });
+      
+      // 下午 14:00 - 16:00
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '14:00',
+        endTime: '16:00',
+        type: 'Regular'
+      });
+      
+      // 晚上 19:00 - 21:00
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '19:00',
+        endTime: '21:00',
+        type: 'Regular'
+      });
+    }
+    
+    return slots;
+  })();
+  
+  // 添加教师可用性和教室可用性数据
+  export const mockTeacherAvailabilities = (() => {
+    const availabilities = [];
+    
+    // 所有教师在所有时间槽都可用
+    mockTeachers.forEach(teacher => {
+      mockTimeSlots.forEach(timeSlot => {
+        availabilities.push({
+          teacherId: teacher.id,
+          timeSlotId: timeSlot.id,
+          isAvailable: true
+        });
+      });
+    });
+    
+    return availabilities;
+  })();
+
+  export const mockClassroomAvailabilities = (() => {
+    const availabilities = [];
+    
+    // 所有教室在所有时间槽都可用
+    mockClassrooms.forEach(classroom => {
+      mockTimeSlots.forEach(timeSlot => {
+        availabilities.push({
+          classroomId: classroom.id,
+          timeSlotId: timeSlot.id,
+          isAvailable: true
+        });
+      });
+    });
+    
+    return availabilities;
+  })();
   
   export const mockScheduleResults = [
     {
@@ -171,47 +253,118 @@ export const mockCourses = [
   // Function to simulate API call for schedule generation
   // In generateScheduleApi function in mockData.js, modify to generate multiple schedules
   export const generateScheduleApi = (formData) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+      // 基本验证
+      if (!formData) {
+        reject(new Error('没有提供表单数据'));
+        return;
+      }
+
+      if (!formData.semester) {
+        reject(new Error('必须选择学期'));
+        return;
+      }
+
+      if (!formData.courses || formData.courses.length === 0) {
+        reject(new Error('必须选择至少一个课程'));
+        return;
+      }
+
+      if (!formData.teachers || formData.teachers.length === 0) {
+        reject(new Error('必须选择至少一个教师'));
+        return;
+      }
+
+      if (!formData.classrooms || formData.classrooms.length === 0) {
+        reject(new Error('必须选择至少一个教室'));
+        return;
+      }
+
+      // 模拟API调用延迟
       setTimeout(() => {
-        // Generate multiple schedules if requested
-        if (formData.generateAlternatives) {
-          // Create 3 alternative schedules
-          const schedules = [];
-          for (let i = 1; i <= 3; i++) {
-            schedules.push({
-              id: 103 + i,
-              name: `${mockSemesters.find(s => s.id === formData.semester)?.name} Alternative ${i}`,
-              createdAt: new Date().toISOString(),
-              status: 'Draft',
-              details: mockScheduleResults[0].details.map(detail => ({
-                ...detail,
-                // Slightly modify each schedule to make them different
-                // This is just for demonstration - a real algorithm would create meaningful alternatives
-                startTime: i === 1 ? detail.startTime : 
-                          i === 2 ? (parseInt(detail.startTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':00' :
-                          (parseInt(detail.startTime.split(':')[0]) - 1).toString().padStart(2, '0') + ':00',
-                endTime: i === 1 ? detail.endTime : 
-                        i === 2 ? (parseInt(detail.endTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':30' :
-                        (parseInt(detail.endTime.split(':')[0]) - 1).toString().padStart(2, '0') + ':30'
-              }))
+        try {
+          console.log('处理排课请求:', formData);
+          
+          // 检查是否可以找到所选的课程、教师和教室
+          const selectedCourses = formData.courses.map(id => 
+            mockCourses.find(c => c.id === id)
+          ).filter(Boolean);
+          
+          const selectedTeachers = formData.teachers.map(id => 
+            mockTeachers.find(t => t.id === id)
+          ).filter(Boolean);
+          
+          const selectedClassrooms = formData.classrooms.map(id => 
+            mockClassrooms.find(c => c.id === id)
+          ).filter(Boolean);
+          
+          if (selectedCourses.length === 0) {
+            reject(new Error('找不到所选课程'));
+            return;
+          }
+          
+          if (selectedTeachers.length === 0) {
+            reject(new Error('找不到所选教师'));
+            return;
+          }
+          
+          if (selectedClassrooms.length === 0) {
+            reject(new Error('找不到所选教室'));
+            return;
+          }
+          
+          // 创建排课结果
+          const semester = mockSemesters.find(s => s.id === formData.semester);
+          if (!semester) {
+            reject(new Error('找不到所选学期'));
+            return;
+          }
+          
+          // Generate multiple schedules if requested
+          if (formData.generateAlternatives) {
+            // Create 3 alternative schedules
+            const schedules = [];
+            for (let i = 1; i <= 3; i++) {
+              schedules.push({
+                id: 103 + i,
+                name: `${semester.name} Alternative ${i}`,
+                createdAt: new Date().toISOString(),
+                status: 'Draft',
+                semesterName: semester.name,
+                details: mockScheduleResults[0].details.map(detail => ({
+                  ...detail,
+                  // Slightly modify each schedule to make them different
+                  // This is just for demonstration - a real algorithm would create meaningful alternatives
+                  startTime: i === 1 ? detail.startTime : 
+                            i === 2 ? (parseInt(detail.startTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':00' :
+                            (parseInt(detail.startTime.split(':')[0]) - 1).toString().padStart(2, '0') + ':00',
+                  endTime: i === 1 ? detail.endTime : 
+                          i === 2 ? (parseInt(detail.endTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':30' :
+                          (parseInt(detail.endTime.split(':')[0]) - 1).toString().padStart(2, '0') + ':30'
+                }))
+              });
+            }
+            resolve({
+              schedules: schedules,
+              primaryScheduleId: 104 // Pick one as primary
+            });
+          } else {
+            // Original single schedule behavior
+            resolve({
+              schedules: [{
+                id: 103,
+                name: `${semester.name} New Schedule`,
+                createdAt: new Date().toISOString(),
+                status: 'Draft',
+                semesterName: semester.name,
+                details: mockScheduleResults[0].details
+              }],
+              primaryScheduleId: 103
             });
           }
-          resolve({
-            schedules: schedules,
-            primaryScheduleId: 104 // Pick one as primary
-          });
-        } else {
-          // Original single schedule behavior
-          resolve({
-            schedules: [{
-              id: 103,
-              name: `${mockSemesters.find(s => s.id === formData.semester)?.name} New Schedule`,
-              createdAt: new Date().toISOString(),
-              status: 'Draft',
-              details: mockScheduleResults[0].details
-            }],
-            primaryScheduleId: 103
-          });
+        } catch (error) {
+          console.error('生成排课时发生错误:', error);
+          reject(new Error('生成排课时发生内部错误: ' + (error.message || '未知错误')));
         }
       }, 2000);
     });

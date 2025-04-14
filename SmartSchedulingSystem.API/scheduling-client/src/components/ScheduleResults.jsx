@@ -33,21 +33,26 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
-import { mockScheduleResults, mockTimeSlots } from '../services/mockData';
+import { mockTimeSlots } from '../services/mockData';
 import Alert from '@mui/material/Alert';
+
+// 导入真实API服务
+import { getScheduleById, getScheduleHistory } from '../services/api';
 
 import ScheduleExplanation from './LLM/ScheduleExplanation';
 import ConflictResolution from './LLM/ConflictResolution';
 
 
-
-const ScheduleResults = ({ scheduleId ,scheduleResults,onBack}) => {
+const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
   const [schedule, setSchedule] = useState(null);
   const [selectedScheduleId, setSelectedScheduleId] = useState(scheduleId);
   const [resultsTabValue, setResultsTabValue] = useState(0);
   // In ScheduleResults.jsx, add new state for week selection
   const [currentWeek, setCurrentWeek] = useState(1);
   const [totalWeeks, setTotalWeeks] = useState(16); // Default to 16 weeks in a semester
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [availableSchedules, setAvailableSchedules] = useState([]);
 
   const handleConflictResolved = (solution, conflictId) => {
     console.log(`Applying solution to conflict ${conflictId}:`, solution);
@@ -109,32 +114,53 @@ const ScheduleResults = ({ scheduleId ,scheduleResults,onBack}) => {
     }
   ]);
 
-  // Get schedule data based on ID
-  // At the beginning of the component, update the useEffect for loading schedule data:
-  useEffect(() => {
-    if (scheduleId) {
-      // Find schedule data by ID
-      const foundSchedule = mockScheduleResults.find(s => s.id === scheduleId);
+  // 获取排课数据
+  const fetchScheduleData = async (id) => {
+    if (!id) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // 使用API服务获取排课数据
+      const scheduleData = await getScheduleById(id);
+      setSchedule(scheduleData);
       
-      if (foundSchedule) {
-        setSchedule(foundSchedule);
-      } else {
-        // If scheduleId is valid but schedule not found, load the first available schedule
-        if (mockScheduleResults.length > 0) {
-          setSchedule(mockScheduleResults[0]);
-          console.warn(`Schedule with ID ${scheduleId} not found. Loading first available schedule instead.`);
-        } else {
-          console.error('No schedule data available');
-        }
+      // 如果是第一次加载并且没有可用排课列表，获取历史数据
+      if (availableSchedules.length === 0) {
+        // 在实际项目中，我们可能需要根据当前学期ID获取历史记录
+        // 这里暂时使用一个固定值
+        const semesterId = 1;
+        const historyData = await getScheduleHistory(semesterId);
+        setAvailableSchedules(historyData);
       }
-    } else {
-      // If no scheduleId is provided, load the first schedule
-      if (mockScheduleResults.length > 0) {
-        setSchedule(mockScheduleResults[0]);
-        console.warn('No scheduleId provided. Loading first available schedule.');
-      }
+    } catch (err) {
+      console.error('获取排课数据失败:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  }, [scheduleId]);
+  };
+
+  // 当ID变化时获取数据
+  useEffect(() => {
+    // 如果传入的scheduleResults有数据，使用它
+    if (scheduleResults && scheduleResults.length > 0) {
+      const selectedResult = scheduleResults.find(r => r.id === selectedScheduleId) || scheduleResults[0];
+      setSchedule(selectedResult);
+      setAvailableSchedules(scheduleResults);
+    } else {
+      // 否则从API获取
+      fetchScheduleData(selectedScheduleId || scheduleId);
+    }
+  }, [scheduleId, selectedScheduleId, scheduleResults]);
+
+  // 当所选ID变化时更新
+  useEffect(() => {
+    if (selectedScheduleId && (!scheduleResults || scheduleResults.length === 0)) {
+      fetchScheduleData(selectedScheduleId);
+    }
+  }, [selectedScheduleId]);
 
   const handleResultsTabChange = (event, newValue) => {
     setResultsTabValue(newValue);
@@ -229,7 +255,7 @@ const ScheduleResults = ({ scheduleId ,scheduleResults,onBack}) => {
   const [selectedMultiCourses, setSelectedMultiCourses] = useState([]);
 
   // Add fallback content when no schedule data is available
-  if (!schedule && mockScheduleResults.length === 0) {
+  if (!schedule && availableSchedules.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="info" sx={{ mb: 2 }}>
@@ -259,18 +285,30 @@ const ScheduleResults = ({ scheduleId ,scheduleResults,onBack}) => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* // Add above the main Box component: */}
+      {loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+          <Typography>加载排课数据中...</Typography>
+        </Box>
+      )}
+      
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
+      )}
+      
+      {/* 排课选择下拉框 */}
       <Box sx={{ mb: 3 }}>
         <FormControl fullWidth>
-          <InputLabel>Select Schedule Solution</InputLabel>
+          <InputLabel>选择排课方案</InputLabel>
           <Select
-            value={selectedScheduleId}
+            value={selectedScheduleId || ''}
             onChange={(e) => setSelectedScheduleId(e.target.value)}
-            label="Select Schedule Solution"
+            label="选择排课方案"
           >
-            {mockScheduleResults.map(result => (
+            {availableSchedules.map(result => (
               <MenuItem key={result.id} value={result.id}>
-                {result.name} {result.status === 'Draft' ? '(Draft)' : ''}
+                {result.name} {result.status === 'Draft' ? '(草稿)' : ''}
               </MenuItem>
             ))}
           </Select>
@@ -359,7 +397,6 @@ const ScheduleResults = ({ scheduleId ,scheduleResults,onBack}) => {
         </Box>
       )}
 
-      {/* Calendar View */}
       {/* Calendar View */}
       {resultsTabValue === 0 && (
         <TableContainer component={Paper} variant="outlined">

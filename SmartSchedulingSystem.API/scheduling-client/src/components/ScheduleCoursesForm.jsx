@@ -23,7 +23,8 @@ import {
   AccordionSummary,
   AccordionDetails,
   Slider,
-  Paper
+  Paper,
+  Snackbar
 } from '@mui/material';
 import Alert from '@mui/material/Alert';
 
@@ -46,8 +47,11 @@ import {
   mockTeachers, 
   mockClassrooms, 
   mockConstraints,
-  generateScheduleApi
+  mockTimeSlots
 } from '../services/mockData';
+
+// 导入真实API服务
+import { generateScheduleApi } from '../services/api';
 
 import RequirementAnalyzer  from './LLM/RequirementAnalyzer';
 import ParameterOptimization from './LLM/ParameterOptimization';
@@ -65,9 +69,9 @@ const ScheduleCoursesForm = ({
   const [formData, setFormData] = useState({
     // List-selectable parameters
     semester: 1,
-    courses: [1, 2, 3],
-    teachers: [1, 2, 3, 4],
-    classrooms: [1, 2, 3, 4],
+    courses: [],
+    teachers: [],
+    classrooms: [],
 
      // Add these new organizational scope parameters
     campus: '',
@@ -122,13 +126,103 @@ const ScheduleCoursesForm = ({
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
+  const [feedback, setFeedback] = useState({ open: false, message: '', type: 'info' });
+
+  // Add this state variable for debugging
+  const [debugMode, setDebugMode] = useState({
+    disableMockFallback: false, // 禁用模拟回退，强制使用真实API
+    verboseLogging: false      // 启用详细日志记录
+  });
+
+  // Add this method to toggle debug options
+  const toggleDebugOption = (option) => {
+    setDebugMode(prev => ({
+      ...prev,
+      [option]: !prev[option]
+    }));
+  };
+
+  // 添加反馈消息的处理函数
+  const showFeedback = (message, type = 'info') => {
+    setFeedback({
+      open: true,
+      message,
+      type
+    });
+  };
+
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({
+      ...prev,
+      open: false
+    }));
+  };
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    console.log(`表单变更: ${name} = `, value);
+    
+    // 特殊处理组织单位字段的选择，清空相关的选择
+    if (name === 'campus') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        school: '',
+        department: '',
+        subject: '',
+        programme: '',
+        // 清空相关选择
+        courses: [],
+        teachers: [],
+        classrooms: []
+      });
+    } else if (name === 'school') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        department: '',
+        subject: '',
+        programme: '',
+        // 清空相关选择
+        courses: [],
+        teachers: []
+      });
+    } else if (name === 'department') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        subject: '',
+        programme: '',
+        // 清空相关选择
+        courses: [],
+        teachers: []
+      });
+    } else if (name === 'subject') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        // 清空相关选择
+        courses: [],
+        teachers: []
+      });
+    } else if (name === 'programme') {
+      setFormData({
+        ...formData,
+        [name]: value,
+        // 清空相关选择
+        courses: []
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+    
+    // 当改变课程、教师或教室时，记录当前筛选后的列表
+    if (['courses', 'teachers', 'classrooms'].includes(name)) {
+      console.log(`${name} 筛选后列表:`, getFilteredItems(name));
+    }
   };
 
   const handleSliderChange = (name, value) => {
@@ -177,73 +271,238 @@ const ScheduleCoursesForm = ({
     }
   }, [formData.schedulingScope]);
 
+  // 添加一个新的useEffect钩子来处理初始化默认选择
+  useEffect(() => {
+    // 组件首次加载时自动选择默认值
+    if (formData.courses.length === 0 && formData.teachers.length === 0 && formData.classrooms.length === 0) {
+      console.log('初始化默认选择...');
+      
+      // 默认选择第一个校区
+      const defaultCampus = mockCampuses.length > 0 ? mockCampuses[0].id : '';
+      
+      // 获取该校区下的第一个学院
+      const campusSchools = mockSchools.filter(school => school.campusId === defaultCampus);
+      const defaultSchool = campusSchools.length > 0 ? campusSchools[0].id : '';
+      
+      // 获取该学院下的第一个系别
+      const schoolDepts = mockDepartments.filter(dept => dept.schoolId === defaultSchool);
+      const defaultDept = schoolDepts.length > 0 ? schoolDepts[0].id : '';
+      
+      // 更新formData
+      setFormData(prev => {
+        const newFormData = {
+          ...prev,
+          campus: defaultCampus,
+          school: defaultSchool,
+          department: defaultDept
+        };
+        
+        return newFormData;
+      });
+    }
+  }, []); // 仅在组件挂载时运行一次
+
+  // 在组织单位选择更新后自动选择默认课程、教师和教室
+  useEffect(() => {
+    // 仅在有组织单位选择但没有课程、教师或教室选择时执行
+    if ((formData.campus || formData.school || formData.department) && 
+        (formData.courses.length === 0 || formData.teachers.length === 0 || formData.classrooms.length === 0)) {
+      
+      console.log('基于组织单位选择更新默认选择...');
+      
+      // 获取可用项目
+      const availableCourses = getFilteredItems('courses').map(c => c.id).slice(0, 3);
+      const availableTeachers = getFilteredItems('teachers').map(t => t.id).slice(0, 2);
+      const availableClassrooms = getFilteredItems('classrooms').map(c => c.id).slice(0, 2);
+      
+      console.log('可用课程:', availableCourses);
+      console.log('可用教师:', availableTeachers);
+      console.log('可用教室:', availableClassrooms);
+      
+      // 检查是否有可用的选项
+      if (availableCourses.length === 0 && formData.courses.length === 0) {
+        showFeedback('当前筛选条件下没有可用课程', 'warning');
+      }
+      
+      if (availableTeachers.length === 0 && formData.teachers.length === 0) {
+        showFeedback('当前筛选条件下没有可用教师', 'warning');
+      }
+      
+      if (availableClassrooms.length === 0 && formData.classrooms.length === 0) {
+        showFeedback('当前筛选条件下没有可用教室', 'warning');
+      }
+      
+      // 只更新尚未选择的项目
+      setFormData(current => ({
+        ...current,
+        courses: current.courses.length === 0 ? availableCourses : current.courses,
+        teachers: current.teachers.length === 0 ? availableTeachers : current.teachers,
+        classrooms: current.classrooms.length === 0 ? availableClassrooms : current.classrooms
+      }));
+    }
+  }, [formData.campus, formData.school, formData.department]); // 当组织单位选择变化时执行
+
   // Add this helper function to your component
   const getFilteredItems = (itemType) => {
+    // 获取当前的筛选条件
+    const filterParams = {
+      campus: formData.campus,
+      school: formData.school,
+      department: formData.department,
+      subject: formData.subject,
+      programme: formData.programme
+    };
+    
+    console.log(`筛选${itemType}，条件:`, filterParams);
+    
     switch (itemType) {
       case 'courses':
         // Filter courses based on selected organizational units
         let filteredCourses = [...mockCourses];
-        if (formData.subject) {
-          filteredCourses = filteredCourses.filter(course => course.subjectId === formData.subject);
-        } else if (formData.programme) {
-          filteredCourses = filteredCourses.filter(course => course.programmeId === formData.programme);
-        } else if (formData.department) {
-          filteredCourses = filteredCourses.filter(course => course.departmentId === formData.department);
-        } else if (formData.school) {
+        
+        // 优先按学科筛选
+        if (filterParams.subject) {
+          console.log(`按学科ID ${filterParams.subject} 筛选课程`);
+          filteredCourses = filteredCourses.filter(course => course.subjectId === filterParams.subject);
+        } 
+        // 如果没有选择学科但选择了专业
+        else if (filterParams.programme) {
+          console.log(`按专业ID ${filterParams.programme} 筛选课程`);
+          // 假设课程有programmeId字段，如果没有，需要根据实际关联逻辑修改
+          filteredCourses = filteredCourses.filter(course => course.programmeId === filterParams.programme);
+        } 
+        // 如果没有选择学科和专业但选择了系别
+        else if (filterParams.department) {
+          console.log(`按系别ID ${filterParams.department} 筛选课程`);
+          // 根据系别筛选科目，然后筛选课程
+          const departmentSubjects = mockSubjects.filter(subject => subject.departmentId === filterParams.department);
+          const subjectIds = departmentSubjects.map(subject => subject.id);
+          console.log(`系别 ${filterParams.department} 下的学科IDs:`, subjectIds);
+          
           filteredCourses = filteredCourses.filter(course => 
-            mockDepartments.some(dept => 
-              dept.schoolId === formData.school && course.departmentId === dept.id
-            )
+            subjectIds.includes(course.subjectId)
           );
-        } else if (formData.campus) {
+        } 
+        // 如果只选择了学院
+        else if (filterParams.school) {
+          console.log(`按学院ID ${filterParams.school} 筛选课程`);
+          // 获取学院下所有系别
+          const schoolDepts = mockDepartments.filter(dept => dept.schoolId === filterParams.school);
+          const deptIds = schoolDepts.map(dept => dept.id);
+          console.log(`学院 ${filterParams.school} 下的系别IDs:`, deptIds);
+          
+          // 获取这些系别下的所有学科
+          const deptSubjects = mockSubjects.filter(subject => 
+            deptIds.includes(subject.departmentId)
+          );
+          const subjectIds = deptSubjects.map(subject => subject.id);
+          console.log(`学院 ${filterParams.school} 下的学科IDs:`, subjectIds);
+          
           filteredCourses = filteredCourses.filter(course => 
-            mockDepartments.some(dept => 
-              mockSchools.some(school => 
-                school.campusId === formData.campus && dept.schoolId === school.id && course.departmentId === dept.id
-              )
-            )
+            subjectIds.includes(course.subjectId)
+          );
+        } 
+        // 如果只选择了校区
+        else if (filterParams.campus) {
+          console.log(`按校区ID ${filterParams.campus} 筛选课程`);
+          // 获取校区下所有学院
+          const campusSchools = mockSchools.filter(school => school.campusId === filterParams.campus);
+          const schoolIds = campusSchools.map(school => school.id);
+          console.log(`校区 ${filterParams.campus} 下的学院IDs:`, schoolIds);
+          
+          // 获取这些学院下的所有系别
+          const schoolDepts = mockDepartments.filter(dept => 
+            schoolIds.includes(dept.schoolId)
+          );
+          const deptIds = schoolDepts.map(dept => dept.id);
+          console.log(`校区 ${filterParams.campus} 下的系别IDs:`, deptIds);
+          
+          // 获取这些系别下的所有学科
+          const deptSubjects = mockSubjects.filter(subject => 
+            deptIds.includes(subject.departmentId)
+          );
+          const subjectIds = deptSubjects.map(subject => subject.id);
+          console.log(`校区 ${filterParams.campus} 下的学科IDs:`, subjectIds);
+          
+          filteredCourses = filteredCourses.filter(course => 
+            subjectIds.includes(course.subjectId)
           );
         }
+        
+        console.log(`筛选后的课程数量: ${filteredCourses.length}`);
         return filteredCourses;
         
       case 'teachers':
         // Filter teachers based on selected organizational units
         let filteredTeachers = [...mockTeachers];
-        if (formData.subject) {
+        
+        // 优先按学科筛选
+        if (filterParams.subject) {
+          console.log(`按学科ID ${filterParams.subject} 筛选教师`);
           const eligibleTeacherIds = mockTeacherSubjects
-            .filter(ts => ts.subjectId === formData.subject)
+            .filter(ts => ts.subjectId === filterParams.subject)
             .map(ts => ts.teacherId);
+          
+          console.log(`可教授学科 ${filterParams.subject} 的教师IDs:`, eligibleTeacherIds);
+          
           filteredTeachers = filteredTeachers.filter(teacher => 
             eligibleTeacherIds.includes(teacher.id)
           );
-        } else if (formData.department) {
-          filteredTeachers = filteredTeachers.filter(teacher => teacher.departmentId === formData.department);
-        } else if (formData.school) {
+        } 
+        // 如果没有选择学科但选择了系别
+        else if (filterParams.department) {
+          console.log(`按系别ID ${filterParams.department} 筛选教师`);
+          filteredTeachers = filteredTeachers.filter(teacher => teacher.departmentId === filterParams.department);
+        } 
+        // 如果没有选择学科和系别但选择了学院
+        else if (filterParams.school) {
+          console.log(`按学院ID ${filterParams.school} 筛选教师`);
+          // 获取学院下所有系别
+          const schoolDepts = mockDepartments.filter(dept => dept.schoolId === filterParams.school);
+          const deptIds = schoolDepts.map(dept => dept.id);
+          console.log(`学院 ${filterParams.school} 下的系别IDs:`, deptIds);
+          
           filteredTeachers = filteredTeachers.filter(teacher => 
-            mockDepartments.some(dept => 
-              dept.schoolId === formData.school && teacher.departmentId === dept.id
-            )
+            deptIds.includes(teacher.departmentId)
           );
-        } else if (formData.campus) {
+        } 
+        // 如果只选择了校区
+        else if (filterParams.campus) {
+          console.log(`按校区ID ${filterParams.campus} 筛选教师`);
+          // 获取校区下所有学院
+          const campusSchools = mockSchools.filter(school => school.campusId === filterParams.campus);
+          const schoolIds = campusSchools.map(school => school.id);
+          console.log(`校区 ${filterParams.campus} 下的学院IDs:`, schoolIds);
+          
+          // 获取这些学院下的所有系别
+          const schoolDepts = mockDepartments.filter(dept => 
+            schoolIds.includes(dept.schoolId)
+          );
+          const deptIds = schoolDepts.map(dept => dept.id);
+          console.log(`校区 ${filterParams.campus} 下的系别IDs:`, deptIds);
+          
           filteredTeachers = filteredTeachers.filter(teacher => 
-            mockDepartments.some(dept => 
-              mockSchools.some(school => 
-                school.campusId === formData.campus && dept.schoolId === school.id && teacher.departmentId === dept.id
-              )
-            )
+            deptIds.includes(teacher.departmentId)
           );
         }
+        
+        console.log(`筛选后的教师数量: ${filteredTeachers.length}`);
         return filteredTeachers;
         
       case 'classrooms':
         // Filter classrooms based on selected campus
         let filteredClassrooms = [...mockClassrooms];
-        if (formData.campus) {
-          filteredClassrooms = filteredClassrooms.filter(classroom => classroom.campusId === formData.campus);
+        
+        if (filterParams.campus) {
+          console.log(`按校区ID ${filterParams.campus} 筛选教室`);
+          filteredClassrooms = filteredClassrooms.filter(classroom => classroom.campusId === filterParams.campus);
         }
+        
+        console.log(`筛选后的教室数量: ${filteredClassrooms.length}`);
         return filteredClassrooms;
         
       default:
+        console.log(`未知的筛选类型: ${itemType}`);
         return [];
     }
   };
@@ -274,19 +533,108 @@ const ScheduleCoursesForm = ({
 
   // In ScheduleCoursesForm.jsx, update handleGenerateSchedule function
   const handleGenerateSchedule = () => {
+    // 验证数据
+    if (!formData.semester) {
+      showFeedback('请选择学期', 'error');
+      return;
+    }
+    
+    // 确保至少选择了一个课程
+    if (!formData.courses || formData.courses.length === 0) {
+      showFeedback('请至少选择一个课程', 'error');
+      return;
+    }
+    
+    // 确保至少选择了一个教师
+    if (!formData.teachers || formData.teachers.length === 0) {
+      showFeedback('请至少选择一个教师', 'error');
+      return;
+    }
+    
+    // 确保至少选择了一个教室
+    if (!formData.classrooms || formData.classrooms.length === 0) {
+      showFeedback('请至少选择一个教室', 'error');
+      return;
+    }
+    
     setIsGenerating(true);
-    // Call API (mock)
-    generateScheduleApi(formData)
+    showFeedback('正在生成排课方案，请稍候...', 'info');
+    
+    // 准备约束设置
+    const constraintSettings = formData.constraintSettings || [];
+
+    // 准备API请求数据 - 确保与DTO格式匹配
+    const apiRequestData = {
+      // 基本数据
+      semester: formData.semester,
+      courses: formData.courses || [],  // 将在API中转换为courseSectionIds
+      teachers: formData.teachers || [], // 将在API中转换为teacherIds
+      classrooms: formData.classrooms || [], // 将在API中转换为classroomIds
+      
+      // 组织单位数据
+      campus: formData.campus || null,
+      school: formData.school || null,
+      department: formData.department || null,
+      subject: formData.subject || null,
+      programme: formData.programme || null,
+      schedulingScope: formData.schedulingScope || 'programme',
+      
+      // 约束和调度参数
+      constraintSettings,
+      
+      // 多方案生成参数
+      generateMultipleSolutions: true,
+      solutionCount: 3,
+      
+      // 系统参数（来自props）
+      useAI: systemParameters?.useAI || false,
+      facultyWorkloadBalance: systemParameters?.facultyWorkloadBalance || 0.8,
+      studentScheduleCompactness: systemParameters?.studentScheduleCompactness || 0.7,
+      minimumTravelTime: systemParameters?.minimumTravelTime || 30,
+      maximumConsecutiveClasses: systemParameters?.maximumConsecutiveClasses || 3,
+      campusTravelTimeWeight: systemParameters?.campusTravelTimeWeight || 0.6,
+      preferredClassroomProximity: systemParameters?.preferredClassroomProximity || 0.5,
+      classroomTypeMatchingWeight: systemParameters?.classroomTypeMatchingWeight || 0.7,
+      
+      // 其他选项
+      allowCrossSchoolEnrollment: systemParameters?.allowCrossSchoolEnrollment || true,
+      allowCrossDepartmentTeaching: systemParameters?.allowCrossDepartmentTeaching || true,
+      prioritizeHomeBuildings: systemParameters?.prioritizeHomeBuildings || true,
+      genderSegregation: systemParameters?.genderSegregation || false,
+      enableRamadanSchedule: systemParameters?.enableRamadanSchedule || false,
+      allowCrossListedCourses: systemParameters?.allowCrossListedCourses || true,
+      enableMultiCampusConstraints: systemParameters?.enableMultiCampusConstraints || true,
+      holidayExclusions: systemParameters?.holidayExclusions || true,
+      
+      // 调试参数
+      _debug: debugMode
+    };
+    
+    console.log('发送排课请求数据:', apiRequestData);
+    
+    // 调用API
+    generateScheduleApi(apiRequestData)
       .then(result => {
         setIsGenerating(false);
+        console.log('收到排课结果:', result);
+        
+        // 检查是否有错误信息
+        if (result.errorMessage) {
+          showFeedback(`排课方案生成部分成功: ${result.errorMessage}`, 'warning');
+        } else {
+          showFeedback('排课方案生成成功!', 'success');
+        }
+        
         if (onScheduleGenerated) {
-          // Pass all schedules to the parent
-          onScheduleGenerated(result.primaryScheduleId, result.schedules);
+          // 将结果传递给父组件
+          onScheduleGenerated(result);
         }
       })
       .catch(error => {
-        console.error('Error generating schedule:', error);
+        console.error('生成排课方案失败:', error);
         setIsGenerating(false);
+        // 显示错误提示给用户
+        showFeedback(`生成排课方案失败: ${error.message || '未知错误'}`, 'error');
       });
   };
   
@@ -312,6 +660,18 @@ const ScheduleCoursesForm = ({
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Snackbar for feedback */}
+      <Snackbar
+        open={feedback.open}
+        autoHideDuration={6000}
+        onClose={handleCloseFeedback}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseFeedback} severity={feedback.type} sx={{ width: '100%' }}>
+          {feedback.message}
+        </Alert>
+      </Snackbar>
+      
       {/* LLM Constraint Analysis */}
       <Accordion defaultExpanded={true} sx={{ mb: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -508,6 +868,10 @@ const ScheduleCoursesForm = ({
                   ))}
                 </Select>
               </FormControl>
+              {/* 显示筛选后的课程数量 */}
+              <Typography variant="caption" color="text.secondary">
+                {getFilteredItems('courses').length} 个课程可用
+              </Typography>
             </Grid>
             
             <Grid item xs={12} md={6}>
@@ -529,13 +893,17 @@ const ScheduleCoursesForm = ({
                     </Box>
                   )}
                 >
-                  {getFilteredItems('teacher').map(teacher => (
+                  {getFilteredItems('teachers').map(teacher => (
                     <MenuItem key={teacher.id} value={teacher.id}>
-                      {teacher.code} - {teacher.department}
+                      {teacher.name} - {teacher.department}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              {/* 显示筛选后的教师数量 */}
+              <Typography variant="caption" color="text.secondary">
+                {getFilteredItems('teachers').length} 名教师可用
+              </Typography>
             </Grid>
             
             <Grid item xs={12} md={6}>
@@ -557,13 +925,17 @@ const ScheduleCoursesForm = ({
                     </Box>
                   )}
                 >
-                  {getFilteredItems('classroom').map(classroom => (
+                  {getFilteredItems('classrooms').map(classroom => (
                     <MenuItem key={classroom.id} value={classroom.id}>
                       {classroom.building}-{classroom.name} (Capacity: {classroom.capacity})
                       </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              {/* 显示筛选后的教室数量 */}
+              <Typography variant="caption" color="text.secondary">
+                {getFilteredItems('classrooms').length} 个教室可用
+              </Typography>
             </Grid>
           </Grid>
         </AccordionDetails>
@@ -837,6 +1209,61 @@ const ScheduleCoursesForm = ({
       {isGenerating && (
         <LinearProgress sx={{ mt: 2 }} />
       )}
+      
+      {/* 调试选项面板 */}
+      <Accordion sx={{ mt: 3 }} variant="outlined">
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography variant="subtitle2" color="text.secondary">开发者选项</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Typography variant="caption" color="text.secondary" paragraph>
+            这些选项仅供开发和测试使用，可以帮助调试前后端通信问题。
+          </Typography>
+          
+          <FormControlLabel
+            control={
+              <Switch 
+                checked={debugMode.disableMockFallback}
+                onChange={() => toggleDebugOption('disableMockFallback')}
+                color="warning"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                禁用模拟API回退
+                <Typography variant="caption" display="block" color="text.secondary">
+                  启用此选项将强制使用真实后端API，不会自动切换到模拟数据
+                </Typography>
+              </Typography>
+            }
+          />
+          
+          <FormControlLabel
+            control={
+              <Switch 
+                checked={debugMode.verboseLogging}
+                onChange={() => toggleDebugOption('verboseLogging')}
+                color="warning"
+              />
+            }
+            label={
+              <Typography variant="body2">
+                启用详细日志记录
+                <Typography variant="caption" display="block" color="text.secondary">
+                  在控制台显示更多调试信息，包括完整的请求和响应数据
+                </Typography>
+              </Typography>
+            }
+          />
+          
+          <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              当前状态: {debugMode.disableMockFallback ? '使用真实API' : '允许模拟回退'} | 
+              日志级别: {debugMode.verboseLogging ? '详细' : '基本'}
+            </Typography>
+          </Box>
+        </AccordionDetails>
+      </Accordion>
     </Box>
   );
 };

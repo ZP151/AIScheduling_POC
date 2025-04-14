@@ -41,6 +41,8 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// </summary>
         public int ClassroomId { get; set; }
 
+        // 每周几次课的第几次
+        public int SessionNumber { get; set; }
         /// <summary>
         /// 教室名称
         /// </summary>

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.TestPlatform.Utilities;
 using SmartSchedulingSystem.Scheduling;
 using SmartSchedulingSystem.Scheduling.Algorithms.CP;
 using SmartSchedulingSystem.Scheduling.Engine;
@@ -8,15 +10,20 @@ using SmartSchedulingSystem.Test.TestData;
 using System;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
+using Xunit.Extensions.Logging; // 这个命名空间必须加上
 
 namespace SmartSchedulingSystem.Test.Integration
 {
     public class SchedulingAlgorithmIntegrationTests
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly ITestOutputHelper _output;
 
-        public SchedulingAlgorithmIntegrationTests()
+        public SchedulingAlgorithmIntegrationTests(ITestOutputHelper output)
         {
+            _output = output;
+
             // 设置依赖注入
             var services = new ServiceCollection();
 
@@ -31,9 +38,14 @@ namespace SmartSchedulingSystem.Test.Integration
 
             // 注册排课服务
             services.AddSchedulingServices();
-            
-            services.AddLogging();
 
+            // 添加日志，并接入 xUnit 输出
+
+            services.AddLogging(builder =>
+            {
+                builder.AddXunit(output); // ⭐ 关键：将日志输出到 xUnit 的控制台
+                builder.SetMinimumLevel(LogLevel.Information); // 可调整为 Debug 看更详细日志
+            });
             // 构建服务提供者
             _serviceProvider = services.BuildServiceProvider();
             // 验证参数是否正确注册
@@ -42,7 +54,56 @@ namespace SmartSchedulingSystem.Test.Integration
             Console.WriteLine($"初始解数量: {registeredParams.InitialSolutionCount}");
             Console.WriteLine($"最大LS迭代: {registeredParams.MaxLsIterations}");
         }
+        [Fact]
+        public void TestSchedulingAlgorithm_WithMediumTestData()
+        {
+            // 创建小型测试数据
+            var testProblem = MediumTestDataProvider.CreateMediumTestProblem();
 
+            // 获取排课引擎
+            var schedulingEngine = _serviceProvider.GetRequiredService<SchedulingEngine>();
+
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // 添加一些调试输出
+            Console.WriteLine($"测试问题: {testProblem.Name}");
+            Console.WriteLine($"课程数: {testProblem.CourseSections.Count}");
+            Console.WriteLine($"教师数: {testProblem.Teachers.Count}");
+            Console.WriteLine($"教室数: {testProblem.Classrooms.Count}");
+            Console.WriteLine($"时间槽数: {testProblem.TimeSlots.Count}");
+            _output.WriteLine($"测试问题: {testProblem.Name}");
+
+            // 运行排课算法
+            var result = schedulingEngine.GenerateSchedule(testProblem);
+
+            // 输出结果状态
+            Console.WriteLine($"排课结果状态: {result.Status}");
+            Console.WriteLine($"排课结果消息: {result.Message}");
+            Console.WriteLine($"解决方案数量: {result.Solutions.Count}");
+
+            // 验证结果
+            Assert.True(result.Status == SchedulingStatus.Success,
+                      $"排课应该成功，但状态为：{result.Status}，消息：{result.Message}");
+
+            // 获取第一个解决方案
+            if (result.Solutions.Count > 0)
+            {
+                var solution = result.Solutions.First();
+                Console.WriteLine($"成功生成排课方案，共{solution.Assignments.Count}个分配");
+
+                // 打印分配详情
+                foreach (var assignment in solution.Assignments)
+                {
+                    Console.WriteLine($"课程:{assignment.SectionCode}, 教师:{assignment.TeacherName}, " +
+                                      $"教室:{assignment.ClassroomName}, 时间:周{assignment.DayOfWeek}-{assignment.StartTime}");
+                }
+            }
+            // 断言
+            Assert.Equal(SchedulingStatus.Success, result.Status);
+            Assert.NotEmpty(result.Solutions);
+
+            Console.WriteLine("============ 小型测试结束 ============");
+        }
         //[Fact]
         //public void TestSchedulingAlgorithm_WithSuperSimpleData_ShouldSucceed()
         //{
@@ -51,7 +112,7 @@ namespace SmartSchedulingSystem.Test.Integration
 
         //    // 获取排课引擎
         //    var schedulingEngine = _serviceProvider.GetRequiredService<SchedulingEngine>();
-            
+
         //    Console.OutputEncoding = System.Text.Encoding.UTF8;
 
         //    // 添加一些调试输出
@@ -92,55 +153,9 @@ namespace SmartSchedulingSystem.Test.Integration
 
         //    Console.WriteLine("============ 超简单测试结束 ============");
         //}
-        [Fact]
-        public void TestSchedulingAlgorithm_WithMediumTestData()
-        {
-            // 创建超简单测试数据
-            var testProblem = MediumTestDataProvider.CreateMediumTestProblem();
 
-            // 获取排课引擎
-            var schedulingEngine = _serviceProvider.GetRequiredService<SchedulingEngine>();
 
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            // 添加一些调试输出
-            Console.WriteLine($"测试问题: {testProblem.Name}");
-            Console.WriteLine($"课程数: {testProblem.CourseSections.Count}");
-            Console.WriteLine($"教师数: {testProblem.Teachers.Count}");
-            Console.WriteLine($"教室数: {testProblem.Classrooms.Count}");
-            Console.WriteLine($"时间槽数: {testProblem.TimeSlots.Count}");
-
-            // 运行排课算法
-            var result = schedulingEngine.GenerateSchedule(testProblem);
-
-            // 输出结果状态
-            Console.WriteLine($"排课结果状态: {result.Status}");
-            Console.WriteLine($"排课结果消息: {result.Message}");
-            Console.WriteLine($"解决方案数量: {result.Solutions.Count}");
-
-            // 验证结果
-            Assert.True(result.Status == SchedulingStatus.Success,
-                      $"排课应该成功，但状态为：{result.Status}，消息：{result.Message}");
-
-            // 获取第一个解决方案
-            if (result.Solutions.Count > 0)
-            {
-                var solution = result.Solutions.First();
-                Console.WriteLine($"成功生成排课方案，共{solution.Assignments.Count}个分配");
-
-                // 打印分配详情
-                foreach (var assignment in solution.Assignments)
-                {
-                    Console.WriteLine($"课程:{assignment.SectionCode}, 教师:{assignment.TeacherName}, " +
-                                      $"教室:{assignment.ClassroomName}, 时间:周{assignment.DayOfWeek}-{assignment.StartTime}");
-                }
-            }
-            // 断言
-            Assert.Equal(SchedulingStatus.Success, result.Status);
-            Assert.NotEmpty(result.Solutions);
-
-            Console.WriteLine("============ 超简单测试结束 ============");
-        }
         //[Fact]
         //public void Test_CP_Initial_Solution_Generation()
         //{

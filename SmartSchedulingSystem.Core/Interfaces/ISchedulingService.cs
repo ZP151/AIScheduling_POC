@@ -9,7 +9,7 @@ namespace SmartSchedulingSystem.Core.Interfaces
 {
     public interface ISchedulingService
     {
-        Task<ScheduleResultDto> GenerateScheduleAsync(ScheduleRequestDto request);
+        Task<ScheduleResultsDto> GenerateScheduleAsync(ScheduleRequestDto request);
         Task<List<ScheduleResultDto>> GetScheduleHistoryAsync(int semesterId);
         Task<ScheduleResultDto> GetScheduleByIdAsync(int scheduleId);
         Task<bool> PublishScheduleAsync(int scheduleId);

@@ -97,29 +97,29 @@ namespace SmartSchedulingSystem.Scheduling
             services.AddTransient<SchedulingEngine>();
 
             // 注册冲突解析器
-            services.AddTransient<ConflictResolver>();
+            services.AddSingleton<ConflictResolver>();
             // 注册冲突处理器
-            services.AddTransient<IConflictHandler, TeacherConflictHandler>();
-            services.AddTransient<IConflictHandler, ClassroomConflictHandler>(); // 添加这一行
+            services.AddSingleton<IConflictHandler, TeacherConflictHandler>();
+            services.AddSingleton<IConflictHandler, ClassroomConflictHandler>();
 
-            // 注册硬约束
-            services.AddTransient<IConstraint, TeacherConflictConstraint>();
-            services.AddTransient<IConstraint, ClassroomConflictConstraint>();
-            services.AddTransient<IConstraint, TeacherAvailabilityConstraint>();
-            services.AddTransient<IConstraint, PrerequisiteConstraint>();
-            services.AddTransient<IConstraint, ClassroomCapacityConstraint>();
-            services.AddTransient<IConstraint, ClassroomAvailabilityConstraint>();
+            // 注册硬约束 - 修改为Singleton以避免生命周期冲突
+            services.AddSingleton<IConstraint, TeacherConflictConstraint>();
+            services.AddSingleton<IConstraint, ClassroomConflictConstraint>();
+            services.AddSingleton<IConstraint, TeacherAvailabilityConstraint>();
+            services.AddSingleton<IConstraint, PrerequisiteConstraint>();
+            services.AddSingleton<IConstraint, ClassroomCapacityConstraint>();
+            services.AddSingleton<IConstraint, ClassroomAvailabilityConstraint>();
 
-            // 注册物理软约束
-            services.AddTransient<IConstraint, TimeAvailabilityConstraint>();
-            services.AddTransient<IConstraint, EquipmentRequirementConstraint>();
-            services.AddTransient<IConstraint, LocationProximityConstraint>();
-            services.AddTransient<IConstraint, ClassroomTypeMatchConstraint>();
+            // 注册物理软约束 - 修改为Singleton以避免生命周期冲突
+            services.AddSingleton<IConstraint, TimeAvailabilityConstraint>();
+            services.AddSingleton<IConstraint, EquipmentRequirementConstraint>();
+            services.AddSingleton<IConstraint, LocationProximityConstraint>();
+            services.AddSingleton<IConstraint, ClassroomTypeMatchConstraint>();
 
-            // 注册质量软约束
-            services.AddTransient<IConstraint, TeacherPreferenceConstraint>();
-            services.AddTransient<IConstraint, TeacherWorkloadConstraint>();
-            services.AddTransient<IConstraint, TeacherScheduleCompactnessConstraint>();
+            // 注册质量软约束 - 修改为Singleton以避免生命周期冲突
+            services.AddSingleton<IConstraint, TeacherPreferenceConstraint>();
+            services.AddSingleton<IConstraint, TeacherWorkloadConstraint>();
+            services.AddSingleton<IConstraint, TeacherScheduleCompactnessConstraint>();
 
             return services;
         }

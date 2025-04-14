@@ -66,7 +66,70 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
             return problem;
         }
+        public static List<TimeSlotInfo> GenerateStandardTimeSlots()
+        {
+            var timeSlots = new List<TimeSlotInfo>();
+            int slotId = 1;
 
+            // 周一到周五
+            for (int day = 1; day <= 5; day++) // Monday to Friday
+            {
+                // 上午 8:00 - 10:00
+                timeSlots.Add(new TimeSlotInfo
+                {
+                    Id = slotId++,
+                    DayOfWeek = day,
+                    DayName = GetDayName(day),
+                    StartTime = new TimeSpan(8, 0, 0),
+                    EndTime = new TimeSpan(10, 0, 0)
+                });
+
+                // 上午 10:00 - 12:00
+                timeSlots.Add(new TimeSlotInfo
+                {
+                    Id = slotId++,
+                    DayOfWeek = day,
+                    DayName = GetDayName(day),
+                    StartTime = new TimeSpan(10, 0, 0),
+                    EndTime = new TimeSpan(12, 0, 0)
+                });
+
+                // 下午 14:00 - 16:00
+                timeSlots.Add(new TimeSlotInfo
+                {
+                    Id = slotId++,
+                    DayOfWeek = day,
+                    DayName = GetDayName(day),
+                    StartTime = new TimeSpan(14, 0, 0),
+                    EndTime = new TimeSpan(16, 0, 0)
+                });
+
+                // 晚上 19:00 - 21:00
+                timeSlots.Add(new TimeSlotInfo
+                {
+                    Id = slotId++,
+                    DayOfWeek = day,
+                    DayName = GetDayName(day),
+                    StartTime = new TimeSpan(19, 0, 0),
+                    EndTime = new TimeSpan(21, 0, 0)
+                });
+            }        
+            return timeSlots;
+        }
+        private static string GetDayName(int day)
+        {
+            return day switch
+            {
+                1 => "Monday",
+                2 => "Tuesday",
+                3 => "Wednesday",
+                4 => "Thursday",
+                5 => "Friday",
+                6 => "Saturday",
+                7 => "Sunday",
+                _ => "Unknown"
+            };
+        }
         /// <summary>
         /// 生成测试时间槽
         /// </summary>
@@ -892,20 +955,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             // 实现位于DependencyInjection.cs中注册
         }
 
-        private string GetDayName(int day)
-        {
-            return day switch
-            {
-                1 => "Monday",
-                2 => "Tuesday",
-                3 => "Wednesday",
-                4 => "Thursday",
-                5 => "Friday",
-                6 => "Saturday",
-                7 => "Sunday",
-                _ => "Unknown"
-            };
-        }
+       
 
         // 用于生成测试解决方案
         public SchedulingSolution CreateTestSolution(SchedulingProblem problem = null)

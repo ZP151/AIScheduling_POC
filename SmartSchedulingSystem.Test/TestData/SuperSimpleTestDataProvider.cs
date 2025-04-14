@@ -26,7 +26,7 @@ namespace SmartSchedulingSystem.Test.TestData
                     DayOfWeek = 1,
                     DayName = "Monday",
                     StartTime = new TimeSpan(8, 0, 0),
-                    EndTime = new TimeSpan(9, 30, 0),
+                    EndTime = new TimeSpan(9, 0, 0),
                     Type = "Regular"
                 },
                 new TimeSlotInfo
@@ -35,7 +35,7 @@ namespace SmartSchedulingSystem.Test.TestData
                     DayOfWeek = 1,
                     DayName = "Monday",
                     StartTime = new TimeSpan(10, 0, 0),
-                    EndTime = new TimeSpan(11, 30, 0),
+                    EndTime = new TimeSpan(11, 0, 0),
                     Type = "Regular"
                 }
             };
@@ -86,7 +86,7 @@ namespace SmartSchedulingSystem.Test.TestData
                     CourseCode = "CS101",
                     SectionCode = "CS101-A",
                     Credits = 3,
-                    Hours = 3,
+                    Hours = 1,
                     Enrollment = 30,
                     CourseType = "Regular",
                     DepartmentId = 1,

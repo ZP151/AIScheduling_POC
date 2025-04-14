@@ -50,10 +50,10 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// </summary>
         public List<IConstraint> Constraints { get; set; } = new List<IConstraint>();
         /// 是否需要生成多种排课方案
-        public bool GenerateAlternatives { get; set; }
+        public bool GenerateMultipleSolutions { get; set; }
 
-        /// 要生成的替代排课方案数量
-        public int AlternativeCount { get; set; } = 3;
+        /// 要生成的排课方案数量
+        public int SolutionCount { get; set; } = 3;
         public List<CoursePrerequisite> Prerequisites { get;  set; }
 
         /// 根据输入的基本数据校验问题的有效性
@@ -165,7 +165,14 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// 学时
 
         public int Hours { get; set; }
+        // 每周学时
+        public int WeeklyHours { get; set; }
 
+        // 每周课次
+        public int SessionsPerWeek { get; set; }
+
+        // 每次课时长（小时）
+        public double HoursPerSession { get; set; }
 
         /// 该课学生容量
         /// 后面要该改变量名，改成该课程的学生容量
@@ -350,7 +357,8 @@ namespace SmartSchedulingSystem.Scheduling.Models
 
         public TimeSpan EndTime { get; set; }
 
-        
+        public bool IsAvailable { get; set; } = true;
+
         /// 时间段名称（例如："周一 8:00-9:30"）
 
         public string Display => $"{DayName} {StartTime:hh\\:mm}-{EndTime:hh\\:mm}";

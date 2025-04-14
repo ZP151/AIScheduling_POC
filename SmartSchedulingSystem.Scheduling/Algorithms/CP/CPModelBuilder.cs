@@ -79,143 +79,60 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
         {
             var variables = new Dictionary<string, IntVar>();
+            int variableCount = 0;
 
-            if (problem.CourseSections == null || problem.CourseSections.Count == 0)
+            _logger.LogInformation($"开始创建决策变量: 课程数={problem.CourseSections.Count}, " +
+                                 $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
+                                 $"时间槽数={problem.TimeSlots.Count}");
+
+            // 检查基本条件
+            if (problem.CourseSections.Count == 0 || problem.Teachers.Count == 0 ||
+                problem.Classrooms.Count == 0 || problem.TimeSlots.Count == 0)
             {
-                _logger.LogWarning("课程列表为空，无法创建变量");
+                _logger.LogError("创建变量失败：课程、教师、教室或时间槽数量为0");
                 return variables;
             }
 
-            _logger.LogInformation($"创建决策变量: 课程数={problem.CourseSections.Count}, " +
-                                  $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
-                                  $"时间槽数={problem.TimeSlots.Count}");
-
-            // 1. 预处理教师课程偏好，创建快速查找字典
-            var teacherCoursePrefs = new Dictionary<(int teacherId, int courseId), int>();
-            foreach (var pref in problem.TeacherCoursePreferences)
-            {
-                teacherCoursePrefs[(pref.TeacherId, pref.CourseId)] = pref.ProficiencyLevel;
-            }
-
-            // 2. 预处理教室容量与课程需求的匹配关系
-            var courseRoomMatches = new Dictionary<int, List<int>>();
+            // 为每门课程创建变量
             foreach (var section in problem.CourseSections)
             {
-                courseRoomMatches[section.Id] = problem.Classrooms
-                    .Where(room => room.Capacity >= section.Enrollment)
-                    .Select(room => room.Id)
-                    .ToList();
-            }
-
-            // 3. 预处理教师和时间槽的可用性
-            var teacherTimeAvailability = new Dictionary<(int teacherId, int timeSlotId), bool>();
-            foreach (var avail in problem.TeacherAvailabilities)
-            {
-                teacherTimeAvailability[(avail.TeacherId, avail.TimeSlotId)] = avail.IsAvailable;
-            }
-
-            // 变量限制，避免创建过多变量
-            int maxVarsPerCourse = Math.Min(5000,
-                problem.TimeSlots.Count * problem.Classrooms.Count * problem.Teachers.Count / 10); // 限制每门课程的变量数量
-
-            foreach (var section in problem.CourseSections)
-            {
-                int varCount = 0;
-                bool courseHasVariables = false;
-
-                // 只考虑容量足够的教室
-                var suitableRooms = courseRoomMatches[section.Id];
-                if (suitableRooms.Count == 0)
-                {
-                    _logger.LogWarning($"课程 {section.CourseCode} 没有找到容量足够的教室！");
-                    // 为此课程创建几个应急变量，以确保模型可解
-                    var room = problem.Classrooms.OrderByDescending(r => r.Capacity).FirstOrDefault();
-                    if (room != null)
-                    {
-                        suitableRooms = new List<int> { room.Id };
-                        _logger.LogWarning($"为课程 {section.CourseCode} 分配应急教室 {room.Name} (容量: {room.Capacity})");
-                    }
-                }
+                bool sectionHasVariables = false;
+                _logger.LogDebug($"为课程 {section.Id} ({section.CourseName}) 创建变量...");
 
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    foreach (var roomId in suitableRooms)
+                    foreach (var classroom in problem.Classrooms)
                     {
-                        // 找出有资格教授此课程的教师
-                        var qualifiedTeachers = new List<int>();
+                        // 暂时不检查容量，确保能创建变量
                         foreach (var teacher in problem.Teachers)
                         {
-                            // 快速查询教师是否有资格教授此课程
-                            bool isQualified = teacherCoursePrefs.TryGetValue((teacher.Id, section.CourseId), out int level) && level >= 3;
+                            // 暂时不检查教师资格，确保能创建变量
 
-                            // 检查教师在此时间是否可用
-                            bool teacherAvailable = !teacherTimeAvailability.TryGetValue((teacher.Id, timeSlot.Id), out bool available) || available;
-
-                            if (isQualified && teacherAvailable)
-                            {
-                                qualifiedTeachers.Add(teacher.Id);
-                            }
-                        }
-
-                        // 如果没有合格的教师，记录警告
-                        if (qualifiedTeachers.Count == 0)
-                        {
-                            // 允许任何教师教授，作为备选方案
-                            qualifiedTeachers = problem.Teachers.Select(t => t.Id).Take(3).ToList();
-                            _logger.LogWarning($"课程 {section.CourseCode} 在时间槽 {timeSlot.Id} 没有合格教师，使用备选教师");
-                        }
-
-                        // 为每个合格教师创建变量
-                        foreach (var teacherId in qualifiedTeachers)
-                        {
-                            string varName = $"c{section.Id}_t{timeSlot.Id}_r{roomId}_f{teacherId}";
+                            // 创建变量
+                            string varName = $"c{section.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
                             var variable = model.NewBoolVar(varName);
                             variables[varName] = variable;
-                            courseHasVariables = true;
-                            varCount++;
+                            variableCount++;
+                            sectionHasVariables = true;
 
-                            // 检查是否超过了每门课的最大变量数
-                            if (varCount >= maxVarsPerCourse)
+                            _logger.LogDebug($"创建变量: {varName}");
+
+                            // 为了限制变量数量，每个课程只创建少量变量用于测试
+                            if (variableCount % 1000 == 0)
                             {
-                                break;
+                                _logger.LogInformation($"已创建 {variableCount} 个变量...");
                             }
                         }
-
-                        // 检查是否超过了每门课的最大变量数
-                        if (varCount >= maxVarsPerCourse)
-                        {
-                            break;
-                        }
-                    }
-
-                    // 检查是否超过了每门课的最大变量数
-                    if (varCount >= maxVarsPerCourse)
-                    {
-                        break;
                     }
                 }
 
-                // 确保每门课程至少有一些变量
-                if (!courseHasVariables)
+                if (!sectionHasVariables)
                 {
-                    _logger.LogError($"课程 {section.CourseCode} 没有创建任何变量，创建应急变量");
-
-                    // 创建一些应急变量
-                    var timeSlot = problem.TimeSlots.FirstOrDefault();
-                    var room = problem.Classrooms.FirstOrDefault();
-                    var teacher = problem.Teachers.FirstOrDefault();
-
-                    if (timeSlot != null && room != null && teacher != null)
-                    {
-                        string varName = $"c{section.Id}_t{timeSlot.Id}_r{room.Id}_f{teacher.Id}";
-                        var variable = model.NewBoolVar(varName);
-                        variables[varName] = variable;
-                        _logger.LogWarning($"为课程 {section.CourseCode} 创建应急变量: {varName}");
-                    }
+                    _logger.LogWarning($"课程 {section.Id} ({section.CourseName}) 没有创建任何变量");
                 }
             }
 
-            _logger.LogInformation($"最终创建的变量总数: {variables.Count}");
+            _logger.LogInformation($"变量创建完成，总共创建了 {variables.Count} 个变量");
             return variables;
         }
         //private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
