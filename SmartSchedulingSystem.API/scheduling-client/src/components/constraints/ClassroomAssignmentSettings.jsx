@@ -26,11 +26,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 const ClassroomAssignmentSettings = ({ courses, classrooms, weight, onUpdate }) => {
   const [localWeight, setLocalWeight] = useState(weight);
   const [coursePreferences, setCoursePreferences] = useState({});
-  const [selectedClassroom, setSelectedClassroom] = useState(null);
-  const [startDateStr, setStartDateStr] = useState('');
-  const [endDateStr, setEndDateStr] = useState('');
-  const [unavailabilityReason, setUnavailabilityReason] = useState('Maintenance');
-  const [classroomUnavailability, setClassroomUnavailability] = useState({});
 
   const roomTypes = [
     { id: 'Lecture', name: 'Lecture Room' },
@@ -44,9 +39,7 @@ const ClassroomAssignmentSettings = ({ courses, classrooms, weight, onUpdate }) 
     setLocalWeight(newValue);
     onUpdate({
       weight: newValue,
-      courseRoomPreferences: coursePreferences,
-      classroomUnavailability: classroomUnavailability
-
+      courseRoomPreferences: coursePreferences
     });
   };
   
@@ -61,35 +54,6 @@ const ClassroomAssignmentSettings = ({ courses, classrooms, weight, onUpdate }) 
       weight: localWeight,
       courseRoomPreferences: newPreferences
     });
-  };
-  
-  const handleAddUnavailability = () => {
-    if (!selectedClassroom || !startDateStr || !endDateStr || !unavailabilityReason) return;
-    
-    const newUnavailability = {
-        startDate: startDateStr,
-        endDate: endDateStr,
-        reason: unavailabilityReason
-      };
-    
-    setClassroomUnavailability(prev => ({
-      ...prev,
-      [selectedClassroom]: [
-        ...(prev[selectedClassroom] || []),
-        newUnavailability
-      ]
-    }));
-    
-    // Reset form fields
-    setStartDateStr(null);
-    setEndDateStr(null);
-  };
-  
-  const handleRemoveUnavailability = (classroomId, index) => {
-    setClassroomUnavailability(prev => ({
-      ...prev,
-      [classroomId]: prev[classroomId].filter((_, i) => i !== index)
-    }));
   };
 
   return (
@@ -173,121 +137,12 @@ const ClassroomAssignmentSettings = ({ courses, classrooms, weight, onUpdate }) 
             </Table>
           </TableContainer>
         </Grid>
-
-        {/* // Add new section to ClassroomAssignmentSettings.jsx
-        // Add after the course-classroom preferences table */}
-        <Grid item xs={12} sx={{ mt: 3 }}>
-        <Typography variant="subtitle2" gutterBottom>Classroom Availability Exceptions</Typography>
-        <Paper variant="outlined" sx={{ p: 2 }}>
-            <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                <InputLabel>Select Classroom</InputLabel>
-                <Select
-                    value={selectedClassroom || ''}
-                    onChange={(e) => setSelectedClassroom(e.target.value)}
-                    label="Select Classroom"
-                >
-                    {classrooms.map(room => (
-                    <MenuItem key={room.id} value={room.id}>
-                        {room.building}-{room.name} (Capacity: {room.capacity})
-                    </MenuItem>
-                    ))}
-                </Select>
-                </FormControl>
-            </Grid>
-            
-            {selectedClassroom && (
-                <>
-                <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                    <InputLabel>Unavailability Reason</InputLabel>
-                    <Select
-                        value={unavailabilityReason}
-                        onChange={(e) => setUnavailabilityReason(e.target.value)}
-                        label="Unavailability Reason"
-                    >
-                        <MenuItem value="Maintenance">Maintenance</MenuItem>
-                        <MenuItem value="Event">Special Event</MenuItem>
-                        <MenuItem value="Exam">Exam</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                    </Select>
-                    </FormControl>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                    <TextField
-                    label="Start Date"
-                    type="date"
-                    value={startDateStr}
-                    onChange={(e) => setStartDateStr(e.target.value)}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    />
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                    <TextField
-                    label="End Date"
-                    type="date"
-                    value={endDateStr}
-                    onChange={(e) => setEndDateStr(e.target.value)}
-                    fullWidth
-                    InputLabelProps={{ shrink: true }}
-                    />
-                </Grid>
-                
-                <Grid item xs={12}>
-                    <Button 
-                    variant="contained" 
-                    onClick={handleAddUnavailability}
-                    disabled={!startDateStr || !endDateStr || !unavailabilityReason}
-                    >
-                    Add Unavailability Period
-                    </Button>
-                </Grid>
-                </>
-            )}
-            </Grid>
-            
-            {/* List of unavailability periods */}
-            {selectedClassroom && classroomUnavailability[selectedClassroom]?.length > 0 && (
-            <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>Unavailability Periods</Typography>
-                <TableContainer>
-                <Table size="small">
-                    <TableHead>
-                    <TableRow>
-                        <TableCell>Start Date</TableCell>
-                        <TableCell>End Date</TableCell>
-                        <TableCell>Reason</TableCell>
-                        <TableCell>Action</TableCell>
-                    </TableRow>
-                    </TableHead>
-                    <TableBody>
-                    {classroomUnavailability[selectedClassroom].map((period, index) => (
-                        <TableRow key={index}>
-                        <TableCell>{period.startDate}</TableCell>
-                        <TableCell>{period.endDate}</TableCell>
-                        <TableCell>{period.reason}</TableCell>
-                        <TableCell>
-                            <IconButton 
-                            size="small"
-                            onClick={() => handleRemoveUnavailability(selectedClassroom, index)}
-                            >
-                            <DeleteIcon fontSize="small" />
-                            </IconButton>
-                        </TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-                </TableContainer>
-            </Box>
-            )}
-        </Paper>
+        
+        <Grid item xs={12} sx={{ mt: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Note: For classroom availability exceptions and time-specific constraints, please use the "Classroom Availability" settings.
+          </Typography>
         </Grid>
-
       </Grid>
     </Box>
   );

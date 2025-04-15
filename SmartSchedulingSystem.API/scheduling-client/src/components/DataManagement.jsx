@@ -31,7 +31,9 @@ import {
   AccordionSummary,
   AccordionDetails,
   Chip,
-  Alert
+  Alert,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { 
   mockClassrooms, 
@@ -62,6 +64,7 @@ import DialogActions from '@mui/material/DialogActions';
 // Import constraint components
 import TeacherAvailabilitySettings from './constraints/TeacherAvailabilitySettings';
 import ClassroomAssignmentSettings from './constraints/ClassroomAssignmentSettings';
+import ClassroomAvailabilitySettings from './constraints/ClassroomAvailabilitySettings';
 
 const DataManagement = ({ 
   parameters, 
@@ -175,6 +178,7 @@ const DataManagement = ({
           <Tab label="Constraint Management" />
           <Tab label="Resource Management" />
           <Tab label="Time Management" />
+          <Tab label="Developer Options" />
           <Tab label="Templates & Presets" />
         </Tabs>
       </Box>
@@ -568,6 +572,10 @@ const DataManagement = ({
               </Card>
             </Grid>
           </Grid>
+
+          <Typography sx={{ mt: 2 }}>
+            The system will now use {localParameters.useAI ? 'AI-enhanced' : 'traditional'} scheduling algorithms by default.
+          </Typography>
         </Box>
       )}
       
@@ -594,6 +602,7 @@ const DataManagement = ({
               <Tab label="General Constraints" />
               <Tab label="Teacher Availability" />
               <Tab label="Classroom Assignment" />
+              <Tab label="Classroom Availability" />
             </Tabs>
           </Box>
           
@@ -699,6 +708,16 @@ const DataManagement = ({
               courses={mockCourses}
               classrooms={mockClassrooms}
               weight={0.7}
+              onUpdate={() => {}}
+            />
+          )}
+          
+          {/* Classroom Availability */}
+          {constraintSubTab === 3 && (
+            <ClassroomAvailabilitySettings 
+              classrooms={mockClassrooms}
+              availabilitySettings={{}}
+              semesterId={1}
               onUpdate={() => {}}
             />
           )}
@@ -1222,8 +1241,119 @@ const DataManagement = ({
         </Box>
       )}
       
-      {/* Templates & Presets Tab */}
+      {/* Developer Options Tab */}
       {tabValue === 4 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="subtitle1">Developer Options</Typography>
+          </Box>
+          
+          <Card variant="outlined" sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="subtitle2" gutterBottom>
+                API Configuration
+              </Typography>
+              <Typography variant="caption" color="text.secondary" paragraph sx={{ mb: 2 }}>
+                These options are for development and testing purposes only, and can help with debugging frontend-backend communication issues.
+              </Typography>
+              
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={true}
+                        onChange={(e) => handleParameterChange('disableMockFallback', e.target.checked)}
+                        color="warning"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        Disable Mock API Fallback
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Enabling this option will force using the real backend API without automatic switching to mock data
+                        </Typography>
+                      </Typography>
+                    }
+                  />
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Switch 
+                        checked={true}
+                        onChange={(e) => handleParameterChange('verboseLogging', e.target.checked)}
+                        color="warning"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        Enable Verbose Logging
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          Display more debugging information in the console, including full request and response data
+                        </Typography>
+                      </Typography>
+                    }
+                  />
+                </Grid>
+              </Grid>
+              
+              <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Current state: Using real API | Log level: Verbose
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+          
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="subtitle2" gutterBottom>
+                System Diagnostics
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Button variant="outlined" size="small" sx={{ mr: 1 }}>
+                  Check API Connection
+                </Button>
+                <Button variant="outlined" size="small" sx={{ mr: 1 }}>
+                  Clear Local Cache
+                </Button>
+                <Button variant="outlined" size="small" color="warning">
+                  Reset to Defaults
+                </Button>
+              </Box>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Typography variant="subtitle2" gutterBottom>
+                Performance Metrics
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2">
+                    <strong>Average API Response Time:</strong> 235ms
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Frontend Rendering Time:</strong> 124ms
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2">
+                    <strong>Local Storage Usage:</strong> 1.4MB
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Session Duration:</strong> 32min
+                  </Typography>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+      
+      {/* Templates & Presets Tab */}
+      {tabValue === 5 && (
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="subtitle1">Templates & Presets</Typography>

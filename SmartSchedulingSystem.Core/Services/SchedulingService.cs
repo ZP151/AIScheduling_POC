@@ -150,8 +150,8 @@ namespace SmartSchedulingSystem.Core.Services
 
                 try
                 {
-                // 使用排课引擎生成解决方案
-                var algorithmResult = _schedulingEngine.GenerateSchedule(problem);
+                    // 使用排课引擎生成解决方案
+                    var algorithmResult = _schedulingEngine.GenerateSchedule(problem);
 
                     // 检查结果状态
                     if (algorithmResult.Status != SmartSchedulingSystem.Scheduling.Models.SchedulingStatus.Success)
@@ -187,26 +187,91 @@ namespace SmartSchedulingSystem.Core.Services
                         };
                     }
 
-                // 保存解决方案
-                var result = await SaveSolutionAsync(algorithmResult, request.SemesterId);
-
-                _logger.LogInformation("成功生成排课方案，ID: {ScheduleId}", result.ScheduleId);
-
-                    // 创建包含单个方案的ScheduleResultsDto
+                    // 直接从算法结果创建DTO（跳过数据库保存）
+                    var solutions = new List<ScheduleResultDto>();
+                    int solutionId = 1000; // 起始ID
+                    
+                    foreach (var solution in algorithmResult.Solutions)
+                    {
+                        var scheduleResultDto = new ScheduleResultDto
+                        {
+                            ScheduleId = solutionId++,
+                            CreatedAt = DateTime.Now,
+                            Status = "Generated", // 标记为生成状态
+                            Score = solution.Evaluation?.Score ?? 0,
+                            Items = new List<ScheduleItemDto>(),
+                            AlgorithmType = "Hybrid",
+                            ExecutionTimeMs = algorithmResult.ExecutionTimeMs,
+                            SemesterId = request.SemesterId,
+                            TotalAssignments = solution.Assignments.Count,
+                            Metrics = new Dictionary<string, double>(),
+                            Statistics = new Dictionary<string, int>()
+                        };
+                        
+                        // 添加排课项
+                        int itemId = 1;
+                        foreach (var assignment in solution.Assignments)
+                        {
+                            // 查找对应的课程、教师、教室、时间槽信息
+                            var courseSection = problem.CourseSections.FirstOrDefault(c => c.Id == assignment.SectionId);
+                            var teacher = problem.Teachers.FirstOrDefault(t => t.Id == assignment.TeacherId);
+                            var classroom = problem.Classrooms.FirstOrDefault(c => c.Id == assignment.ClassroomId);
+                            var timeSlot = problem.TimeSlots.FirstOrDefault(t => t.Id == assignment.TimeSlotId);
+                            
+                            if (courseSection != null && teacher != null && classroom != null && timeSlot != null)
+                            {
+                                var dayName = GetDayName(timeSlot.DayOfWeek);
+                                scheduleResultDto.Items.Add(new ScheduleItemDto
+                                {
+                                    ScheduleId = scheduleResultDto.ScheduleId, // 添加正确的ScheduleId
+                                    CourseSectionId = assignment.SectionId,
+                                    SectionCode = courseSection.SectionCode,
+                                    TeacherId = assignment.TeacherId,
+                                    TeacherName = teacher.Name,
+                                    ClassroomId = assignment.ClassroomId,
+                                    ClassroomName = classroom.Name,
+                                    TimeSlotId = assignment.TimeSlotId,
+                                    DayOfWeek = timeSlot.DayOfWeek,
+                                    DayName = dayName,
+                                  
+                                    AssignmentScore = 0 // 暂不计算单项评分
+                                });
+                            }
+                            else
+                            {
+                                _logger.LogWarning("无法为分配创建DTO，缺少必要数据: SectionId={SectionId}, TeacherId={TeacherId}, ClassroomId={ClassroomId}, TimeSlotId={TimeSlotId}",
+                                    assignment.SectionId, assignment.TeacherId, assignment.ClassroomId, assignment.TimeSlotId);
+                            }
+                            
+                            itemId++;
+                        }
+                        
+                        solutions.Add(scheduleResultDto);
+                    }
+                    
+                    // 计算统计数据
+                    double bestScore = solutions.Count > 0 ? solutions.Max(s => s.Score) : 0;
+                    double avgScore = solutions.Count > 0 ? solutions.Average(s => s.Score) : 0;
+                    
+                    // 创建结果DTO
                     var resultsDto = new ScheduleResultsDto
                     {
-                        Solutions = new List<ScheduleResultDto> { _mapper.Map<ScheduleResultDto>(result) },
+                        Solutions = solutions,
                         GeneratedAt = DateTime.Now,
-                        TotalSolutions = 1,
-                        BestScore = result.Score,
-                        AverageScore = result.Score
+                        TotalSolutions = solutions.Count,
+                        BestScore = bestScore,
+                        AverageScore = avgScore,
+                        PrimaryScheduleId = solutions.Count > 0 ? solutions.OrderByDescending(s => s.Score).First().ScheduleId : null
                     };
 
+                    _logger.LogInformation("成功生成排课方案，共 {Count} 个方案", solutions.Count);
                     return resultsDto;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "排课算法执行过程中发生错误");
+                    var innerExceptionMessage = ex.InnerException != null ? $" Inner exception: {ex.InnerException.Message}" : "";
+                    _logger.LogError(ex, "排课算法执行过程中发生异常: {Message}.{InnerMessage}. StackTrace: {StackTrace}", 
+                        ex.Message, innerExceptionMessage, ex.StackTrace);
                     
                     // 返回一个包含错误信息的结果而不是抛出异常
                     return new ScheduleResultsDto
@@ -216,13 +281,15 @@ namespace SmartSchedulingSystem.Core.Services
                         TotalSolutions = 0,
                         BestScore = 0,
                         AverageScore = 0,
-                        ErrorMessage = $"排课算法执行出错: {ex.Message}"
+                        ErrorMessage = $"排课算法执行出错: {ex.Message}{innerExceptionMessage}"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "生成排课方案时发生错误");
+                var innerExceptionMessage = ex.InnerException != null ? $" Inner exception: {ex.InnerException.Message}" : "";
+                _logger.LogError(ex, "生成排课方案时发生异常: {Message}.{InnerMessage}. StackTrace: {StackTrace}", 
+                    ex.Message, innerExceptionMessage, ex.StackTrace);
                 
                 // 返回一个包含错误信息的结果而不是抛出异常
                 return new ScheduleResultsDto
@@ -232,9 +299,25 @@ namespace SmartSchedulingSystem.Core.Services
                     TotalSolutions = 0,
                     BestScore = 0,
                     AverageScore = 0,
-                    ErrorMessage = $"生成排课方案失败: {ex.Message}"
+                    ErrorMessage = $"生成排课方案失败: {ex.Message}{innerExceptionMessage}"
                 };
             }
+        }
+
+        // 辅助方法：获取星期几的名称
+        private string GetDayName(int dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                1 => "周一",
+                2 => "周二",
+                3 => "周三",
+                4 => "周四",
+                5 => "周五",
+                6 => "周六",
+                7 => "周日",
+                _ => "未知"
+            };
         }
 
         // 根据ID获取排课方案
@@ -331,14 +414,57 @@ namespace SmartSchedulingSystem.Core.Services
         {
             try
             {
-                _logger.LogInformation("准备排课问题，请求参数: {@Request}", request);
+                _logger.LogInformation("准备排课问题，请求参数: {@Request}", new
+                {
+                    SemesterId = request.SemesterId,
+                    CourseCount = (request.CourseSectionIds?.Count ?? 0) + (request.Courses?.Count ?? 0) + (request.CourseSectionObjects?.Count ?? 0),
+                    TeacherCount = (request.TeacherIds?.Count ?? 0) + (request.Teachers?.Count ?? 0) + (request.TeacherObjects?.Count ?? 0),
+                    ClassroomCount = (request.ClassroomIds?.Count ?? 0) + (request.Classrooms?.Count ?? 0) + (request.ClassroomObjects?.Count ?? 0),
+                    TimeSlotCount = (request.TimeSlotIds?.Count ?? 0) + (request.TimeSlots?.Count ?? 0) + (request.TimeSlotObjects?.Count ?? 0)
+                });
+                
+                // 检查TimeSlotObjects详细信息
+                if (request.TimeSlotObjects != null && request.TimeSlotObjects.Any())
+                {
+                    _logger.LogInformation("时间槽对象数据: 共 {Count} 个时间槽", request.TimeSlotObjects.Count);
+                    _logger.LogDebug("时间槽示例: ID={Id}, 日期={Day}, 开始时间={Start}, 结束时间={End}",
+                        request.TimeSlotObjects[0].Id,
+                        request.TimeSlotObjects[0].DayName,
+                        request.TimeSlotObjects[0].StartTime,
+                        request.TimeSlotObjects[0].EndTime);
+                }
+                
+                // 检查ClassroomObjects详细信息
+                if (request.ClassroomObjects != null && request.ClassroomObjects.Any())
+                {
+                    _logger.LogInformation("教室对象数据: 共 {Count} 个教室", request.ClassroomObjects.Count);
+                    foreach (var classroom in request.ClassroomObjects)
+                    {
+                        _logger.LogDebug("教室详情: ID={Id}, 名称={Name}, 类型={Type}, 校区={Campus}",
+                            classroom.Id, classroom.Name, classroom.Type, classroom.CampusName);
+                    }
+                }
                 
                 // 开发者模式设置 - 确保即使没有数据也能生成排课方案
                 bool devMode = true; // 当前默认启用开发者模式
                 
-                // 处理课程部分 - 支持多种字段名
-                IEnumerable<int> courseIds;
-                if (request.CourseSectionIds != null && request.CourseSectionIds.Any())
+                // 检查是否有完整的对象数据
+                bool hasObjectData = (request.CourseSectionObjects?.Count > 0 || request.TeacherObjects?.Count > 0 || 
+                                     request.ClassroomObjects?.Count > 0 || request.TimeSlotObjects?.Count > 0);
+                
+                if (hasObjectData)
+                {
+                    _logger.LogInformation("检测到完整的对象数据，将优先使用对象数据而不是ID");
+                }
+                
+                // 处理课程部分 - 优先使用对象数据
+                IEnumerable<int> courseIds = new List<int>();
+                if (request.CourseSectionObjects != null && request.CourseSectionObjects.Any())
+                {
+                    // 不需要获取ID，因为我们有完整对象
+                    _logger.LogInformation("使用CourseSectionObjects，找到{Count}个课程", request.CourseSectionObjects.Count);
+                }
+                else if (request.CourseSectionIds != null && request.CourseSectionIds.Any())
                 {
                     courseIds = request.CourseSectionIds;
                     _logger.LogInformation("使用CourseSectionIds字段, 找到{Count}个课程", courseIds.Count());
@@ -351,12 +477,17 @@ namespace SmartSchedulingSystem.Core.Services
                 else
                 {
                     courseIds = new List<int>();
-                    _logger.LogWarning("未找到任何课程ID");
+                    _logger.LogWarning("未找到任何课程数据");
                 }
                 
-                // 处理教师部分 - 支持多种字段名
-                IEnumerable<int> teacherIds;
-                if (request.TeacherIds != null && request.TeacherIds.Any())
+                // 处理教师部分 - 优先使用对象数据
+                IEnumerable<int> teacherIds = new List<int>();
+                if (request.TeacherObjects != null && request.TeacherObjects.Any())
+                {
+                    // 不需要获取ID，因为我们有完整对象
+                    _logger.LogInformation("使用TeacherObjects，找到{Count}个教师", request.TeacherObjects.Count);
+                }
+                else if (request.TeacherIds != null && request.TeacherIds.Any())
                 {
                     teacherIds = request.TeacherIds;
                     _logger.LogInformation("使用TeacherIds字段, 找到{Count}个教师", teacherIds.Count());
@@ -369,12 +500,17 @@ namespace SmartSchedulingSystem.Core.Services
                 else
                 {
                     teacherIds = new List<int>();
-                    _logger.LogWarning("未找到任何教师ID");
+                    _logger.LogWarning("未找到任何教师数据");
                 }
                 
-                // 处理教室部分 - 支持多种字段名
-                IEnumerable<int> classroomIds;
-                if (request.ClassroomIds != null && request.ClassroomIds.Any())
+                // 处理教室部分 - 优先使用对象数据
+                IEnumerable<int> classroomIds = new List<int>();
+                if (request.ClassroomObjects != null && request.ClassroomObjects.Any())
+                {
+                    // 不需要获取ID，因为我们有完整对象
+                    _logger.LogInformation("使用ClassroomObjects，找到{Count}个教室", request.ClassroomObjects.Count);
+                }
+                else if (request.ClassroomIds != null && request.ClassroomIds.Any())
                 {
                     classroomIds = request.ClassroomIds;
                     _logger.LogInformation("使用ClassroomIds字段, 找到{Count}个教室", classroomIds.Count());
@@ -387,25 +523,43 @@ namespace SmartSchedulingSystem.Core.Services
                 else
                 {
                     classroomIds = new List<int>();
-                    _logger.LogWarning("未找到任何教室ID");
+                    _logger.LogWarning("未找到任何教室数据");
+                }
+                
+                // 处理时间槽 - 优先使用对象数据
+                IEnumerable<int> timeSlotIds = new List<int>();
+                if (request.TimeSlotObjects != null && request.TimeSlotObjects.Any())
+                {
+                    // 不需要获取ID，因为我们有完整对象
+                    _logger.LogInformation("使用TimeSlotObjects，找到{Count}个时间槽", request.TimeSlotObjects.Count);
+                }
+                else if (request.TimeSlotIds != null && request.TimeSlotIds.Any())
+                {
+                    timeSlotIds = request.TimeSlotIds;
+                    _logger.LogInformation("使用TimeSlotIds字段, 找到{Count}个时间槽", timeSlotIds.Count());
+                }
+                else if (request.TimeSlots != null && request.TimeSlots.Any())
+                {
+                    timeSlotIds = request.TimeSlots;
+                    _logger.LogInformation("使用TimeSlots字段, 找到{Count}个时间槽", timeSlotIds.Count());
                 }
                 
                 // 开发者模式：如果没有足够数据，添加一些默认数据
                 if (devMode)
                 {
-                    if (!courseIds.Any())
+                    if (!hasObjectData && !courseIds.Any())
                     {
                         _logger.LogInformation("开发者模式：添加默认课程数据");
                         courseIds = new List<int> { 1, 2, 3 };
                     }
                     
-                    if (!teacherIds.Any())
+                    if (!hasObjectData && !teacherIds.Any())
                     {
                         _logger.LogInformation("开发者模式：添加默认教师数据");
                         teacherIds = new List<int> { 1, 2, 3 };
                     }
                     
-                    if (!classroomIds.Any())
+                    if (!hasObjectData && !classroomIds.Any())
                     {
                         _logger.LogInformation("开发者模式：添加默认教室数据");
                         classroomIds = new List<int> { 1, 2, 3 };
@@ -413,91 +567,247 @@ namespace SmartSchedulingSystem.Core.Services
                 }
             
                 // 创建排课问题对象
-            var problem = new SchedulingProblem
-            {
-                Id = Guid.NewGuid().GetHashCode(),
-                Name = $"排课方案 {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
-                SemesterId = request.SemesterId,
+                var problem = new SchedulingProblem
+                {
+                    Id = Guid.NewGuid().GetHashCode(),
+                    Name = $"排课方案 {DateTime.Now:yyyy-MM-dd HH:mm:ss}",
+                    SemesterId = request.SemesterId,
                     GenerateMultipleSolutions = request.GenerateMultipleSolutions,
                     SolutionCount = request.SolutionCount
                 };
                 
-                // 直接使用前端传入的ID创建默认对象
-                
-                // 填充课程数据
+                // 填充课程数据 - 优先使用对象数据
                 problem.CourseSections = new List<CourseSectionInfo>();
-                foreach (var sectionId in courseIds)
+                if (request.CourseSectionObjects != null && request.CourseSectionObjects.Any())
                 {
-                    problem.CourseSections.Add(new CourseSectionInfo
+                    // 使用完整对象数据
+                    foreach (var courseObj in request.CourseSectionObjects)
                     {
-                        Id = sectionId,
-                        CourseId = sectionId,
-                        CourseCode = $"Course-{sectionId}",
-                        CourseName = $"课程 {sectionId}",
-                        SectionCode = $"Section-{sectionId}",
-                        Credits = 3,
-                        WeeklyHours = 3,
-                        SessionsPerWeek = 2,
-                        HoursPerSession = 1.5,
-                        Enrollment = 40,
-                        DepartmentId = 1
-                    });
+                        problem.CourseSections.Add(new CourseSectionInfo
+                        {
+                            Id = courseObj.Id,
+                            CourseId = courseObj.CourseId,
+                            CourseCode = courseObj.CourseCode,
+                            CourseName = courseObj.CourseName,
+                            Credits = courseObj.Credits,
+                            SessionsPerWeek = courseObj.SessionsPerWeek,
+                            HoursPerSession = courseObj.HoursPerSession,
+                            Enrollment = courseObj.Enrollment,
+                            DepartmentId = courseObj.DepartmentId
+                        });
+                    }
+                }
+                else
+                {
+                    // 使用ID，创建简单的对象
+                    foreach (var sectionId in courseIds)
+                    {
+                        problem.CourseSections.Add(new CourseSectionInfo
+                        {
+                            Id = sectionId,
+                            CourseId = sectionId,
+                            CourseCode = $"Course-{sectionId}",
+                            CourseName = $"课程 {sectionId}",
+                            SectionCode = $"Section-{sectionId}",
+                            Credits = 3,
+                            WeeklyHours = 3,
+                            SessionsPerWeek = 2,
+                            HoursPerSession = 1.5,
+                            Enrollment = 40,
+                            DepartmentId = 1
+                        });
+                    }
                 }
                 
-                // 填充教师数据
+                // 填充教师数据 - 优先使用对象数据
                 problem.Teachers = new List<TeacherInfo>();
-                foreach (var teacherId in teacherIds)
+                if (request.TeacherObjects != null && request.TeacherObjects.Any())
                 {
-                    problem.Teachers.Add(new TeacherInfo
+                    // 使用完整对象数据
+                    foreach (var teacherObj in request.TeacherObjects)
                     {
-                        Id = teacherId,
-                        Name = $"教师 {teacherId}",
-                        Title = "教授",
-                        DepartmentId = 1,
-                        MaxWeeklyHours = 20,
-                        MaxDailyHours = 8,
-                        MaxConsecutiveHours = 4  // 添加可能之前缺少的属性
-                    });
+                        problem.Teachers.Add(new TeacherInfo
+                        {
+                            Id = teacherObj.Id,
+                            Name = teacherObj.Name,
+                            Title = teacherObj.Title,
+                            DepartmentId = teacherObj.DepartmentId,
+                            MaxWeeklyHours = teacherObj.MaxWeeklyHours,
+                            MaxDailyHours = teacherObj.MaxDailyHours,
+                            MaxConsecutiveHours = teacherObj.MaxConsecutiveHours
+                        });
+                    }
+                }
+                else
+                {
+                    // 使用ID，创建简单的对象
+                    foreach (var teacherId in teacherIds)
+                    {
+                        problem.Teachers.Add(new TeacherInfo
+                        {
+                            Id = teacherId,
+                            Name = $"教师 {teacherId}",
+                            Title = "教授",
+                            DepartmentId = 1,
+                            MaxWeeklyHours = 20,
+                            MaxDailyHours = 8,
+                            MaxConsecutiveHours = 4
+                        });
+                    }
                 }
                 
-                // 填充教室数据
+                // 填充教室数据 - 优先使用对象数据
                 problem.Classrooms = new List<ClassroomInfo>();
-                foreach (var classroomId in classroomIds)
+                if (request.ClassroomObjects != null && request.ClassroomObjects.Any())
                 {
-                    problem.Classrooms.Add(new ClassroomInfo
+                    // 使用完整对象数据
+                    foreach (var classroomObj in request.ClassroomObjects)
                     {
-                        Id = classroomId,
-                        Name = $"教室 {classroomId}",
-                        Building = "主教学楼",
-                        Capacity = 60,
-                        CampusId = 1,
-                        CampusName = "主校区",
-                        Type = "普通教室",  // 添加可能之前缺少的属性
-                        HasComputers = false,
-                        HasProjector = true
-                    });
+                        problem.Classrooms.Add(new ClassroomInfo
+                        {
+                            Id = classroomObj.Id,
+                            Name = classroomObj.Name,
+                            Building = classroomObj.Building,
+                            Capacity = classroomObj.Capacity,
+                            CampusId = classroomObj.CampusId,
+                            CampusName = classroomObj.CampusName,
+                            Type = classroomObj.Type,
+                            HasComputers = classroomObj.HasComputers,
+                            HasProjector = classroomObj.HasProjector
+                        });
+                    }
+                }
+                else
+                {
+                    // 使用ID，创建简单的对象
+                    foreach (var classroomId in classroomIds)
+                    {
+                        problem.Classrooms.Add(new ClassroomInfo
+                        {
+                            Id = classroomId,
+                            Name = $"教室 {classroomId}",
+                            Building = "主教学楼",
+                            Capacity = 60,
+                            CampusId = 1,
+                            CampusName = "主校区",
+                            Type = "普通教室",
+                            HasComputers = false,
+                            HasProjector = true
+                        });
+                    }
                 }
                 
-                // 创建基本的时间槽
+                // 填充时间槽数据 - 优先使用对象数据
                 problem.TimeSlots = new List<TimeSlotInfo>();
-                // 周一到周五
-                for (int day = 1; day <= 5; day++)
+                if (request.TimeSlotObjects != null && request.TimeSlotObjects.Any())
                 {
-                    string dayName = day switch
+                    // 使用完整对象数据
+                    foreach (var timeSlotObj in request.TimeSlotObjects)
                     {
-                        1 => "周一",
-                        2 => "周二",
-                        3 => "周三",
-                        4 => "周四",
-                        5 => "周五",
-                        _ => $"Day-{day}"
-                    };
+                        // 解析时间字符串
+                        TimeSpan startTime, endTime;
+                        if (!TimeSpan.TryParse(timeSlotObj.StartTime, out startTime))
+                        {
+                            _logger.LogWarning("无法解析时间字符串 '{StartTime}'，使用默认值", timeSlotObj.StartTime);
+                            startTime = new TimeSpan(8, 0, 0); // 默认早上8点
+                        }
+                        
+                        if (!TimeSpan.TryParse(timeSlotObj.EndTime, out endTime))
+                        {
+                            _logger.LogWarning("无法解析时间字符串 '{EndTime}'，使用默认值", timeSlotObj.EndTime);
+                            endTime = new TimeSpan(9, 30, 0); // 默认早上9:30
+                        }
+                        
+                        // 添加时间槽对象到问题中
+                        problem.TimeSlots.Add(new TimeSlotInfo
+                        {
+                            Id = timeSlotObj.Id,
+                            DayOfWeek = timeSlotObj.DayOfWeek,
+                            DayName = timeSlotObj.DayName,
+                            StartTime = startTime,
+                            EndTime = endTime
+                        });
+                        
+                        _logger.LogDebug("添加时间槽: ID={Id}, 日期={Day}, 开始时间={Start}, 结束时间={End}",
+                            timeSlotObj.Id, timeSlotObj.DayName, startTime, endTime);
+                    }
                     
-                    // 每天4个时间段
-                    problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 1, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(9, 30, 0) });
-                    problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 2, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 30, 0) });
-                    problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 3, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(14, 0, 0), EndTime = new TimeSpan(15, 30, 0) });
-                    problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 4, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 30, 0) });
+                    _logger.LogInformation("从前端对象添加了 {Count} 个时间槽", request.TimeSlotObjects.Count);
+                }
+                else if (timeSlotIds.Any())
+                {
+                    // 使用ID创建简单对象
+                    foreach (var timeSlotId in timeSlotIds)
+                    {
+                        int day = ((timeSlotId - 1) / 4) + 1; // 简单换算
+                        int slot = ((timeSlotId - 1) % 4) + 1;
+                        
+                        string dayName = day switch
+                        {
+                            1 => "周一",
+                            2 => "周二",
+                            3 => "周三",
+                            4 => "周四",
+                            5 => "周五",
+                            _ => $"Day-{day}"
+                        };
+                        
+                        TimeSpan startTime, endTime;
+                        switch (slot)
+                        {
+                            case 1:
+                                startTime = new TimeSpan(8, 0, 0);
+                                endTime = new TimeSpan(9, 30, 0);
+                                break;
+                            case 2:
+                                startTime = new TimeSpan(10, 0, 0);
+                                endTime = new TimeSpan(11, 30, 0);
+                                break;
+                            case 3:
+                                startTime = new TimeSpan(14, 0, 0);
+                                endTime = new TimeSpan(15, 30, 0);
+                                break;
+                            case 4:
+                                startTime = new TimeSpan(16, 0, 0);
+                                endTime = new TimeSpan(17, 30, 0);
+                                break;
+                            default:
+                                startTime = new TimeSpan(8, 0, 0);
+                                endTime = new TimeSpan(9, 30, 0);
+                                break;
+                        }
+                        
+                        problem.TimeSlots.Add(new TimeSlotInfo
+                        {
+                            Id = timeSlotId,
+                            DayOfWeek = day,
+                            DayName = dayName,
+                            StartTime = startTime,
+                            EndTime = endTime
+                        });
+                    }
+                }
+                else
+                {
+                    // 如果没有时间槽数据，创建默认时间槽
+                    for (int day = 1; day <= 5; day++)
+                    {
+                        string dayName = day switch
+                        {
+                            1 => "周一",
+                            2 => "周二",
+                            3 => "周三",
+                            4 => "周四",
+                            5 => "周五",
+                            _ => $"Day-{day}"
+                        };
+                        
+                        // 每天4个时间段
+                        problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 1, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(8, 0, 0), EndTime = new TimeSpan(9, 30, 0) });
+                        problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 2, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(10, 0, 0), EndTime = new TimeSpan(11, 30, 0) });
+                        problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 3, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(14, 0, 0), EndTime = new TimeSpan(15, 30, 0) });
+                        problem.TimeSlots.Add(new TimeSlotInfo { Id = (day-1)*4 + 4, DayOfWeek = day, DayName = dayName, StartTime = new TimeSpan(16, 0, 0), EndTime = new TimeSpan(17, 30, 0) });
+                    }
                 }
                 
                 // 简化处理：假设所有教师可以教授所有课程
@@ -550,6 +860,89 @@ namespace SmartSchedulingSystem.Core.Services
                 // 添加先修课约束（可选，为了完整性）
                 problem.Prerequisites = new List<CoursePrerequisite>();
                 
+                // 确保足够的资源匹配
+                int courseCount = problem.CourseSections.Count;
+                int teacherCount = problem.Teachers.Count;
+                int classroomCount = problem.Classrooms.Count;
+                
+                // 如果课程数量大于教师数量，添加额外的默认教师
+                if (courseCount > teacherCount && devMode)
+                {
+                    _logger.LogWarning("课程数量({CourseCount})大于教师数量({TeacherCount})，添加额外的默认教师", courseCount, teacherCount);
+                    for (int i = teacherCount + 1; i <= courseCount; i++)
+                    {
+                        var teacher = new TeacherInfo
+                        {
+                            Id = 1000 + i, // 使用较大ID避免冲突
+                            Name = $"默认教师 {i}",
+                            Title = "讲师",
+                            DepartmentId = 1,
+                            MaxWeeklyHours = 20,
+                            MaxDailyHours = 8,
+                            MaxConsecutiveHours = 4
+                        };
+                        
+                        problem.Teachers.Add(teacher);
+                        
+                        // 为新教师添加课程偏好和可用性
+                        foreach (var course in problem.CourseSections)
+                        {
+                            problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
+                            {
+                                TeacherId = teacher.Id,
+                                CourseId = course.CourseId,
+                                ProficiencyLevel = 5,
+                                PreferenceLevel = 5
+                            });
+                        }
+                        
+                        foreach (var timeSlot in problem.TimeSlots)
+                        {
+                            problem.TeacherAvailabilities.Add(new SmartSchedulingSystem.Scheduling.Models.TeacherAvailability
+                            {
+                                TeacherId = teacher.Id,
+                                TimeSlotId = timeSlot.Id,
+                                IsAvailable = true,
+                                PreferenceLevel = 3
+                            });
+                        }
+                    }
+                }
+                
+                // 如果课程数量大于教室数量，添加额外的默认教室
+                if (courseCount > classroomCount && devMode)
+                {
+                    _logger.LogWarning("课程数量({CourseCount})大于教室数量({ClassroomCount})，添加额外的默认教室", courseCount, classroomCount);
+                    for (int i = classroomCount + 1; i <= courseCount; i++)
+                    {
+                        var classroom = new ClassroomInfo
+                        {
+                            Id = 1000 + i, // 使用较大ID避免冲突
+                            Name = $"默认教室 {i}",
+                            Building = "主教学楼",
+                            Capacity = 60,
+                            CampusId = 1,
+                            CampusName = "主校区",
+                            Type = "普通教室",
+                            HasComputers = false,
+                            HasProjector = true
+                        };
+                        
+                        problem.Classrooms.Add(classroom);
+                        
+                        // 为新教室添加可用性
+                        foreach (var timeSlot in problem.TimeSlots)
+                        {
+                            problem.ClassroomAvailabilities.Add(new SmartSchedulingSystem.Scheduling.Models.ClassroomAvailability
+                            {
+                                ClassroomId = classroom.Id,
+                                TimeSlotId = timeSlot.Id,
+                                IsAvailable = true
+                            });
+                        }
+                    }
+                }
+                
                 // 日志记录
                 _logger.LogInformation("排课问题准备完成: {@Problem}", new
                 {
@@ -568,7 +961,24 @@ namespace SmartSchedulingSystem.Core.Services
                 {
                     if (devMode)
                     {
-                        _logger.LogWarning("排课问题验证出现警告，但开发者模式允许继续: {Errors}", validationErrors);
+                        _logger.LogWarning("排课问题验证出现警告，但开发者模式允许继续: {Errors}", string.Join("; ", validationErrors));
+                        
+                        // 添加额外诊断信息
+                        _logger.LogWarning("问题诊断信息:\n" +
+                            "课程数量: {CourseCount} (需要>0)\n" +
+                            "教师数量: {TeacherCount} (需要>0)\n" +
+                            "教室数量: {ClassroomCount} (需要>0)\n" +
+                            "时间槽数量: {TimeSlotCount} (需要>0)\n" +
+                            "教师课程偏好数量: {PreferenceCount}\n" +
+                            "教师可用性数量: {TeacherAvailCount}\n" +
+                            "教室可用性数量: {ClassroomAvailCount}",
+                            problem.CourseSections.Count,
+                            problem.Teachers.Count,
+                            problem.Classrooms.Count,
+                            problem.TimeSlots.Count,
+                            problem.TeacherCoursePreferences.Count,
+                            problem.TeacherAvailabilities.Count,
+                            problem.ClassroomAvailabilities.Count);
                     }
                     else
                     {
@@ -576,12 +986,22 @@ namespace SmartSchedulingSystem.Core.Services
                     }
                 }
 
-            return Task.FromResult(problem);
+                return Task.FromResult(problem);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "准备排课问题时发生错误");
-                throw;
+                var innerExceptionMessage = ex.InnerException != null ? $" Inner exception: {ex.InnerException.Message}" : "";
+                _logger.LogError(ex, "准备排课问题时发生错误: {Message}.{InnerMessage}. StackTrace: {StackTrace}", 
+                    ex.Message, innerExceptionMessage, ex.StackTrace);
+                
+                // 记录请求数据（去除敏感信息）
+                _logger.LogError("请求信息: SemesterId={SemesterId}, CourseCount={CourseCount}, TeacherCount={TeacherCount}, ClassroomCount={ClassroomCount}",
+                    request.SemesterId,
+                    (request.CourseSectionIds?.Count ?? 0) + (request.Courses?.Count ?? 0) + (request.CourseSectionObjects?.Count ?? 0),
+                    (request.TeacherIds?.Count ?? 0) + (request.Teachers?.Count ?? 0) + (request.TeacherObjects?.Count ?? 0),
+                    (request.ClassroomIds?.Count ?? 0) + (request.Classrooms?.Count ?? 0) + (request.ClassroomObjects?.Count ?? 0));
+                
+                throw; // 重新抛出异常
             }
         }
         // 实现保存排课解决方案的逻辑
@@ -590,46 +1010,84 @@ namespace SmartSchedulingSystem.Core.Services
         private async Task<ScheduleResult> SaveSolutionAsync(SchedulingResult algorithmResult, int semesterId)
         {
             try
-        {
-            // 创建排课结果实体
-            var scheduleResult = new ScheduleResult
             {
-                SemesterId = semesterId,
-                CreatedAt = DateTime.Now,
-                Status = "Draft", // 初始状态为草稿
-                Score = algorithmResult.Evaluation?.Score ?? 0
-            };
+                // 模拟模式（无数据库连接时使用）
+                bool simulationMode = true;
+                
+                _logger.LogInformation("保存排课方案，模拟模式：{SimulationMode}", simulationMode);
+                    
+                // 创建排课结果实体
+                var scheduleResult = new ScheduleResult
+                {
+                    SemesterId = semesterId,
+                    CreatedAt = DateTime.Now,
+                    Status = "Draft", // 初始状态为草稿
+                    Score = algorithmResult.Evaluation?.Score ?? 0
+                };
 
-            // 添加排课明细
-            // 选择最佳解决方案（通常是第一个，或者使用评分最高的）
+                if (!simulationMode)
+                {
+                    // 数据库操作部分 - 仅在非模拟模式下执行
+                    try
+                    {
+                        // 先保存到数据库获取ScheduleId
+                        _dbContext.ScheduleResults.Add(scheduleResult);
+                        await _dbContext.SaveChangesAsync();
+                        _logger.LogInformation("成功保存排课结果基本信息，ID: {ScheduleId}", scheduleResult.ScheduleId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "数据库保存操作失败，切换到模拟模式");
+                        simulationMode = true;
+                    }
+                }
+                
+                if (simulationMode)
+                {
+                    // 模拟模式 - 手动设置ID
+                    scheduleResult.ScheduleId = new Random().Next(1000, 9999);
+                    _logger.LogInformation("模拟模式：手动设置ScheduleId为 {ScheduleId}", scheduleResult.ScheduleId);
+                }
+
+                // 选择最佳解决方案（通常是第一个，或者使用评分最高的）
                 var bestSolution = algorithmResult.Solutions?.OrderByDescending(s => s.Evaluation?.Score ?? 0).FirstOrDefault();
 
-            // 如果找到解决方案，添加其所有分配
+                // 如果找到解决方案，添加其所有分配
                 if (bestSolution != null && bestSolution.Assignments != null && bestSolution.Assignments.Any())
-            {
+                {
                     _logger.LogInformation("保存最佳排课方案，包含 {Count} 个排课项", bestSolution.Assignments.Count);
                     
-                scheduleResult.Items = bestSolution.Assignments.Select(a => new ScheduleItem
-                {
-                    CourseSectionId = a.SectionId,
-                    TeacherId = a.TeacherId,
-                    ClassroomId = a.ClassroomId,
-                    TimeSlotId = a.TimeSlotId,
-                    // 其他属性...
-                }).ToList();
-            }
+                    var scheduleItems = bestSolution.Assignments.Select(a => new ScheduleItem
+                    {
+                        ScheduleResultId = scheduleResult.ScheduleId, // 显式设置外键
+                        ScheduleItemId = simulationMode ? new Random().Next(10000, 99999) : 0, // 在模拟模式下手动设置ID
+                        CourseSectionId = a.SectionId,
+                        TeacherId = a.TeacherId,
+                        ClassroomId = a.ClassroomId,
+                        TimeSlotId = a.TimeSlotId
+                    }).ToList();
+                    
+                    // 添加排课项
+                    scheduleResult.Items = scheduleItems;
+                    
+                    if (!simulationMode)
+                    {
+                        // 只在非模拟模式下保存到数据库
+                        _dbContext.SaveChanges(); 
+                        _logger.LogInformation("成功保存 {Count} 个排课项", scheduleItems.Count);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("模拟模式：已创建 {Count} 个排课项（不保存到数据库）", scheduleItems.Count);
+                    }
+                }
                 else
                 {
                     _logger.LogWarning("算法未返回有效的排课方案，创建一个空的排课结果");
                     scheduleResult.Items = new List<ScheduleItem>();
                 }
 
-            // 保存到数据库
-            _dbContext.ScheduleResults.Add(scheduleResult);
-            await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("成功保存排课方案，ID: {ScheduleId}", scheduleResult.ScheduleId);
-
-            return scheduleResult;
+                return scheduleResult;
             }
             catch (Exception ex)
             {

@@ -54,31 +54,56 @@ export const mockCourses = [
   { id: 1, code: 'CS101', name: 'Introduction to Computer Science', department: 'Computer Science', enrollment: 120, subjectId: 1 },
   { id: 2, code: 'CS201', name: 'Data Structures', department: 'Computer Science', enrollment: 90, subjectId: 1 },
   { id: 3, code: 'CS301', name: 'Algorithm Design', department: 'Computer Science', enrollment: 60, subjectId: 1 },
-  { id: 4, code: 'MATH101', name: 'Advanced Mathematics', department: 'Mathematics', enrollment: 150, subjectId: 2 },
-  { id: 5, code: 'PHYS101', name: 'Physics I', department: 'Physics', enrollment: 100, subjectId: 3 }
+  { id: 4, code: 'CS401', name: 'Artificial Intelligence', department: 'Computer Science', enrollment: 45, subjectId: 1 },
+  { id: 5, code: 'CS501', name: 'Computer Networks', department: 'Computer Science', enrollment: 70, subjectId: 1 },
+  { id: 6, code: 'MATH101', name: 'Advanced Mathematics', department: 'Mathematics', enrollment: 150, subjectId: 2 },
+  { id: 7, code: 'MATH201', name: 'Linear Algebra', department: 'Mathematics', enrollment: 100, subjectId: 2 },
+  { id: 8, code: 'MATH301', name: 'Calculus III', department: 'Mathematics', enrollment: 80, subjectId: 2 },
+  { id: 9, code: 'PHYS101', name: 'Physics I', department: 'Physics', enrollment: 100, subjectId: 3 },
+  { id: 10, code: 'PHYS201', name: 'Physics II', department: 'Physics', enrollment: 85, subjectId: 3 },
+  { id: 11, code: 'FIN101', name: 'Financial Accounting', department: 'Finance', enrollment: 120, subjectId: 4 },
+  { id: 12, code: 'MKT101', name: 'Marketing Principles', department: 'Marketing', enrollment: 110, subjectId: 5 }
 ];
   
   // 在services/mockData.js中添加教师学科关系
   export const mockTeacherSubjects = [
-    { teacherId: 1, subjectId: 1 }, // Prof. Smith 可以教授 Computer Science
-    { teacherId: 2, subjectId: 1 }, // Prof. Johnson 可以教授 Computer Science
-    { teacherId: 3, subjectId: 2 }, // Prof. Williams 可以教授 Mathematics
-    { teacherId: 4, subjectId: 3 }  // Prof. Brown 可以教授 Physics
+    { teacherId: 1, subjectId: 1 }, // Prof. Smith - Computer Science
+    { teacherId: 2, subjectId: 1 }, // Prof. Johnson - Computer Science
+    { teacherId: 3, subjectId: 1 }, // Prof. Davis - Computer Science
+    { teacherId: 4, subjectId: 1 }, // Prof. Wilson - Computer Science
+    { teacherId: 5, subjectId: 2 }, // Prof. Williams - Mathematics
+    { teacherId: 6, subjectId: 2 }, // Prof. Taylor - Mathematics
+    { teacherId: 7, subjectId: 3 }, // Prof. Brown - Physics
+    { teacherId: 8, subjectId: 3 }, // Prof. Miller - Physics
+    { teacherId: 9, subjectId: 4 }, // Prof. Anderson - Finance
+    { teacherId: 10, subjectId: 5 } // Prof. Thomas - Marketing
   ];
 
   // 修改mockTeachers，添加departmentId字段
   export const mockTeachers = [
     { id: 1, name: 'Prof. Smith', code: 'SMITH', department: 'Computer Science', departmentId: 1 },
     { id: 2, name: 'Prof. Johnson', code: 'JOHN', department: 'Computer Science', departmentId: 1 },
-    { id: 3, name: 'Prof. Williams', code: 'WILL', department: 'Mathematics', departmentId: 5 },
-    { id: 4, name: 'Prof. Brown', code: 'BROWN', department: 'Physics', departmentId: 6 }
+    { id: 3, name: 'Prof. Davis', code: 'DAVIS', department: 'Computer Science', departmentId: 1 },
+    { id: 4, name: 'Prof. Wilson', code: 'WILS', department: 'Computer Science', departmentId: 1 },
+    { id: 5, name: 'Prof. Williams', code: 'WILL', department: 'Mathematics', departmentId: 5 },
+    { id: 6, name: 'Prof. Taylor', code: 'TAYL', department: 'Mathematics', departmentId: 5 },
+    { id: 7, name: 'Prof. Brown', code: 'BROWN', department: 'Physics', departmentId: 6 },
+    { id: 8, name: 'Prof. Miller', code: 'MILL', department: 'Physics', departmentId: 6 },
+    { id: 9, name: 'Prof. Anderson', code: 'ANDR', department: 'Finance', departmentId: 4 },
+    { id: 10, name: 'Prof. Thomas', code: 'THOM', department: 'Marketing', departmentId: 3 }
   ];
   
   export const mockClassrooms = [
     { id: 1, name: '101', building: 'Building A', capacity: 120, hasComputers: true, type: 'ComputerLab', campusId: 1 },
-    { id: 2, name: '201', building: 'Building A', capacity: 80, hasComputers: false, type: 'Lecture', campusId: 1 },
-    { id: 3, name: '301', building: 'Building B', capacity: 150, hasComputers: false, type: 'LargeHall', campusId: 2 },
-    { id: 4, name: '401', building: 'Building B', capacity: 60, hasComputers: true, type: 'Laboratory', campusId: 2 }
+    { id: 2, name: '102', building: 'Building A', capacity: 100, hasComputers: true, type: 'ComputerLab', campusId: 1 },
+    { id: 3, name: '201', building: 'Building A', capacity: 80, hasComputers: false, type: 'Lecture', campusId: 1 },
+    { id: 4, name: '202', building: 'Building A', capacity: 90, hasComputers: false, type: 'Lecture', campusId: 1 },
+    { id: 5, name: '301', building: 'Building B', capacity: 150, hasComputers: false, type: 'LargeHall', campusId: 2 },
+    { id: 6, name: '302', building: 'Building B', capacity: 140, hasComputers: false, type: 'LargeHall', campusId: 2 },
+    { id: 7, name: '401', building: 'Building B', capacity: 60, hasComputers: true, type: 'Laboratory', campusId: 2 },
+    { id: 8, name: '402', building: 'Building B', capacity: 65, hasComputers: true, type: 'Laboratory', campusId: 2 },
+    { id: 9, name: '501', building: 'Building C', capacity: 100, hasComputers: false, type: 'Lecture', campusId: 1 },
+    { id: 10, name: '601', building: 'Building C', capacity: 80, hasComputers: true, type: 'ComputerLab', campusId: 1 }
   ];
   
   export const mockConstraints = [
@@ -90,53 +115,60 @@ export const mockCourses = [
   
   // 修改时间槽模拟数据，采用GenerateStandardTimeSlots风格的时间段
   export const mockTimeSlots = (() => {
-    // 模拟TestDataGenerator.GenerateStandardTimeSlots()的结果
     const slots = [];
     let slotId = 1;
     
-    // 周一到周五
-    for (let day = 1; day <= 5; day++) {
-      const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-      const dayName = dayNames[day - 1];
+    // Sunday(0) to Saturday(6)
+    for (let day = 0; day <= 6; day++) {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = dayNames[day];
       
-      // 上午 8:00 - 10:00
+      // Morning slots (8:00 - 12:00)
       slots.push({
         id: slotId++,
         dayOfWeek: day,
         dayName,
         startTime: '08:00',
-        endTime: '10:00',
-        type: 'Regular'
+        endTime: '09:30',
+        type: 'Morning'
       });
       
-      // 上午 10:00 - 12:00
       slots.push({
         id: slotId++,
         dayOfWeek: day,
         dayName,
         startTime: '10:00',
-        endTime: '12:00',
-        type: 'Regular'
+        endTime: '11:30',
+        type: 'Morning'
       });
       
-      // 下午 14:00 - 16:00
+      // Afternoon slots (14:00 - 18:00)
       slots.push({
         id: slotId++,
         dayOfWeek: day,
         dayName,
         startTime: '14:00',
-        endTime: '16:00',
-        type: 'Regular'
+        endTime: '15:30',
+        type: 'Afternoon'
       });
       
-      // 晚上 19:00 - 21:00
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '16:00',
+        endTime: '17:30',
+        type: 'Afternoon'
+      });
+      
+      // Evening slots (19:00 - 21:00)
       slots.push({
         id: slotId++,
         dayOfWeek: day,
         dayName,
         startTime: '19:00',
-        endTime: '21:00',
-        type: 'Regular'
+        endTime: '20:30',
+        type: 'Evening'
       });
     }
     

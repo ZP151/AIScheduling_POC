@@ -33,40 +33,169 @@ import {
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { mockTimeSlots } from '../services/mockData';
 import Alert from '@mui/material/Alert';
+import WarningIcon from '@mui/icons-material/Warning';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContentText from '@mui/material/DialogContentText';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import HistoryIcon from '@mui/icons-material/History';
+import { format } from 'date-fns';
 
 // 导入真实API服务
-import { getScheduleById, getScheduleHistory } from '../services/api';
+import { getScheduleById } from '../services/api';
 
 import ScheduleExplanation from './LLM/ScheduleExplanation';
 import ConflictResolution from './LLM/ConflictResolution';
+import ScheduleHistory from './ScheduleHistory';
 
 
-const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
+const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory }) => {
   const [schedule, setSchedule] = useState(null);
   const [selectedScheduleId, setSelectedScheduleId] = useState(scheduleId);
   const [resultsTabValue, setResultsTabValue] = useState(0);
-  // In ScheduleResults.jsx, add new state for week selection
   const [currentWeek, setCurrentWeek] = useState(1);
   const [totalWeeks, setTotalWeeks] = useState(16); // Default to 16 weeks in a semester
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [availableSchedules, setAvailableSchedules] = useState([]);
+  
+  // 添加冲突面板展开/折叠状态
+  const [conflictsPanelExpanded, setConflictsPanelExpanded] = useState(false);
+  const [aiAnalysisExpanded, setAiAnalysisExpanded] = useState(false);
+  
+  // 添加加载状态和冲突分析状态
+  const [analyzingConflict, setAnalyzingConflict] = useState(false);
+  const [analyzedConflictId, setAnalyzedConflictId] = useState(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [conflictToResolve, setConflictToResolve] = useState(null);
+  const [solutionToApply, setSolutionToApply] = useState(null);
+
+  // 教师冲突和教室冲突状态
+  const [teacherConflicts, setTeacherConflicts] = useState([]);
+  const [classroomConflicts, setClassroomConflicts] = useState([]);
+
+  // 添加排课历史记录状态
+  const [scheduleHistory, setScheduleHistory] = useState([]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [statusHistoryOpen, setStatusHistoryOpen] = useState(false);
+  const [selectedScheduleHistory, setSelectedScheduleHistory] = useState(null);
+
+  // 添加调试辅助函数
+  const debugObject = (obj) => {
+    console.log(JSON.stringify(obj, null, 2));
+  };
 
   const handleConflictResolved = (solution, conflictId) => {
     console.log(`Applying solution to conflict ${conflictId}:`, solution);
-    // In a real app, we would call an API to apply the solution
-    // For now, just update the local state
+    
+    // Force resolve all conflicts, ignoring constraint limitations
+    // Update conflict status
     setConflicts(prevConflicts => 
       prevConflicts.map(conflict => 
-        conflict.id === conflictId 
+        conflict.id === conflictId || conflict.id === Number(conflictId) // Handle possible string/number ID mismatch
           ? { ...conflict, status: 'Resolved' } 
           : conflict
       )
     );
-    alert(`Solution applied to conflict ${conflictId}`);
+    
+    // 检测冲突类型，可以同时处理多种冲突
+    const isTeacherConflict = conflictId.toString().includes('teacher');
+    const isClassroomConflict = conflictId.toString().includes('classroom');
+    
+    // 更新教师冲突状态
+    if (isTeacherConflict) {
+      setTeacherConflicts(prevConflicts => 
+        prevConflicts.map(conflict => 
+          conflict.id === conflictId || conflict.id.toString() === conflictId.toString()
+            ? { ...conflict, status: 'Resolved' } 
+            : conflict
+        )
+      );
+    }
+    
+    // 更新教室冲突状态
+    if (isClassroomConflict) {
+      setClassroomConflicts(prevConflicts => 
+        prevConflicts.map(conflict => 
+          conflict.id === conflictId || conflict.id.toString() === conflictId.toString()
+            ? { ...conflict, status: 'Resolved' } 
+            : conflict
+        )
+      );
+    }
+    
+    // 如果是组合冲突（即既包含教师冲突又包含教室冲突），则同时更新两种状态
+    if (conflictId.toString().includes('combined')) {
+      // 更新教师冲突
+      setTeacherConflicts(prevConflicts => 
+        prevConflicts.map(conflict => 
+          conflict.relatedId === conflictId || conflict.relatedId?.toString() === conflictId.toString()
+            ? { ...conflict, status: 'Resolved' } 
+            : conflict
+        )
+      );
+      
+      // 更新教室冲突
+      setClassroomConflicts(prevConflicts => 
+        prevConflicts.map(conflict => 
+          conflict.relatedId === conflictId || conflict.relatedId?.toString() === conflictId.toString()
+            ? { ...conflict, status: 'Resolved' } 
+            : conflict
+        )
+      );
+    }
+    
+    // Close confirmation dialog
+    setConfirmDialogOpen(false);
+    // Reset current conflict and solution
+    setConflictToResolve(null);
+    setSolutionToApply(null);
+    
+    // Display test message
+    alert(`Test environment: Solution applied successfully! In production, the system will send a request to the server and process actual constraints.`);
   };
+  
+  // 处理确认应用解决方案
+  const handleConfirmApplySolution = () => {
+    if (conflictToResolve && solutionToApply) {
+      // 在实际应用中，会调用API
+      console.log("应用解决方案...", solutionToApply, "到冲突：", conflictToResolve.id);
+      
+      // 更新本地状态
+      handleConflictResolved(solutionToApply, conflictToResolve.id);
+    }
+  };
+  
+  // 处理取消应用解决方案
+  const handleCancelApplySolution = () => {
+    setConfirmDialogOpen(false);
+    setConflictToResolve(null);
+    setSolutionToApply(null);
+  };
+  
+  // 处理分析冲突
+  const handleAnalyzeConflict = (conflictId) => {
+    setAnalyzingConflict(true);
+    setAnalyzedConflictId(null);
+    
+    // 模拟分析延迟
+    setTimeout(() => {
+      setAnalyzingConflict(false);
+      setAnalyzedConflictId(conflictId);
+    }, 1000);
+  };
+  
+  // 处理应用解决方案前的确认
+  const handleApplySolution = (solution, conflict) => {
+    setConflictToResolve(conflict);
+    setSolutionToApply(solution);
+    setConfirmDialogOpen(true);
+  };
+
   const [conflicts, setConflicts] = useState([
     {
       id: 1,
@@ -126,13 +255,31 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
       const scheduleData = await getScheduleById(id);
       setSchedule(scheduleData);
       
-      // 如果是第一次加载并且没有可用排课列表，获取历史数据
-      if (availableSchedules.length === 0) {
-        // 在实际项目中，我们可能需要根据当前学期ID获取历史记录
-        // 这里暂时使用一个固定值
-        const semesterId = 1;
-        const historyData = await getScheduleHistory(semesterId);
-        setAvailableSchedules(historyData);
+      // 如果是第一次加载并且没有可用排课列表，使用传入的scheduleResults
+      if (availableSchedules.length === 0 && scheduleResults && scheduleResults.length > 0) {
+        // 确保每个排课方案都有状态和状态历史字段
+        const schedulesWithHistory = scheduleResults.map(result => {
+          // 确保状态值存在
+          const updatedResult = {
+            ...result,
+            status: result.status || 'Generated'
+          };
+          
+          if (!updatedResult.statusHistory) {
+            // 创建默认的状态历史
+            updatedResult.statusHistory = [{
+              status: updatedResult.status,
+              timestamp: updatedResult.createdAt || new Date().toISOString(),
+              userId: 'System'
+            }];
+          }
+          return updatedResult;
+        });
+        
+        // 按创建时间降序排序
+        schedulesWithHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        setAvailableSchedules(schedulesWithHistory);
       }
     } catch (err) {
       console.error('获取排课数据失败:', err);
@@ -146,9 +293,43 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
   useEffect(() => {
     // 如果传入的scheduleResults有数据，使用它
     if (scheduleResults && scheduleResults.length > 0) {
+      // 如果没有选中特定的排课方案ID，默认选中第一个
+      if (!selectedScheduleId && scheduleResults.length > 0) {
+        setSelectedScheduleId(scheduleResults[0].id);
+      }
+      
+      // 获取选中的排课方案或默认第一个
       const selectedResult = scheduleResults.find(r => r.id === selectedScheduleId) || scheduleResults[0];
-      setSchedule(selectedResult);
-      setAvailableSchedules(scheduleResults);
+      
+      // 确保选中的排课方案有正确的状态
+      const updatedResult = {
+        ...selectedResult,
+        status: selectedResult.status || 'Generated'
+      };
+      
+      // 设置当前查看的排课方案
+      setSchedule(updatedResult);
+      
+      // 确保每个排课方案都有状态和状态历史字段
+      const schedulesWithHistory = scheduleResults.map(result => {
+        // 确保状态值存在
+        const updatedSchedule = {
+          ...result,
+          status: result.status || 'Generated'
+        };
+        
+        if (!updatedSchedule.statusHistory || updatedSchedule.statusHistory.length === 0) {
+          updatedSchedule.statusHistory = [{
+            status: updatedSchedule.status,
+            timestamp: updatedSchedule.createdAt || new Date().toISOString(),
+            userId: 'System'
+          }];
+        }
+        
+        return updatedSchedule;
+      });
+      
+      setAvailableSchedules(schedulesWithHistory);
     } else {
       // 否则从API获取
       fetchScheduleData(selectedScheduleId || scheduleId);
@@ -250,11 +431,197 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
   };
 
   // Add a dialog for displaying multiple courses
-  // Add this at the end of the component body
   const [multiCourseDialogOpen, setMultiCourseDialogOpen] = useState(false);
   const [selectedMultiCourses, setSelectedMultiCourses] = useState([]);
 
-  // Add fallback content when no schedule data is available
+  // Add useEffect to update conflicts - must be placed before all conditional judgments
+  useEffect(() => {
+    if (!schedule || !schedule.details) return;
+    
+    // 检查教师冲突
+    const newTeacherConflicts = [];
+    
+    // 按教师和时间分组
+    const teacherGroups = {};
+    
+    // 收集所有课程按教师分组
+    schedule.details.forEach(item => {
+      const key = `${item.teacherName}-${item.dayName}-${item.startTime}-${item.endTime}`;
+      if (!teacherGroups[key]) {
+        teacherGroups[key] = [];
+      }
+      teacherGroups[key].push(item);
+    });
+    
+    // 只有当同一教师在同一时间段有多个课程时才认为是冲突 
+    Object.entries(teacherGroups).forEach(([key, courses]) => {
+      if (courses.length > 1) {
+        const conflictId = `teacher-${key}-${schedule.id}`;
+        // 检查这个冲突是否已经在状态中被标记为已解决
+        const existingConflict = teacherConflicts.find(c => c.id === conflictId);
+        const resolvedStatusInState = existingConflict ? existingConflict.status === 'Resolved' : false;
+        
+        newTeacherConflicts.push({
+          id: conflictId, 
+          type: 'Teacher Schedule',
+          description: `${courses[0].teacherName} has ${courses.length} courses scheduled at the same time (${courses[0].dayName}, ${courses[0].startTime}-${courses[0].endTime})`,
+          status: resolvedStatusInState ? 'Resolved' : 'Unresolved',
+          involvedCourses: courses,
+          scheduleId: schedule.id // 关联到特定排课方案
+        });
+      }
+    });
+
+    // 检查教室冲突
+    const newClassroomConflicts = [];
+    
+    // 按教室和时间分组
+    const classroomGroups = {};
+    
+    // 收集所有课程按教室分组
+    schedule.details.forEach(item => {
+      const key = `${item.classroom}-${item.dayName}-${item.startTime}-${item.endTime}`;
+      if (!classroomGroups[key]) {
+        classroomGroups[key] = [];
+      }
+      classroomGroups[key].push(item);
+    });
+    
+    // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+    Object.entries(classroomGroups).forEach(([key, courses]) => {
+      if (courses.length > 1) {
+        const conflictId = `classroom-${key}-${schedule.id}`;
+        // 检查这个冲突是否已经在状态中被标记为已解决
+        const existingConflict = classroomConflicts.find(c => c.id === conflictId);
+        const resolvedStatusInState = existingConflict ? existingConflict.status === 'Resolved' : false;
+        
+        newClassroomConflicts.push({
+          id: conflictId,
+          type: 'Classroom Assignment',
+          description: `${courses[0].classroom} has ${courses.length} courses scheduled at the same time (${courses[0].dayName}, ${courses[0].startTime}-${courses[0].endTime})`,
+          status: resolvedStatusInState ? 'Resolved' : 'Unresolved',
+          involvedCourses: courses,
+          scheduleId: schedule.id // 关联到特定排课方案
+        });
+      }
+    });
+    
+    // 更新教师冲突状态
+    setTeacherConflicts(prevConflicts => {
+      // 保持已解决状态
+      const updatedConflicts = newTeacherConflicts.map(conflict => {
+        const existingConflict = prevConflicts.find(c => c.id === conflict.id);
+        if (existingConflict && existingConflict.status === 'Resolved') {
+          return { ...conflict, status: 'Resolved' };
+        }
+        return conflict;
+      });
+      return updatedConflicts;
+    });
+    
+    // 更新教室冲突状态
+    setClassroomConflicts(prevConflicts => {
+      // 保持已解决状态
+      const updatedConflicts = newClassroomConflicts.map(conflict => {
+        const existingConflict = prevConflicts.find(c => c.id === conflict.id);
+        if (existingConflict && existingConflict.status === 'Resolved') {
+          return { ...conflict, status: 'Resolved' };
+        }
+        return conflict;
+      });
+      return updatedConflicts;
+    });
+  }, [schedule, teacherConflicts, classroomConflicts]);
+
+  // Update availableSchedules status management
+  const handleScheduleStatusChange = (newStatus) => {
+    // 创建状态更新记录
+    const statusUpdate = {
+      status: newStatus,
+      timestamp: new Date().toISOString(),
+      userId: 'Current User'
+    };
+    
+    // 更新当前选中排课方案的状态历史
+    let updatedStatusHistory = schedule.statusHistory || [];
+    updatedStatusHistory = [...updatedStatusHistory, statusUpdate];
+    
+    // 创建新的排课对象（不可变更新）
+    const updatedSchedule = {
+      ...schedule, 
+      status: newStatus,
+      statusHistory: updatedStatusHistory
+    };
+    
+    // 更新当前显示的排课方案
+    setSchedule(updatedSchedule);
+    
+    // 更新可用排课方案列表中的相应方案
+    setAvailableSchedules(prevSchedules => 
+      prevSchedules.map(s => 
+        s.id === schedule.id ? updatedSchedule : s
+      )
+    );
+    
+    // 显示测试消息
+    alert(`Test environment: Schedule status has been changed to ${newStatus}! In production, the system will send an update request to the server.`);
+  };
+
+  // 打开状态历史对话框
+  const handleOpenStatusHistory = (scheduleToView) => {
+    // 找到availableSchedules中的该方案的最新版本
+    // 这样可以确保我们总是显示最新的状态历史
+    const updatedSchedule = availableSchedules.find(s => s.id === scheduleToView.id) || scheduleToView;
+
+    // 确保statusHistory存在且是按时间排序的数组
+    if (!updatedSchedule.statusHistory) {
+      updatedSchedule.statusHistory = [{
+        status: updatedSchedule.status || 'Draft',
+        timestamp: updatedSchedule.createdAt || new Date().toISOString(),
+        userId: 'System'
+      }];
+    }
+
+    // 设置状态并打开对话框
+    setSelectedScheduleHistory(updatedSchedule);
+    setStatusHistoryOpen(true);
+  };
+
+  // 关闭状态历史对话框
+  const handleCloseStatusHistory = () => {
+    setStatusHistoryOpen(false);
+    setSelectedScheduleHistory(null);
+  };
+
+  // 格式化日期
+  const formatDate = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, 'yyyy-MM-dd HH:mm');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // 跳转到排课历史页面
+  const handleViewHistory = () => {
+    // 使用props传入的onViewHistory函数
+    if (typeof onBack === 'function' && typeof onViewHistory === 'function') {
+      // 确保availableSchedules包含最新状态
+      const updatedSchedules = availableSchedules.map(s => {
+        // 如果当前正在查看这个方案，使用最新状态
+        if (s.id === schedule.id) {
+          return schedule;
+        }
+        return s;
+      });
+      
+      // 传递最新的状态数据给历史页面
+      onViewHistory(updatedSchedules);
+    }
+  };
+
+  // Render different UI states
   if (!schedule && availableSchedules.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
@@ -275,6 +642,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
       </Box>
     );
   }
+  
   if (!schedule) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
@@ -287,7 +655,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
     <Box sx={{ p: 3 }}>
       {loading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
-          <Typography>加载排课数据中...</Typography>
+          <Typography>Loading schedule data...</Typography>
         </Box>
       )}
       
@@ -297,18 +665,37 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
         </Alert>
       )}
       
-      {/* 排课选择下拉框 */}
+      {/* 顶部操作栏 - 添加历史记录按钮 */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+        <Button 
+          variant="outlined" 
+          startIcon={<HistoryIcon />}
+          onClick={handleViewHistory}
+        >
+          View Schedule History
+        </Button>
+        
+        <Button 
+          variant="outlined" 
+          onClick={onBack}
+        >
+          Back to Schedule Creation
+        </Button>
+      </Box>
+      
+      {/* Schedule selection dropdown */}
       <Box sx={{ mb: 3 }}>
         <FormControl fullWidth>
-          <InputLabel>选择排课方案</InputLabel>
+          <InputLabel>Select Schedule Plan</InputLabel>
           <Select
             value={selectedScheduleId || ''}
             onChange={(e) => setSelectedScheduleId(e.target.value)}
-            label="选择排课方案"
+            label="Select Schedule Plan"
           >
             {availableSchedules.map(result => (
               <MenuItem key={result.id} value={result.id}>
-                {result.name} {result.status === 'Draft' ? '(草稿)' : ''}
+                {result.name} {result.status === 'Draft' ? '(Draft)' : ''}
+                {result.isPrimary && ' (Primary)'}
               </MenuItem>
             ))}
           </Select>
@@ -319,11 +706,46 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
         <Typography variant="h6" gutterBottom>
           {schedule.name}
         </Typography>
-        <Chip 
-          label={schedule.status} 
-          color={schedule.status === 'Published' ? 'success' : 'warning'} 
-          variant="outlined" 
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <FormControl size="small" sx={{ minWidth: 150, mr: 2 }}>
+            <InputLabel>Schedule Status</InputLabel>
+            <Select
+              value={schedule.status || 'Draft'}
+              onChange={(e) => handleScheduleStatusChange(e.target.value)}
+              label="Schedule Status"
+              size="small"
+            >
+              <MenuItem value="Draft">Draft</MenuItem>
+              <MenuItem value="Generated">Generated</MenuItem>
+              <MenuItem value="Published">Published</MenuItem>
+              <MenuItem value="Canceled">Canceled</MenuItem>
+              <MenuItem value="Archived">Archived</MenuItem>
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Chip 
+              label={schedule.status || 'Draft'} // 确保状态显示不为空
+              color={
+                schedule.status === 'Published' ? 'success' : 
+                schedule.status === 'Draft' ? 'warning' : 
+                schedule.status === 'Generated' ? 'info' : 
+                schedule.status === 'Canceled' ? 'error' : 
+                schedule.status === 'Archived' ? 'default' : 'warning' // 默认显示为warning (Draft)
+              } 
+              variant="outlined" 
+              sx={{ mr: 1 }}
+            />
+            <Tooltip title="View Status History">
+              <IconButton 
+                size="small" 
+                onClick={() => handleOpenStatusHistory(schedule)}
+                disabled={!schedule?.statusHistory || schedule.statusHistory.length === 0}
+              >
+                <AccessTimeIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
@@ -334,7 +756,14 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
           variant="scrollable"
           scrollButtons="auto"
         >
-
+          <Tab label="Calendar View" />
+          <Tab label="List View" />
+          <Tab label="By Teacher" />
+          <Tab label="By Classroom" />
+        </Tabs>
+      </Box>
+      
+      {/* 周选择组件 - 位置已修正，移到Tabs外部 */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="subtitle2">
               Week {currentWeek} of {totalWeeks}
@@ -367,103 +796,124 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
             </Box>
           </Box>
 
-          <Tab label="Calendar View" />
-          <Tab label="List View" />
-          <Tab label="By Teacher" />
-          <Tab label="By Classroom" />
-        </Tabs>
-      </Box>
-      
-      {/* Conflicts Section */}
-      {conflicts.length > 0 && (
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Detected Conflicts ({conflicts.filter(c => c.status !== 'Resolved').length})
-          </Typography>
-          
-          {conflicts.map(conflict => (
-            <ConflictResolution 
-              key={conflict.id} 
-              conflict={conflict} 
-              onResolve={handleConflictResolved}
-            />
-          ))}
-          
-          {conflicts.every(c => c.status === 'Resolved') && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              All conflicts have been resolved!
-            </Alert>
-          )}
-        </Box>
-      )}
-
       {/* Calendar View */}
       {resultsTabValue === 0 && (
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Time/Room</TableCell>
-                {uniqueClassrooms.map(classroom => (
-                  <TableCell key={classroom} align="center" sx={{ fontWeight: 'bold' }}>
-                    {classroom}
-                  </TableCell>
-                ))}
+                <TableCell sx={{ fontWeight: 'bold' }}>Time/Day</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Sunday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Monday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tuesday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Wednesday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Thursday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Friday</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Saturday</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.values(timeTableData)
-                .sort((a, b) => a.day - b.day || a.startTime.localeCompare(b.startTime))
-                .map((timeRow) => (
-                  <TableRow key={`${timeRow.day}-${timeRow.startTime}`}>
+              {/* Morning section header */}
+              <TableRow>
+                <TableCell colSpan={8} sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
+                  Morning (8:00 - 12:00)
+                </TableCell>
+              </TableRow>
+              
+              {/* Morning time slots */}
+              {['08:00-09:30', '10:00-11:30'].map(timeSlot => {
+                const [startTime, endTime] = timeSlot.split('-');
+                return (
+                  <TableRow key={`morning-${timeSlot}`}>
                     <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 'bold' }}>
-                      {timeRow.dayName}<br />
-                      {timeRow.startTime}-{timeRow.endTime}
+                      {startTime}-{endTime}
                     </TableCell>
-                    {uniqueClassrooms.map(classroom => {
-                      // 使用当前行的时间和日期，而不是未定义的变量
-                      const scheduleItems = timeRow.classrooms[classroom] ? [timeRow.classrooms[classroom]] : [];
-                      
-                      // 如果需要根据周过滤，可以这样做
-                      const filteredItems = scheduleItems.filter(item => 
-                        !item.weekSpecific || item.week === currentWeek
+                    {/* Sunday to Saturday (0-6) */}
+                    {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
+                      // 筛选当前时间段和星期的课程
+                      const coursesInCell = schedule.details.filter(item => 
+                        item.startTime === startTime && 
+                        item.endTime === endTime && 
+                        item.day === dayNum &&
+                        (!item.weekSpecific || item.week === currentWeek)
                       );
                       
+                      // 检测同一教师在同一时间的冲突
+                      const hasTeacherConflict = (() => {
+                        // 按教师名称分组
+                        const teacherGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!teacherGroups[course.teacherName]) {
+                            teacherGroups[course.teacherName] = [];
+                          }
+                          teacherGroups[course.teacherName].push(course);
+                        });
+                        
+                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        return Object.values(teacherGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 检测同一教室在同一时间的冲突
+                      const hasClassroomConflict = (() => {
+                        // 按教室分组
+                        const classroomGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!classroomGroups[course.classroom]) {
+                            classroomGroups[course.classroom] = [];
+                          }
+                          classroomGroups[course.classroom].push(course);
+                        });
+                        
+                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        return Object.values(classroomGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 是否存在任何冲突
+                      const hasConflict = hasTeacherConflict || hasClassroomConflict;
+                      
                       return (
-                        <TableCell key={classroom} align="center" sx={{ height: 80, minWidth: 140 }}>
-                          {filteredItems.length > 0 ? (
+                        <TableCell key={`morning-${timeSlot}-${dayNum}`} align="center" sx={{ height: 80, minWidth: 140 }}>
+                          {coursesInCell.length > 0 ? (
                             <Box>
-                              {filteredItems.length === 1 ? (
-                                // Single course display
+                              {coursesInCell.length === 1 ? (
+                                // 单课程显示
                                 <>
                                   <Typography variant="body2" fontWeight="bold">
-                                    {filteredItems[0].courseName}
+                                    {coursesInCell[0].courseName}
                                   </Typography>
                                   <Typography variant="caption" display="block">
-                                    {filteredItems[0].teacherName}
+                                    {coursesInCell[0].teacherName}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    {coursesInCell[0].classroom}
                                   </Typography>
                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5 }}>
                                     <Chip 
                                       size="small" 
-                                      label={filteredItems[0].courseCode} 
+                                      label={coursesInCell[0].courseCode} 
                                       color="primary" 
                                       variant="outlined" 
                                     />
-                                    <ScheduleExplanation scheduleItem={filteredItems[0]} />
+                                    <ScheduleExplanation scheduleItem={coursesInCell[0]} />
                                   </Box>
                                 </>
                               ) : (
-                                // Multiple courses - create dropdown effect
+                                // 多课程显示 - 创建下拉效果
                                 <Tooltip 
                                   title={
                                     <Box>
-                                      {filteredItems.map((item, idx) => (
-                                        <Box key={idx} sx={{ mb: idx < filteredItems.length - 1 ? 1 : 0, p: 1, borderBottom: idx < filteredItems.length - 1 ? '1px solid #eee' : 'none' }}>
+                                      {coursesInCell.map((item, idx) => (
+                                        <Box key={idx} sx={{ mb: idx < coursesInCell.length - 1 ? 1 : 0, p: 1, borderBottom: idx < coursesInCell.length - 1 ? '1px solid #eee' : 'none' }}>
                                           <Typography variant="body2" fontWeight="bold">
                                             {item.courseName} ({item.courseCode})
                                           </Typography>
                                           <Typography variant="caption" display="block">
                                             Teacher: {item.teacherName}
+                                          </Typography>
+                                          <Typography variant="caption" display="block">
+                                            Room: {item.classroom}
                                           </Typography>
                                         </Box>
                                       ))}
@@ -478,12 +928,19 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
                                     fullWidth 
                                     endIcon={<ExpandMoreIcon />}
                                     onClick={(e) => {
-                                      // Open a dialog with all courses
+                                      // 打开包含所有课程的对话框
                                       setMultiCourseDialogOpen(true);
-                                      setSelectedMultiCourses(filteredItems);
+                                      setSelectedMultiCourses(coursesInCell);
                                     }}
+                                    // 如果有冲突，使用红色样式
+                                    sx={{ color: hasConflict ? 'error.main' : undefined, 
+                                         borderColor: hasConflict ? 'error.main' : undefined }}
                                   >
-                                    {filteredItems.length} Courses
+                                    {hasConflict && "⚠️ "}
+                                    {hasTeacherConflict && hasClassroomConflict ? "Teacher+Room" : 
+                                     hasTeacherConflict ? "Teacher Conflict" : 
+                                     hasClassroomConflict ? "Room Conflict" : ""} 
+                                    {coursesInCell.length} Courses
                                   </Button>
                                 </Tooltip>
                               )}
@@ -493,7 +950,288 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
                       );
                     })}
                   </TableRow>
-                ))}
+                );
+              })}
+              
+              {/* Afternoon section header */}
+              <TableRow>
+                <TableCell colSpan={8} sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
+                  Afternoon (14:00 - 18:00)
+                </TableCell>
+              </TableRow>
+              
+              {/* Afternoon time slots */}
+              {['14:00-15:30', '16:00-17:30'].map(timeSlot => {
+                const [startTime, endTime] = timeSlot.split('-');
+                      return (
+                  <TableRow key={`afternoon-${timeSlot}`}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 'bold' }}>
+                      {startTime}-{endTime}
+                    </TableCell>
+                    {/* Sunday to Saturday (0-6) */}
+                    {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
+                      // 筛选当前时间段和星期的课程
+                      const coursesInCell = schedule.details.filter(item => 
+                        item.startTime === startTime && 
+                        item.endTime === endTime && 
+                        item.day === dayNum &&
+                        (!item.weekSpecific || item.week === currentWeek)
+                      );
+                      
+                      // 检测同一教师在同一时间的冲突
+                      const hasTeacherConflict = (() => {
+                        // 按教师名称分组
+                        const teacherGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!teacherGroups[course.teacherName]) {
+                            teacherGroups[course.teacherName] = [];
+                          }
+                          teacherGroups[course.teacherName].push(course);
+                        });
+                        
+                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        return Object.values(teacherGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 检测同一教室在同一时间的冲突
+                      const hasClassroomConflict = (() => {
+                        // 按教室分组
+                        const classroomGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!classroomGroups[course.classroom]) {
+                            classroomGroups[course.classroom] = [];
+                          }
+                          classroomGroups[course.classroom].push(course);
+                        });
+                        
+                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        return Object.values(classroomGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 是否存在任何冲突
+                      const hasConflict = hasTeacherConflict || hasClassroomConflict;
+                      
+                      return (
+                        <TableCell key={`afternoon-${timeSlot}-${dayNum}`} align="center" sx={{ height: 80, minWidth: 140 }}>
+                          {coursesInCell.length > 0 ? (
+                            <Box>
+                              {coursesInCell.length === 1 ? (
+                                // 单课程显示
+                                <>
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {coursesInCell[0].courseName}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    {coursesInCell[0].teacherName}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    {coursesInCell[0].classroom}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5 }}>
+                                    <Chip 
+                                      size="small" 
+                                      label={coursesInCell[0].courseCode} 
+                                      color="primary" 
+                                      variant="outlined" 
+                                    />
+                                    <ScheduleExplanation scheduleItem={coursesInCell[0]} />
+                                  </Box>
+                                </>
+                              ) : (
+                                // 多课程显示 - 创建下拉效果
+                                <Tooltip 
+                                  title={
+                                    <Box>
+                                      {coursesInCell.map((item, idx) => (
+                                        <Box key={idx} sx={{ mb: idx < coursesInCell.length - 1 ? 1 : 0, p: 1, borderBottom: idx < coursesInCell.length - 1 ? '1px solid #eee' : 'none' }}>
+                                          <Typography variant="body2" fontWeight="bold">
+                                            {item.courseName} ({item.courseCode})
+                                          </Typography>
+                                          <Typography variant="caption" display="block">
+                                            Teacher: {item.teacherName}
+                                          </Typography>
+                                          <Typography variant="caption" display="block">
+                                            Room: {item.classroom}
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  } 
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Button 
+                                    variant="outlined" 
+                                    size="small" 
+                                    fullWidth 
+                                    endIcon={<ExpandMoreIcon />}
+                                    onClick={(e) => {
+                                      // 打开包含所有课程的对话框
+                                      setMultiCourseDialogOpen(true);
+                                      setSelectedMultiCourses(coursesInCell);
+                                    }}
+                                    // 如果有冲突，使用红色样式
+                                    sx={{ color: hasConflict ? 'error.main' : undefined, 
+                                         borderColor: hasConflict ? 'error.main' : undefined }}
+                                  >
+                                    {hasConflict && "⚠️ "}
+                                    {hasTeacherConflict && hasClassroomConflict ? "Teacher+Room" : 
+                                     hasTeacherConflict ? "Teacher Conflict" : 
+                                     hasClassroomConflict ? "Room Conflict" : ""} 
+                                    {coursesInCell.length} Courses
+                                  </Button>
+                                </Tooltip>
+                              )}
+                            </Box>
+                          ) : null}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+              
+              {/* Evening section header */}
+              <TableRow>
+                <TableCell colSpan={8} sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
+                  Evening (19:00 - 21:00)
+                </TableCell>
+              </TableRow>
+              
+              {/* Evening time slots */}
+              {['19:00-20:30'].map(timeSlot => {
+                const [startTime, endTime] = timeSlot.split('-');
+                return (
+                  <TableRow key={`evening-${timeSlot}`}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 'bold' }}>
+                      {startTime}-{endTime}
+                    </TableCell>
+                    {/* Sunday to Saturday (0-6) */}
+                    {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
+                      // 筛选当前时间段和星期的课程
+                      const coursesInCell = schedule.details.filter(item => 
+                        item.startTime === startTime && 
+                        item.endTime === endTime && 
+                        item.day === dayNum &&
+                        (!item.weekSpecific || item.week === currentWeek)
+                      );
+                      
+                      // 检测同一教师在同一时间的冲突
+                      const hasTeacherConflict = (() => {
+                        // 按教师名称分组
+                        const teacherGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!teacherGroups[course.teacherName]) {
+                            teacherGroups[course.teacherName] = [];
+                          }
+                          teacherGroups[course.teacherName].push(course);
+                        });
+                        
+                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        return Object.values(teacherGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 检测同一教室在同一时间的冲突
+                      const hasClassroomConflict = (() => {
+                        // 按教室分组
+                        const classroomGroups = {};
+                        
+                        coursesInCell.forEach(course => {
+                          if (!classroomGroups[course.classroom]) {
+                            classroomGroups[course.classroom] = [];
+                          }
+                          classroomGroups[course.classroom].push(course);
+                        });
+                        
+                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        return Object.values(classroomGroups).some(courses => courses.length > 1);
+                      })();
+                      
+                      // 是否存在任何冲突
+                      const hasConflict = hasTeacherConflict || hasClassroomConflict;
+                      
+                      return (
+                        <TableCell key={`evening-${timeSlot}-${dayNum}`} align="center" sx={{ height: 80, minWidth: 140 }}>
+                          {coursesInCell.length > 0 ? (
+                            <Box>
+                              {coursesInCell.length === 1 ? (
+                                // 单课程显示
+                                <>
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {coursesInCell[0].courseName}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    {coursesInCell[0].teacherName}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    {coursesInCell[0].classroom}
+                                  </Typography>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mt: 0.5 }}>
+                                    <Chip 
+                                      size="small" 
+                                      label={coursesInCell[0].courseCode} 
+                                      color="primary" 
+                                      variant="outlined" 
+                                    />
+                                    <ScheduleExplanation scheduleItem={coursesInCell[0]} />
+                                  </Box>
+                                </>
+                              ) : (
+                                // 多课程显示 - 创建下拉效果
+                                <Tooltip 
+                                  title={
+                                    <Box>
+                                      {coursesInCell.map((item, idx) => (
+                                        <Box key={idx} sx={{ mb: idx < coursesInCell.length - 1 ? 1 : 0, p: 1, borderBottom: idx < coursesInCell.length - 1 ? '1px solid #eee' : 'none' }}>
+                                          <Typography variant="body2" fontWeight="bold">
+                                            {item.courseName} ({item.courseCode})
+                                          </Typography>
+                                          <Typography variant="caption" display="block">
+                                            Teacher: {item.teacherName}
+                                          </Typography>
+                                          <Typography variant="caption" display="block">
+                                            Room: {item.classroom}
+                                          </Typography>
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  } 
+                                  arrow
+                                  placement="top"
+                                >
+                                  <Button 
+                                    variant="outlined" 
+                                    size="small" 
+                                    fullWidth 
+                                    endIcon={<ExpandMoreIcon />}
+                                    onClick={(e) => {
+                                      // 打开包含所有课程的对话框
+                                      setMultiCourseDialogOpen(true);
+                                      setSelectedMultiCourses(coursesInCell);
+                                    }}
+                                    // 如果有冲突，使用红色样式
+                                    sx={{ color: hasConflict ? 'error.main' : undefined, 
+                                         borderColor: hasConflict ? 'error.main' : undefined }}
+                                  >
+                                    {hasConflict && "⚠️ "}
+                                    {hasTeacherConflict && hasClassroomConflict ? "Teacher+Room" : 
+                                     hasTeacherConflict ? "Teacher Conflict" : 
+                                     hasClassroomConflict ? "Room Conflict" : ""} 
+                                    {coursesInCell.length} Courses
+                                  </Button>
+                                </Tooltip>
+                              )}
+                            </Box>
+                          ) : null}
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>
@@ -624,7 +1362,83 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
           maxWidth="md"
         >
           <DialogTitle>
+            {/* 检测是否有教师冲突和教室冲突 */}
+            {(() => {
+              // 按教师分组
+              const teacherGroups = {};
+              selectedMultiCourses.forEach(course => {
+                const key = `${course.teacherName}-${course.dayName}-${course.startTime}-${course.endTime}`;
+                if (!teacherGroups[key]) {
+                  teacherGroups[key] = [];
+                }
+                teacherGroups[key].push(course);
+              });
+              
+              // 按教室分组
+              const classroomGroups = {};
+              selectedMultiCourses.forEach(course => {
+                const key = `${course.classroom}-${course.dayName}-${course.startTime}-${course.endTime}`;
+                if (!classroomGroups[key]) {
+                  classroomGroups[key] = [];
+                }
+                classroomGroups[key].push(course);
+              });
+              
+              // 找出真正的冲突 - 同一教师或同一教室在同一时间有多门课程
+              const realTeacherConflicts = [];
+              Object.entries(teacherGroups).forEach(([key, courses]) => {
+                if (courses.length > 1) {
+                  realTeacherConflicts.push({
+                    teacherName: courses[0].teacherName,
+                    dayName: courses[0].dayName,
+                    startTime: courses[0].startTime,
+                    endTime: courses[0].endTime,
+                    coursesCount: courses.length,
+                    courses: courses
+                  });
+                }
+              });
+              
+              const realClassroomConflicts = [];
+              Object.entries(classroomGroups).forEach(([key, courses]) => {
+                if (courses.length > 1) {
+                  realClassroomConflicts.push({
+                    classroom: courses[0].classroom,
+                    dayName: courses[0].dayName,
+                    startTime: courses[0].startTime,
+                    endTime: courses[0].endTime,
+                    coursesCount: courses.length,
+                    courses: courses
+                  });
+                }
+              });
+              
+              const hasConflicts = realTeacherConflicts.length > 0 || realClassroomConflicts.length > 0;
+              
+              return (
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  {realTeacherConflicts.length > 0 && (
+                    <Chip 
+                      label="Teacher Conflict" 
+                      color="error" 
+                      size="small" 
+                      icon={<WarningIcon />} 
+                      sx={{ mr: 1 }}
+                    />
+                  )}
+                  {realClassroomConflicts.length > 0 && (
+                    <Chip 
+                      label="Classroom Conflict" 
+                      color="error" 
+                      size="small" 
+                      icon={<WarningIcon />} 
+                      sx={{ mr: 1 }}
+                    />
+                  )}
             Multiple Courses
+                </Box>
+              );
+            })()}
             <IconButton
               aria-label="close"
               onClick={() => setMultiCourseDialogOpen(false)}
@@ -634,34 +1448,440 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack }) => {
             </IconButton>
           </DialogTitle>
           <DialogContent>
+            {/* 如果有冲突，显示警告消息 */}
+            {(() => {
+              // 按教师分组
+              const teacherGroups = {};
+              selectedMultiCourses.forEach(course => {
+                const key = `${course.teacherName}-${course.dayName}-${course.startTime}-${course.endTime}`;
+                if (!teacherGroups[key]) {
+                  teacherGroups[key] = [];
+                }
+                teacherGroups[key].push(course);
+              });
+              
+              // 按教室分组
+              const classroomGroups = {};
+              selectedMultiCourses.forEach(course => {
+                const key = `${course.classroom}-${course.dayName}-${course.startTime}-${course.endTime}`;
+                if (!classroomGroups[key]) {
+                  classroomGroups[key] = [];
+                }
+                classroomGroups[key].push(course);
+              });
+              
+              // 找出真正的冲突 - 同一教师或同一教室在同一时间有多门课程
+              const realTeacherConflicts = [];
+              Object.entries(teacherGroups).forEach(([key, courses]) => {
+                if (courses.length > 1) {
+                  realTeacherConflicts.push({
+                    teacherName: courses[0].teacherName,
+                    dayName: courses[0].dayName,
+                    startTime: courses[0].startTime,
+                    endTime: courses[0].endTime,
+                    coursesCount: courses.length,
+                    courses: courses
+                  });
+                }
+              });
+              
+              const realClassroomConflicts = [];
+              Object.entries(classroomGroups).forEach(([key, courses]) => {
+                if (courses.length > 1) {
+                  realClassroomConflicts.push({
+                    classroom: courses[0].classroom,
+                    dayName: courses[0].dayName,
+                    startTime: courses[0].startTime,
+                    endTime: courses[0].endTime,
+                    coursesCount: courses.length,
+                    courses: courses
+                  });
+                }
+              });
+              
+              const hasConflicts = realTeacherConflicts.length > 0 || realClassroomConflicts.length > 0;
+
+              if (hasConflicts) {
+                return (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    <Typography variant="body2" fontWeight="bold">
+                      Scheduling Conflict Results
+                    </Typography>
+                    {realTeacherConflicts.map((conflict, idx) => (
+                      <Typography key={`teacher-${idx}`} variant="body2">
+                        Teacher Conflict: {conflict.teacherName} is scheduled for {conflict.coursesCount} courses at {conflict.dayName} {conflict.startTime}-{conflict.endTime}
+                      </Typography>
+                    ))}
+                    {realClassroomConflicts.map((conflict, idx) => (
+                      <Typography key={`classroom-${idx}`} variant="body2">
+                        Classroom Conflict: {conflict.classroom} has {conflict.coursesCount} courses scheduled at {conflict.dayName} {conflict.startTime}-{conflict.endTime}
+                      </Typography>
+                    ))}
+                    <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>
+                      AI Conflict Analysis: 
+                      {realTeacherConflicts.length > 0 && realClassroomConflicts.length > 0 ? 
+                        "Teacher and classroom time overlapping conflicts exist. Consider adjusting course times or changing teachers/classrooms." : 
+                        realTeacherConflicts.length > 0 ? 
+                          "The same teacher is scheduled for multiple courses at the same time. Consider assigning different teachers or adjusting course times." : 
+                          "The same classroom is scheduled for multiple courses at the same time. Consider using different classrooms or adjusting course times."}
+                    </Typography>
+                  </Alert>
+                );
+              }
+              
+              return null;
+            })()}
+            
             <List>
-              {selectedMultiCourses.map((item, idx) => (
-                <ListItem key={idx} divider={idx < selectedMultiCourses.length - 1}>
+              {selectedMultiCourses.map((item, idx) => {
+                // 检查当前课程是否有教师冲突
+                const hasTeacherConflict = selectedMultiCourses.some(
+                  otherItem => 
+                    otherItem !== item && 
+                    otherItem.teacherName === item.teacherName &&
+                    otherItem.dayName === item.dayName &&
+                    otherItem.startTime === item.startTime &&
+                    otherItem.endTime === item.endTime
+                );
+                
+                // 检查当前课程是否有教室冲突
+                const hasClassroomConflict = selectedMultiCourses.some(
+                  otherItem => 
+                    otherItem !== item && 
+                    otherItem.classroom === item.classroom &&
+                    otherItem.dayName === item.dayName &&
+                    otherItem.startTime === item.startTime &&
+                    otherItem.endTime === item.endTime
+                );
+                
+                // 是否存在任何冲突
+                const hasConflict = hasTeacherConflict || hasClassroomConflict;
+                
+                return (
+                  <ListItem 
+                    key={idx} 
+                    divider={idx < selectedMultiCourses.length - 1}
+                    sx={{ 
+                      borderLeft: hasConflict ? '4px solid' : 'none', 
+                      borderLeftColor: hasConflict ? 'error.main' : 'transparent',
+                      pl: hasConflict ? 2 : 1, // 冲突项稍微增加左边距
+                    }}
+                  >
                   <ListItemText
                     primary={
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Typography variant="subtitle1">
-                          {item.courseName} ({item.courseCode})
+                          <Typography 
+                            variant="subtitle1"
+                            color={hasConflict ? 'error' : 'inherit'}
+                          >
+                            {item.courseName} ({item.courseCode}) {hasConflict && '⚠️'}
                         </Typography>
                         <ScheduleExplanation scheduleItem={item} />
                       </Box>
                     }
                     secondary={
                       <>
-                        <Typography variant="body2">Teacher: {item.teacherName}</Typography>
+                          <Typography 
+                            variant="body2"
+                            color={hasTeacherConflict ? 'error' : 'inherit'}
+                            fontWeight={hasTeacherConflict ? 'bold' : 'normal'}
+                          >
+                            Teacher: {item.teacherName} {hasTeacherConflict && <HelpOutlineIcon fontSize="small" color="error" />}
+                          </Typography>
                         <Typography variant="body2">Time: {item.dayName} {item.startTime}-{item.endTime}</Typography>
-                        <Typography variant="body2">Classroom: {item.classroom}</Typography>
+                          <Typography 
+                            variant="body2"
+                            color={hasClassroomConflict ? 'error' : 'inherit'}
+                            fontWeight={hasClassroomConflict ? 'bold' : 'normal'}
+                          >
+                            Classroom: {item.classroom} {hasClassroomConflict && <HelpOutlineIcon fontSize="small" color="error" />}
+                          </Typography>
                       </>
                     }
                   />
                 </ListItem>
-              ))}
+                );
+              })}
             </List>
           </DialogContent>
         </Dialog>
+        
+        {/* 解决方案确认对话框 */}
+        <Dialog
+          open={confirmDialogOpen}
+          onClose={handleCancelApplySolution}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            Confirm Solution
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Are you sure you want to apply this solution?
+            </DialogContentText>
+            {solutionToApply && (
+              <>
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                  Solution {solutionToApply.id} ({solutionToApply.compatibility}% compatibility)
+                </Typography>
+                <Typography variant="body2">
+                  {solutionToApply.description}
+                </Typography>
+              </>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={handleCancelApplySolution} 
+              color="primary"
+            >
+              CANCEL
+            </Button>
+            <Button 
+              onClick={handleConfirmApplySolution} 
+              color="primary" 
+              variant="contained"
+              startIcon={<CheckCircleIcon />}
+              autoFocus
+            >
+              CONFIRM
+            </Button>
+          </DialogActions>
+        </Dialog>
+        
+        {/* 统一的冲突分析与解决部分 */}
+        <Box sx={{ mt: 4, mb: 3, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+          {/* Conflict panel title */}
+          <Box 
+            sx={{ 
+              p: 2, 
+              bgcolor: teacherConflicts.filter(c => c.status !== 'Resolved').length > 0 || 
+                      classroomConflicts.filter(c => c.status !== 'Resolved').length > 0 
+                ? '#f5f5f5' : '#e8f5e9', 
+              borderBottom: '1px solid #e0e0e0', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center',
+              cursor: 'pointer'
+            }}
+            onClick={() => setConflictsPanelExpanded(!conflictsPanelExpanded)}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="subtitle1" sx={{ 
+                fontWeight: 'bold', 
+                mr: 2, 
+                color: teacherConflicts.filter(c => c.status !== 'Resolved').length > 0 || 
+                        classroomConflicts.filter(c => c.status !== 'Resolved').length > 0 
+                  ? 'text.primary' : 'success.main' 
+              }}>
+                Conflict Analysis & Resolution {
+                  teacherConflicts.filter(c => c.status !== 'Resolved').length === 0 && 
+                  classroomConflicts.filter(c => c.status !== 'Resolved').length === 0 && 
+                  <CheckCircleIcon fontSize="small" sx={{ ml: 1 }} />
+                }
+              </Typography>
+
+              {/* Add missing status indicators */}
+              {teacherConflicts.filter(c => c.status !== 'Resolved').length > 0 || 
+              classroomConflicts.filter(c => c.status !== 'Resolved').length > 0 ? (
+                <>
+                  <Chip 
+                    label={`${
+                      teacherConflicts.filter(c => c.status !== 'Resolved').length + 
+                      classroomConflicts.filter(c => c.status !== 'Resolved').length
+                    } Unresolved`} 
+                    size="small" 
+                    color="error" 
+                    variant="outlined" 
+                    sx={{ mr: 1 }}
+                  />
+                  {(teacherConflicts.filter(c => c.status === 'Resolved').length > 0 || 
+                  classroomConflicts.filter(c => c.status === 'Resolved').length > 0) && (
+                    <Chip 
+                      label={`${
+                        teacherConflicts.filter(c => c.status === 'Resolved').length + 
+                        classroomConflicts.filter(c => c.status === 'Resolved').length
+                      } Resolved`} 
+                      size="small" 
+                      color="success" 
+                      variant="outlined" 
+                      sx={{ mr: 1 }}
+                    />
+                  )}
+                </>
+              ) : (
+                <Chip 
+                  label="All Conflicts Resolved" 
+                  size="small" 
+                  color="success" 
+                  variant="outlined" 
+                  sx={{ mr: 1 }}
+                />
+              )}
+            </Box>
+            <Box>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConflictsPanelExpanded(!conflictsPanelExpanded);
+                }}
+                size="small"
+                sx={{ transform: conflictsPanelExpanded ? 'rotate(180deg)' : 'none' }}
+              >
+                <ExpandMoreIcon />
+              </IconButton>
+            </Box>
     </Box>
 
-    
+          {/* Conflict area content - only displayed when expanded */}
+          {conflictsPanelExpanded && (
+            <Box sx={{ p: 2 }}>
+              {/* Message displayed when all conflicts are resolved */}
+              {teacherConflicts.filter(c => c.status !== 'Resolved').length === 0 && 
+              classroomConflicts.filter(c => c.status !== 'Resolved').length === 0 && (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  <Typography variant="body1" fontWeight="bold">
+                    Congratulations!
+                  </Typography>
+                  <Typography variant="body2">
+                    All conflicts have been successfully resolved. Your schedule is now optimized.
+                  </Typography>
+                </Alert>
+              )}
+              
+              {/* Teacher conflicts */}
+              {teacherConflicts.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Teacher Conflicts ({teacherConflicts.length})
+                  </Typography>
+                  {teacherConflicts.map((conflict, index) => (
+                    <Box key={index} sx={{ mb: 2 }}>
+                      <ConflictResolution 
+                        key={conflict.id} 
+                        conflict={conflict} 
+                        onResolve={(solution, conflictId) => {
+                          console.log("Solution selected:", solution, "for conflict:", conflictId);
+                          setConflictToResolve(conflict);
+                          setSolutionToApply(solution);
+                          setConfirmDialogOpen(true);
+                        }}
+                        onAnalyze={handleAnalyzeConflict}
+                        isAnalyzing={analyzingConflict && analyzedConflictId === conflict.id}
+                        isAnalyzed={analyzedConflictId === conflict.id}
+                        showSolutions={analyzedConflictId === conflict.id}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+              
+              {/* Classroom conflicts */}
+              {classroomConflicts.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                    Classroom Conflicts ({classroomConflicts.length})
+                  </Typography>
+                  {classroomConflicts.map((conflict, index) => (
+                    <Box key={index} sx={{ mb: 2 }}>
+                      <ConflictResolution 
+                        key={conflict.id} 
+                        conflict={conflict} 
+                        onResolve={(solution, conflictId) => {
+                          console.log("Solution selected:", solution, "for conflict:", conflictId);
+                          setConflictToResolve(conflict);
+                          setSolutionToApply(solution);
+                          setConfirmDialogOpen(true);
+                        }}
+                        onAnalyze={handleAnalyzeConflict}
+                        isAnalyzing={analyzingConflict && analyzedConflictId === conflict.id}
+                        isAnalyzed={analyzedConflictId === conflict.id}
+                        showSolutions={analyzedConflictId === conflict.id}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
+        </Box>
+
+        {/* 状态历史记录对话框 */}
+        <Dialog
+          open={statusHistoryOpen}
+          onClose={handleCloseStatusHistory}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Status Change History</Typography>
+              <IconButton onClick={handleCloseStatusHistory}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent dividers>
+            {!selectedScheduleHistory?.statusHistory || selectedScheduleHistory.statusHistory.length === 0 ? (
+              <Alert severity="info">No status history found for this schedule</Alert>
+            ) : (
+              <List>
+                {/* Sort status history by time in descending order, with the latest status shown at the top */}
+                {[...selectedScheduleHistory.statusHistory]
+                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                  .map((statusChange, index) => (
+                    <ListItem 
+                      key={index}
+                      divider={index < selectedScheduleHistory.statusHistory.length - 1}
+                    >
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Chip 
+                              label={statusChange.status || 'Draft'} 
+                              size="small"
+                              color={
+                                statusChange.status === 'Published' ? 'success' : 
+                                statusChange.status === 'Draft' ? 'warning' : 
+                                statusChange.status === 'Generated' ? 'info' :
+                                statusChange.status === 'Canceled' ? 'error' : 'default'
+                              } 
+                              variant="outlined" 
+                              sx={{ mr: 1 }}
+                            />
+                            <Typography variant="subtitle2">
+                              {statusChange.status || 'Draft'}
+                            </Typography>
+                            {index === 0 && (
+                              <Chip 
+                                label="Current Status" 
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                sx={{ ml: 1 }}
+                              />
+                            )}
+                          </Box>
+                        }
+                        secondary={
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Changed by: {statusChange.userId || 'System'}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              Time: {formatDate(statusChange.timestamp)}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+              </List>
+            )}
+          </DialogContent>
+        </Dialog>
+    </Box>
   );
 };
 

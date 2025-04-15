@@ -57,6 +57,7 @@ import RequirementAnalyzer  from './LLM/RequirementAnalyzer';
 import ParameterOptimization from './LLM/ParameterOptimization';
 import TeacherAvailabilitySettings from './constraints/TeacherAvailabilitySettings';
 import ClassroomAssignmentSettings from './constraints/ClassroomAssignmentSettings';
+import ClassroomAvailabilitySettings from './constraints/ClassroomAvailabilitySettings';
 
 const ScheduleCoursesForm = ({ 
   onScheduleGenerated, 
@@ -123,6 +124,9 @@ const ScheduleCoursesForm = ({
     enableClassroomTypeMatching: true,
     classroomTypeMatchingWeight: systemParameters?.classroomTypeMatchingWeight || 0.7,
     
+    // Classroom Availability settings
+    enableClassroomAvailability: true,
+    classroomAvailabilitySettings: {},
   });
   
   const [isGenerating, setIsGenerating] = useState(false);
@@ -526,8 +530,14 @@ const ScheduleCoursesForm = ({
   const handleClassroomSettingsUpdate = (settings) => {
     setFormData(prev => ({
       ...prev,
-      classroomTypeMatchingWeight: settings.weight,
-      courseRoomPreferences: settings.courseRoomPreferences
+      classroomTypeMatchingWeight: settings.weight
+    }));
+  };
+
+  const handleClassroomAvailabilityUpdate = (settings) => {
+    setFormData(prev => ({
+      ...prev,
+      classroomAvailabilitySettings: settings
     }));
   };
 
@@ -673,7 +683,7 @@ const ScheduleCoursesForm = ({
       </Snackbar>
       
       {/* LLM Constraint Analysis */}
-      <Accordion defaultExpanded={true} sx={{ mb: 3 }}>
+      <Accordion sx={{ mb: 3 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center' }}>
             <TuneIcon sx={{ mr: 1 }} />
@@ -685,10 +695,6 @@ const ScheduleCoursesForm = ({
         </AccordionDetails>
       </Accordion>
 
-      <Typography variant="h6" gutterBottom>
-        Create New Schedule
-      </Typography>
-      
       {/* Basic Settings - List-selectable parameters */}
       <Accordion defaultExpanded sx={{ mb: 2 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -868,9 +874,9 @@ const ScheduleCoursesForm = ({
                   ))}
                 </Select>
               </FormControl>
-              {/* 显示筛选后的课程数量 */}
+              {/* Display filtered course count */}
               <Typography variant="caption" color="text.secondary">
-                {getFilteredItems('courses').length} 个课程可用
+                {getFilteredItems('courses').length} courses available
               </Typography>
             </Grid>
             
@@ -900,9 +906,9 @@ const ScheduleCoursesForm = ({
                   ))}
                 </Select>
               </FormControl>
-              {/* 显示筛选后的教师数量 */}
+              {/* Display filtered teacher count */}
               <Typography variant="caption" color="text.secondary">
-                {getFilteredItems('teachers').length} 名教师可用
+                {getFilteredItems('teachers').length} teachers available
               </Typography>
             </Grid>
             
@@ -932,17 +938,17 @@ const ScheduleCoursesForm = ({
                   ))}
                 </Select>
               </FormControl>
-              {/* 显示筛选后的教室数量 */}
+              {/* Display filtered classroom count */}
               <Typography variant="caption" color="text.secondary">
-                {getFilteredItems('classrooms').length} 个教室可用
+                {getFilteredItems('classrooms').length} classrooms available
               </Typography>
             </Grid>
           </Grid>
         </AccordionDetails>
       </Accordion>
       
-      {/* // Replace the Advanced Parameters accordion with this: */}
-      <Accordion defaultExpanded sx={{ mb: 2 }}>
+      {/* Advanced Parameters */}
+      <Accordion sx={{ mb: 2 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
             <SchoolIcon sx={{ mr: 1 }} />
@@ -1067,7 +1073,7 @@ const ScheduleCoursesForm = ({
       </Accordion>
       
       {/* Constraint Settings - Read-only Version */}
-      <Accordion defaultExpanded sx={{ mb: 2 }}>
+      <Accordion sx={{ mb: 2 }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="subtitle1" sx={{ display: 'flex', alignItems: 'center' }}>
             <TuneIcon sx={{ mr: 1 }} />
@@ -1167,6 +1173,29 @@ const ScheduleCoursesForm = ({
               <Grid item xs={12} md={6}>
                 <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
                   <Typography variant="subtitle2" gutterBottom>
+                    Classroom Availability
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {formData.enableClassroomAvailability ? 
+                      `${formData.classrooms.length} classrooms with configured availability constraints.` : 
+                      'Classroom availability constraints are disabled.'}
+                  </Typography>
+                  {formData.enableClassroomAvailability && (
+                    <Button 
+                      variant="text" 
+                      size="small" 
+                      sx={{ mt: 1 }}
+                      onClick={() => navigateToSystemConfig(1, 3)} // Navigate to Classroom Availability subtab (assuming it's index 3)
+                    >
+                      View Details
+                    </Button>
+                  )}
+                </Paper>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
+                  <Typography variant="subtitle2" gutterBottom>
                     Classroom Assignment
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -1209,61 +1238,6 @@ const ScheduleCoursesForm = ({
       {isGenerating && (
         <LinearProgress sx={{ mt: 2 }} />
       )}
-      
-      {/* 调试选项面板 */}
-      <Accordion sx={{ mt: 3 }} variant="outlined">
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="subtitle2" color="text.secondary">开发者选项</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography variant="caption" color="text.secondary" paragraph>
-            这些选项仅供开发和测试使用，可以帮助调试前后端通信问题。
-          </Typography>
-          
-          <FormControlLabel
-            control={
-              <Switch 
-                checked={debugMode.disableMockFallback}
-                onChange={() => toggleDebugOption('disableMockFallback')}
-                color="warning"
-              />
-            }
-            label={
-              <Typography variant="body2">
-                禁用模拟API回退
-                <Typography variant="caption" display="block" color="text.secondary">
-                  启用此选项将强制使用真实后端API，不会自动切换到模拟数据
-                </Typography>
-              </Typography>
-            }
-          />
-          
-          <FormControlLabel
-            control={
-              <Switch 
-                checked={debugMode.verboseLogging}
-                onChange={() => toggleDebugOption('verboseLogging')}
-                color="warning"
-              />
-            }
-            label={
-              <Typography variant="body2">
-                启用详细日志记录
-                <Typography variant="caption" display="block" color="text.secondary">
-                  在控制台显示更多调试信息，包括完整的请求和响应数据
-                </Typography>
-              </Typography>
-            }
-          />
-          
-          <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-            <Typography variant="caption" color="text.secondary">
-              当前状态: {debugMode.disableMockFallback ? '使用真实API' : '允许模拟回退'} | 
-              日志级别: {debugMode.verboseLogging ? '详细' : '基本'}
-            </Typography>
-          </Box>
-        </AccordionDetails>
-      </Accordion>
     </Box>
   );
 };

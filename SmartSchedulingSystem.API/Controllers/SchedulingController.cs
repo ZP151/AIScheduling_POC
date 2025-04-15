@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using SmartSchedulingSystem.Scheduling.Engine;
 using SmartSchedulingSystem.Scheduling.Models;
+using System.Text.Json;
 
 namespace SmartSchedulingSystem.API.Controllers
 {
@@ -53,81 +54,130 @@ namespace SmartSchedulingSystem.API.Controllers
         }
 
         [HttpPost("generate")]
-        public async Task<ActionResult<ScheduleResultsDto>> GenerateSchedule([FromBody] ScheduleRequestDto request)
+        public async Task<ActionResult<object>> GenerateSchedule([FromBody] ScheduleRequestDto request)
         {
             try
             {
-                // 详细日志
-                _logger.LogInformation("接收到排课请求: {@Request}", request);
-
-                // 创建一个最小可行的成功结果，不调用任何服务
-                var minimalResult = new 
+                // 详细记录请求内容
+                _logger.LogInformation("收到排课请求: {@RequestSummary}", new
                 {
-                    solutions = new List<object>
+                    SemesterId = request.SemesterId,
+                    CoursesCount = request.CourseSectionIds?.Count ?? 0,
+                    TeachersCount = request.TeacherIds?.Count ?? 0,
+                    ClassroomsCount = request.ClassroomIds?.Count ?? 0,
+                    TimeSlotsCount = request.TimeSlotIds?.Count ?? 0,
+                    HasObjectData = new 
                     {
-                        new 
+                        Courses = request.CourseSectionObjects?.Count > 0,
+                        Teachers = request.TeacherObjects?.Count > 0,
+                        Classrooms = request.ClassroomObjects?.Count > 0,
+                        TimeSlots = request.TimeSlotObjects?.Count > 0
+                    }
+                });
+
+                // 记录对象数据详情（如果有）
+                if (request.CourseSectionObjects?.Count > 0)
+                {
+                    _logger.LogInformation("课程对象数据: {@CourseData}", request.CourseSectionObjects.Select(c => new { 
+                        Id = c.Id, CourseId = c.CourseId, CourseName = c.CourseName, SectionCode = c.SectionCode 
+                    }).ToList());
+                }
+                
+                if (request.TeacherObjects?.Count > 0)
+                {
+                    _logger.LogInformation("教师对象数据: {@TeacherData}", request.TeacherObjects.Select(t => new { 
+                        Id = t.Id, Name = t.Name, Title = t.Title 
+                    }).ToList());
+                }
+                
+                if (request.ClassroomObjects?.Count > 0)
+                {
+                    _logger.LogInformation("教室对象数据: {@ClassroomData}", request.ClassroomObjects.Select(c => new { 
+                        Id = c.Id, Name = c.Name, Building = c.Building, Type = c.Type 
+                    }).ToList());
+                }
+                
+                if (request.TimeSlotObjects?.Count > 0)
+                {
+                    _logger.LogInformation("时间槽对象数据: {@TimeSlotData}", request.TimeSlotObjects.Select(t => new { 
+                        Id = t.Id, DayOfWeek = t.DayOfWeek, StartTime = t.StartTime, EndTime = t.EndTime 
+                    }).ToList());
+                }
+
+                // 记录参数设置
+                _logger.LogInformation("排课参数设置: {@Parameters}", new
+                {
+                    GenerateMultipleSolutions = request.GenerateMultipleSolutions,
+                    SolutionCount = request.SolutionCount,
+                    FacultyWorkloadBalance = request.FacultyWorkloadBalance,
+                    StudentScheduleCompactness = request.StudentScheduleCompactness,
+                    ClassroomTypeMatchingWeight = request.ClassroomTypeMatchingWeight
+                });
+
+                // 原有的代码继续执行...
+                _logger.LogInformation("开始生成排课方案");
+                var result = await _schedulingService.GenerateScheduleAsync(request);
+                
+                // 检查结果状态
+                if (!result.IsSuccess)
+                {
+                    _logger.LogWarning("排课方案生成失败: {ErrorMessage}", result.ErrorMessage);
+                }
+                else
+                {
+                    _logger.LogInformation("成功生成排课方案: {@ResultSummary}", new
+                    {
+                        SolutionCount = result.TotalSolutions,
+                        BestScore = result.BestScore,
+                        AverageScore = result.AverageScore
+                    });
+                }
+
+                // 向前端返回小写字段名的结果
+                var formattedResult = new
+                {
+                    solutions = result.Solutions.Select(s => new
+                    {
+                        scheduleId = s.ScheduleId,
+                        createdAt = s.CreatedAt,
+                        status = s.Status,
+                        score = s.Score,
+                        items = s.Items.Select(i => new
                         {
-                            scheduleId = 1,
-                            createdAt = DateTime.Now,
-                            status = "Draft",
-                            score = 0.85,
-                            items = new List<object>
-                            {
-                                new 
-                                {
-                                    courseSectionId = 1,
-                                    courseCode = "CS101",
-                                    courseName = "计算机科学导论",
-                                    sectionCode = "CS101-A",
-                                    teacherId = 1,
-                                    teacherName = "张教授",
-                                    classroomId = 1,
-                                    classroomName = "主教学楼101",
-                                    building = "主教学楼",
-                                    timeSlotId = 1,
-                                    dayOfWeek = 1,
-                                    dayName = "周一",
-                                    startTime = "08:00",
-                                    endTime = "09:30"
-                                }
-                            },
-                            algorithmType = "Hybrid",
-                            executionTimeMs = 1500,
-                            conflicts = new List<string>(),
-                            metrics = new Dictionary<string, double>
-                            {
-                                { "TeacherPreferenceScore", 0.9 },
-                                { "RoomUtilizationScore", 0.85 }
-                            },
-                            statistics = new Dictionary<string, int>
-                            {
-                                { "TotalAssignments", 1 }
-                            }
-                        }
-                    },
-                    generatedAt = DateTime.Now,
-                    totalSolutions = 1,
-                    bestScore = 0.85,
-                    averageScore = 0.85,
-                    primaryScheduleId = 1
+                            courseSectionId = i.CourseSectionId,
+                            teacherId = i.TeacherId,
+                            teacherName = i.TeacherName,
+                            classroomId = i.ClassroomId,
+                            classroomName = i.ClassroomName,
+                            dayOfWeek = i.DayOfWeek,
+                            dayName = i.DayName
+                        }).ToList()
+                    }).ToList(),
+                    generatedAt = result.GeneratedAt,
+                    totalSolutions = result.TotalSolutions,
+                    bestScore = result.BestScore,
+                    averageScore = result.AverageScore,
+                    errorMessage = result.ErrorMessage,
+                    isSuccess = result.IsSuccess
                 };
 
-                // 直接返回这个最小可行结果
-                return Ok(minimalResult);
+                return Ok(formattedResult);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "生成排课时发生未知错误: {Message}", ex.Message);
+                var innerExceptionMessage = ex.InnerException != null ? $" Inner exception: {ex.InnerException.Message}" : "";
+                _logger.LogError(ex, "生成排课时发生未知错误: {Message}.{InnerMessage}", ex.Message, innerExceptionMessage);
                 
                 // 创建一个不抛出异常的结果
-                var errorResult = new ScheduleResultsDto
+                var errorResult = new
                 {
-                    Solutions = new List<ScheduleResultDto>(),
-                    GeneratedAt = DateTime.Now,
-                    TotalSolutions = 0,
-                    BestScore = 0,
-                    AverageScore = 0,
-                    ErrorMessage = $"服务器内部错误: {ex.Message}"
+                    solutions = new List<object>(),
+                    generatedAt = DateTime.Now,
+                    totalSolutions = 0,
+                    bestScore = 0.0,
+                    averageScore = 0.0,
+                    errorMessage = $"服务器内部错误: {ex.Message}{innerExceptionMessage}",
+                    isSuccess = false
                 };
                 
                 // 返回200 OK但包含错误信息，而不是500，避免前端处理错误
@@ -410,17 +460,12 @@ namespace SmartSchedulingSystem.API.Controllers
                             items = s.Items.Select(i => new
                             {
                                 courseSectionId = i.CourseSectionId,
-                                courseCode = i.CourseCode,
-                                courseName = i.CourseName,
                                 teacherId = i.TeacherId,
                                 teacherName = i.TeacherName,
                                 classroomId = i.ClassroomId,
                                 classroomName = i.ClassroomName,
-                                building = i.Building,
                                 dayOfWeek = i.DayOfWeek,
-                                dayName = i.DayName,
-                                startTime = i.StartTime,
-                                endTime = i.EndTime
+                                dayName = i.DayName
                             }).ToList()
                         }).ToList(),
                         generatedAt = result.GeneratedAt,
@@ -588,6 +633,222 @@ namespace SmartSchedulingSystem.API.Controllers
             {
                 _logger.LogError(ex, "直接测试排课时发生错误");
                 return StatusCode(500, new { error = "直接测试排课时发生内部错误", details = ex.ToString() });
+            }
+        }
+
+        [HttpPost("debug-request")]
+        public ActionResult<object> DebugRequest([FromBody] ScheduleRequestDto request)
+        {
+            try
+            {
+                // 详细记录请求内容
+                _logger.LogInformation("收到调试请求: {@RequestSummary}", new
+                {
+                    SemesterId = request.SemesterId,
+                    CourseSectionIds = request.CourseSectionIds,
+                    TeacherIds = request.TeacherIds,
+                    ClassroomIds = request.ClassroomIds,
+                    TimeSlotIds = request.TimeSlotIds,
+                    CourseSectionObjects = request.CourseSectionObjects?.Select(c => new { Id = c.Id, Name = c.CourseName }).ToList(),
+                    TeacherObjects = request.TeacherObjects?.Select(t => new { Id = t.Id, Name = t.Name }).ToList(),
+                    ClassroomObjects = request.ClassroomObjects?.Select(c => new { Id = c.Id, Name = c.Name }).ToList(),
+                    TimeSlotObjects = request.TimeSlotObjects?.Select(t => new { Id = t.Id, DayOfWeek = t.DayOfWeek }).ToList()
+                });
+
+                // 不处理请求，只返回接收到的数据和简单摘要
+                return Ok(new
+                {
+                    message = "成功接收请求数据",
+                    counts = new
+                    {
+                        courseSections = (request.CourseSectionIds?.Count ?? 0) + (request.CourseSectionObjects?.Count ?? 0),
+                        teachers = (request.TeacherIds?.Count ?? 0) + (request.TeacherObjects?.Count ?? 0),
+                        classrooms = (request.ClassroomIds?.Count ?? 0) + (request.ClassroomObjects?.Count ?? 0),
+                        timeSlots = (request.TimeSlotIds?.Count ?? 0) + (request.TimeSlotObjects?.Count ?? 0)
+                    },
+                    requestData = request // 返回完整请求数据，以便检查
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "处理调试请求时出错: {Message}", ex.Message);
+                return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
+            }
+        }
+
+        // 添加一个不依赖数据库的测试方法
+        [HttpPost("test-request-data")]
+        public ActionResult<object> TestRequestData([FromBody] ScheduleRequestDto request)
+        {
+            try
+            {
+                // 只检查请求数据，不调用任何服务
+                var summary = new
+                {
+                    SemesterId = request.SemesterId,
+                    DataCounts = new
+                    {
+                        CourseSections = request.CourseSectionIds?.Count ?? 0,
+                        Teachers = request.TeacherIds?.Count ?? 0,
+                        Classrooms = request.ClassroomIds?.Count ?? 0,
+                        TimeSlots = request.TimeSlotIds?.Count ?? 0,
+                        
+                        CourseSectionObjects = request.CourseSectionObjects?.Count ?? 0,
+                        TeacherObjects = request.TeacherObjects?.Count ?? 0,
+                        ClassroomObjects = request.ClassroomObjects?.Count ?? 0,
+                        TimeSlotObjects = request.TimeSlotObjects?.Count ?? 0
+                    },
+                    CourseDetails = request.CourseSectionObjects?.Select(c => new 
+                    { 
+                        Id = c.Id, 
+                        Name = c.CourseName,
+                        SectionCode = c.SectionCode
+                    }).ToList(),
+                    TeacherDetails = request.TeacherObjects?.Select(t => new 
+                    { 
+                        Id = t.Id, 
+                        Name = t.Name 
+                    }).ToList(),
+                    ClassroomDetails = request.ClassroomObjects?.Select(c => new 
+                    { 
+                        Id = c.Id, 
+                        Name = c.Name 
+                    }).ToList(),
+                    TimeSlotSample = request.TimeSlotObjects?.Take(3).Select(t => new 
+                    { 
+                        Id = t.Id, 
+                        Day = t.DayName, 
+                        Start = t.StartTime, 
+                        End = t.EndTime 
+                    }).ToList()
+                };
+
+                return Ok(new
+                {
+                    message = "请求数据检查成功",
+                    request_summary = summary,
+                    data_valid = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new 
+                { 
+                    error = "处理请求数据时出错", 
+                    message = ex.Message,
+                    data_valid = false
+                });
+            }
+        }
+
+        // 添加一个简化的排课测试方法，不依赖数据库
+        [HttpPost("test-schedule-generation")]
+        public ActionResult<object> TestScheduleGeneration([FromBody] ScheduleRequestDto request)
+        {
+            try
+            {
+                _logger.LogInformation("测试排课方法：收到请求数据 {SemesterId}", request.SemesterId);
+                
+                // 简单验证请求数据
+                if (request.CourseSectionObjects == null || !request.CourseSectionObjects.Any())
+                {
+                    return BadRequest(new { error = "请求数据中缺少课程信息" });
+                }
+                
+                if (request.TeacherObjects == null || !request.TeacherObjects.Any())
+                {
+                    return BadRequest(new { error = "请求数据中缺少教师信息" });
+                }
+                
+                if (request.ClassroomObjects == null || !request.ClassroomObjects.Any())
+                {
+                    return BadRequest(new { error = "请求数据中缺少教室信息" });
+                }
+                
+                if (request.TimeSlotObjects == null || !request.TimeSlotObjects.Any())
+                {
+                    return BadRequest(new { error = "请求数据中缺少时间槽信息" });
+                }
+                
+                // 生成一个简单的模拟排课结果（不实际调用排课算法）
+                var solutions = new List<ScheduleResultDto>();
+                var random = new Random();
+                
+                // 生成指定数量的排课方案
+                int solutionCount = request.SolutionCount > 0 ? request.SolutionCount : 3;
+                
+                for (int i = 0; i < solutionCount; i++)
+                {
+                    var solution = new ScheduleResultDto
+                    {
+                        ScheduleId = 1000 + i,
+                        CreatedAt = DateTime.Now,
+                        Status = "Generated",
+                        Score = Math.Round(0.7 + random.NextDouble() * 0.3, 2), // 随机生成0.7-1.0之间的分数
+                        Items = new List<ScheduleItemDto>(),
+                        AlgorithmType = "Test",
+                        ExecutionTimeMs = 50 + random.Next(100),
+                        SemesterId = request.SemesterId,
+                        Metrics = new Dictionary<string, double>
+                        {
+                            { "TeacherSatisfaction", Math.Round(0.5 + random.NextDouble() * 0.5, 2) },
+                            { "ClassroomUtilization", Math.Round(0.6 + random.NextDouble() * 0.4, 2) }
+                        },
+                        Statistics = new Dictionary<string, int>
+                        {
+                            { "TotalAssignments", request.CourseSectionObjects.Count }
+                        }
+                    };
+                    
+                    // 为每个课程创建一个排课项
+                    foreach (var course in request.CourseSectionObjects)
+                    {
+                        // 随机选择教师、教室和时间槽
+                        var teacher = request.TeacherObjects[random.Next(request.TeacherObjects.Count)];
+                        var classroom = request.ClassroomObjects[random.Next(request.ClassroomObjects.Count)];
+                        var timeSlot = request.TimeSlotObjects[random.Next(request.TimeSlotObjects.Count)];
+                        
+                        solution.Items.Add(new ScheduleItemDto
+                        {
+                            CourseSectionId = course.Id,
+                            SectionCode = course.SectionCode,
+                            TeacherId = teacher.Id,
+                            TeacherName = teacher.Name,
+                            ClassroomId = classroom.Id,
+                            ClassroomName = classroom.Name,
+                            TimeSlotId = timeSlot.Id,
+                            DayOfWeek = timeSlot.DayOfWeek,
+                            DayName = timeSlot.DayName,
+                            StartTime = timeSlot.StartTime,
+                            EndTime = timeSlot.EndTime
+                        });
+                    }
+                    
+                    solutions.Add(solution);
+                }
+                
+                // 创建结果对象
+                var result = new ScheduleResultsDto
+                {
+                    Solutions = solutions,
+                    GeneratedAt = DateTime.Now,
+                    TotalSolutions = solutions.Count,
+                    BestScore = solutions.Max(s => s.Score),
+                    AverageScore = Math.Round(solutions.Average(s => s.Score), 2),
+                    ErrorMessage = null, // 设置为null表示没有错误
+                    PrimaryScheduleId = solutions.OrderByDescending(s => s.Score).First().ScheduleId
+                };
+                
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "测试排课方法执行失败");
+                return StatusCode(500, new
+                {
+                    error = "测试排课方法执行失败",
+                    message = ex.Message
+                });
             }
         }
     }

@@ -1,4 +1,3 @@
-// TeacherAvailabilitySettings.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   Box, 
@@ -28,11 +27,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-// Remove the date pickers for now to avoid the date-fns error
-// We'll use simple text fields instead
-
-const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalAvailabilitySettings, semesterId, onUpdate }) => {
-  // 首先定义所有状态变量
+const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: externalAvailabilitySettings, semesterId, onUpdate }) => {
   // 使用本地状态来管理可用性设置
   const [localAvailability, setLocalAvailability] = useState({});
   
@@ -43,10 +38,11 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
     { id: 3, name: 'Special Weeks', weeks: [5, 6] },
   ]);
   const [selectedWeekSet, setSelectedWeekSet] = useState(1);
-  const [selectedTeacher, setSelectedTeacher] = useState(null);
-  const [tabValue, setTabValue] = useState(0); // 0: Daily, 1: Weekly, 2: Monthly
+  const [selectedClassroom, setSelectedClassroom] = useState(null);
+  const [tabValue, setTabValue] = useState(0); // 0: Daily, 1: Weekly, 2: Date Range
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [unavailabilityReason, setUnavailabilityReason] = useState('Maintenance');
   
   // 同步外部和本地状态
   useEffect(() => {
@@ -55,34 +51,34 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
   
   // 添加调试用的useEffect
   useEffect(() => {
-    console.log('组件初始化，当前可用性设置:', localAvailability);
+    console.log('Component initialized, current availability settings:', localAvailability);
   }, []);
 
   useEffect(() => {
-    if (selectedTeacher) {
-      console.log(`已选择教师 ${selectedTeacher}，其可用性设置:`, 
-        localAvailability[selectedTeacher] || '无可用性设置');
+    if (selectedClassroom) {
+      console.log(`Selected classroom ${selectedClassroom}, availability settings:`, 
+        localAvailability[selectedClassroom] || 'No availability settings');
     }
-  }, [selectedTeacher, localAvailability]);
+  }, [selectedClassroom, localAvailability]);
   
-  // 确保在组件加载和选择教师时，如果没有可用性设置，自动初始化
+  // 确保在组件加载和选择教室时，如果没有可用性设置，自动初始化
   useEffect(() => {
-    if (selectedTeacher && (!localAvailability[selectedTeacher] || Object.keys(localAvailability[selectedTeacher] || {}).length === 0)) {
-      console.log(`Teacher ${selectedTeacher} has no availability settings, auto initializing...`);
-      initializeAvailability(selectedTeacher);
+    if (selectedClassroom && (!localAvailability[selectedClassroom] || Object.keys(localAvailability[selectedClassroom] || {}).length === 0)) {
+      console.log(`Classroom ${selectedClassroom} has no availability settings, auto initializing...`);
+      initializeAvailability(selectedClassroom);
     }
-  }, [selectedTeacher, localAvailability]);
+  }, [selectedClassroom, localAvailability]);
   
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const timeSlots = ['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00', '19:00-21:00'];
   
-  const handleTeacherChange = (event) => {
-    const newTeacherId = event.target.value;
-    setSelectedTeacher(newTeacherId);
+  const handleClassroomChange = (event) => {
+    const newClassroomId = event.target.value;
+    setSelectedClassroom(newClassroomId);
     
-    // 选择教师后，如果该教师没有设置过可用性，自动初始化所有时间段为可用
-    if (newTeacherId && (!localAvailability[newTeacherId] || Object.keys(localAvailability[newTeacherId]).length === 0)) {
-      initializeAvailability(newTeacherId);
+    // 选择教室后，如果该教室没有设置过可用性，自动初始化所有时间段为可用
+    if (newClassroomId && (!localAvailability[newClassroomId] || Object.keys(localAvailability[newClassroomId]).length === 0)) {
+      initializeAvailability(newClassroomId);
     }
   };
   
@@ -114,20 +110,20 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
   };
 
   const handleAvailabilityChange = (day, timeSlot, isAvailable) => {
-    const teacherId = selectedTeacher;
+    const classroomId = selectedClassroom;
     // 使用函数式更新以确保基于最新状态进行更新
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
-    if (!newSettings[teacherId]) {
-      newSettings[teacherId] = {};
+    if (!newSettings[classroomId]) {
+      newSettings[classroomId] = {};
     }
     
-    if (!newSettings[teacherId][day]) {
-      newSettings[teacherId][day] = {};
+    if (!newSettings[classroomId][day]) {
+      newSettings[classroomId][day] = {};
     }
     
     // 确保设置为明确的布尔值
-    newSettings[teacherId][day][timeSlot] = Boolean(isAvailable);
+    newSettings[classroomId][day][timeSlot] = Boolean(isAvailable);
     
     // 添加调试日志
     console.log(`Setting ${day} ${timeSlot} to ${isAvailable ? 'available' : 'unavailable'}`);
@@ -141,23 +137,23 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
     }
   };
 
-  // 新增：设置某一天所有时间段的可用性
+  // 设置某一天所有时间段的可用性
   const handleDayAvailabilityChange = (day, isAvailable) => {
-    const teacherId = selectedTeacher;
+    const classroomId = selectedClassroom;
     // 创建深拷贝而不是浅拷贝
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
-    if (!newSettings[teacherId]) {
-      newSettings[teacherId] = {};
+    if (!newSettings[classroomId]) {
+      newSettings[classroomId] = {};
     }
     
-    if (!newSettings[teacherId][day]) {
-      newSettings[teacherId][day] = {};
+    if (!newSettings[classroomId][day]) {
+      newSettings[classroomId][day] = {};
     }
     
     // 设置该天所有时间段
     timeSlots.forEach(slot => {
-      newSettings[teacherId][day][slot] = isAvailable;
+      newSettings[classroomId][day][slot] = isAvailable;
     });
     
     // 添加调试日志
@@ -172,22 +168,22 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
     }
   };
 
-  // 新增：设置某一时间段所有天的可用性
+  // 设置某一时间段所有天的可用性
   const handleTimeSlotAvailabilityChange = (timeSlot, isAvailable) => {
-    const teacherId = selectedTeacher;
+    const classroomId = selectedClassroom;
     // 创建深拷贝而不是浅拷贝
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
-    if (!newSettings[teacherId]) {
-      newSettings[teacherId] = {};
+    if (!newSettings[classroomId]) {
+      newSettings[classroomId] = {};
     }
     
     // 设置该时间段所有天
     days.forEach(day => {
-      if (!newSettings[teacherId][day]) {
-        newSettings[teacherId][day] = {};
+      if (!newSettings[classroomId][day]) {
+        newSettings[classroomId][day] = {};
       }
-      newSettings[teacherId][day][timeSlot] = isAvailable;
+      newSettings[classroomId][day][timeSlot] = isAvailable;
     });
     
     // 添加调试日志
@@ -202,28 +198,21 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
     }
   };
   
-  const handleSaveTimeRange = () => {
-    if (startDate && endDate && selectedTeacher) {
-      // In a real app, this would save the date range to the backend
-      alert(`Saved availability for ${teachers.find(t => t.id === selectedTeacher)?.name} from ${startDate} to ${endDate}`);
-    }
-  };
-  
-  // 初始化教师的可用性设置（默认全部可用）
-  const initializeAvailability = (teacherId) => {
+  // 初始化教室的可用性设置（默认全部可用）
+  const initializeAvailability = (classroomId) => {
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
-    newSettings[teacherId] = {};
+    newSettings[classroomId] = {};
     
     // 设置所有日期和时间段为可用
     days.forEach(day => {
-      newSettings[teacherId][day] = {};
+      newSettings[classroomId][day] = {};
       timeSlots.forEach(slot => {
-        newSettings[teacherId][day][slot] = true; // 默认设置为可用
+        newSettings[classroomId][day][slot] = true; // 默认设置为可用
       });
     });
     
-    console.log(`Initializing teacher ${teacherId} availability to all available`);
+    console.log(`Initializing classroom ${classroomId} availability to all available`);
     
     // 更新本地状态
     setLocalAvailability(newSettings);
@@ -236,9 +225,9 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
 
   // 这将确保保存按钮能基于本地状态正确工作
   const handleSaveAvailability = () => {
-    if (selectedTeacher) {
+    if (selectedClassroom) {
       // 在真实应用中，这里会保存到后端
-      alert(`Saved availability settings for ${teachers.find(t => t.id === selectedTeacher)?.name} with ${weekSets.length} different week patterns`);
+      alert(`Saved availability settings for classroom ${classrooms.find(c => c.id === selectedClassroom)?.name} with ${weekSets.length} different week patterns`);
       
       // 如果需要，可以在这里调用特殊的保存函数
       if (onUpdate) {
@@ -246,21 +235,32 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
       }
     }
   };
-
+  
+  const handleAddDateRangeException = () => {
+    if (!selectedClassroom || !startDate || !endDate) return;
+    
+    // 实际应用中，这里会添加日期范围例外到后端
+    console.log(`Adding date range exception for classroom ${selectedClassroom} from ${startDate} to ${endDate}`);
+    
+    // 清空表单字段
+    setStartDate('');
+    setEndDate('');
+  };
+  
   return (
     <Box>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel>Select Teacher</InputLabel>
+            <InputLabel>Select Classroom</InputLabel>
             <Select
-              value={selectedTeacher || ''}
-              onChange={handleTeacherChange}
-              label="Select Teacher"
+              value={selectedClassroom || ''}
+              onChange={handleClassroomChange}
+              label="Select Classroom"
             >
-              {teachers.map(teacher => (
-                <MenuItem key={teacher.id} value={teacher.id}>
-                  {teacher.name} ({teacher.department})
+              {classrooms.map(classroom => (
+                <MenuItem key={classroom.id} value={classroom.id}>
+                  {classroom.building}-{classroom.name} (Capacity: {classroom.capacity})
                 </MenuItem>
               ))}
             </Select>
@@ -268,9 +268,8 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
         </Grid>
       </Grid>
       
-      {selectedTeacher && (
+      {selectedClassroom && (
         <>
-          {/* // Add week selector above the tabs */}
           <Box sx={{ mb: 3 }}>
             <FormControl fullWidth>
               <InputLabel>Week Pattern</InputLabel>
@@ -301,8 +300,6 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
             </Button>
           </Box>
 
-          {/* // Add a week set configuration section
-          // Add this after the week selector */}
           {selectedWeekSet && (
             <Box sx={{ mt: 2, p: 2, border: '1px solid #e0e0e0', borderRadius: 1 }}>
               <Grid container spacing={2} alignItems="center">
@@ -360,11 +357,11 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
             <Tabs value={tabValue} onChange={handleTabChange} centered>
               <Tab label="Daily Schedule" />
               <Tab label="Weekly Pattern" />
-              <Tab label="Date Range" />
+              <Tab label="Date Range Exceptions" />
             </Tabs>
           </Paper>
           
-          {/* Daily Schedule Tab - 更新为日历视图样式 */}
+          {/* Daily Schedule Tab - 日历视图 */}
           {tabValue === 0 && (
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
@@ -381,11 +378,11 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                               size="small"
                               sx={{ mt: 1, minWidth: '90px' }}
                               onClick={() => {
-                                const teacherSettings = localAvailability[selectedTeacher] || {};
-                                const daySettings = teacherSettings[day] || {};
+                                const classroomSettings = localAvailability[selectedClassroom] || {};
+                                const daySettings = classroomSettings[day] || {};
                                 // 检查当前状态 - 如果大部分是可用的则切换为不可用，反之亦然
                                 const availableCount = timeSlots.filter(slot => 
-                                  daySettings[slot] !== false
+                                  daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined)
                                 ).length;
                                 const isMainlyAvailable = availableCount > timeSlots.length / 2;
                                 handleDayAvailabilityChange(day, !isMainlyAvailable);
@@ -393,8 +390,8 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                             >
                               {/* 根据这一天的整体可用性状态显示不同的标签 */}
                               {(() => {
-                                const teacherSettings = localAvailability[selectedTeacher] || {};
-                                const daySettings = teacherSettings[day] || {};
+                                const classroomSettings = localAvailability[selectedClassroom] || {};
+                                const daySettings = classroomSettings[day] || {};
                                 const availableCount = timeSlots.filter(slot => 
                                   daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined)
                                 ).length;
@@ -425,10 +422,10 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                                 size="small"
                                 sx={{ mt: 1, minWidth: '90px' }}
                                 onClick={() => {
-                                  const teacherSettings = localAvailability[selectedTeacher] || {};
+                                  const classroomSettings = localAvailability[selectedClassroom] || {};
                                   // 检查当前状态 - 如果大部分是可用的则切换为不可用，反之亦然
                                   const availableCount = days.filter(day => {
-                                    const daySettings = teacherSettings[day] || {};
+                                    const daySettings = classroomSettings[day] || {};
                                     return daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined);
                                   }).length;
                                   const isMainlyAvailable = availableCount > days.length / 2;
@@ -437,9 +434,9 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                               >
                                 {/* 根据这一时间段的整体可用性状态显示不同的标签 */}
                                 {(() => {
-                                  const teacherSettings = localAvailability[selectedTeacher] || {};
+                                  const classroomSettings = localAvailability[selectedClassroom] || {};
                                   const availableCount = days.filter(day => {
-                                    const daySettings = teacherSettings[day] || {};
+                                    const daySettings = classroomSettings[day] || {};
                                     return daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined);
                                   }).length;
                                   if (availableCount === 0) return 'All Off';
@@ -451,8 +448,8 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                           </Box>
                         </TableCell>
                         {days.map(day => {
-                          const teacherSettings = localAvailability[selectedTeacher] || {};
-                          const daySettings = teacherSettings[day] || {};
+                          const classroomSettings = localAvailability[selectedClassroom] || {};
+                          const daySettings = classroomSettings[day] || {};
                           const isAvailable = daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined); // 修改可用性判断逻辑
                           
                           return (
@@ -503,9 +500,9 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                     control={
                       <Switch
                         checked={
-                          localAvailability[selectedTeacher] &&
-                          localAvailability[selectedTeacher][day] &&
-                          Object.values(localAvailability[selectedTeacher][day]).some(v => v)
+                          localAvailability[selectedClassroom] &&
+                          localAvailability[selectedClassroom][day] &&
+                          Object.values(localAvailability[selectedClassroom][day]).some(v => v)
                         }
                         onChange={(e) => {
                           // In a real app, this would set all time slots for this day
@@ -521,16 +518,16 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
               </Box>
               
               <Typography variant="subtitle2" gutterBottom>
-                Working Hours
+                Hours of Operation
               </Typography>
               
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth size="small">
-                    <InputLabel>Work Day Start</InputLabel>
+                    <InputLabel>Open Time</InputLabel>
                     <Select
                       value="08:00"
-                      label="Work Day Start"
+                      label="Open Time"
                     >
                       <MenuItem value="08:00">8:00 AM</MenuItem>
                       <MenuItem value="10:00">10:00 AM</MenuItem>
@@ -540,10 +537,10 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <FormControl fullWidth size="small">
-                    <InputLabel>Work Day End</InputLabel>
+                    <InputLabel>Close Time</InputLabel>
                     <Select
                       value="18:00"
-                      label="Work Day End"
+                      label="Close Time"
                     >
                       <MenuItem value="16:00">4:00 PM</MenuItem>
                       <MenuItem value="18:00">6:00 PM</MenuItem>
@@ -554,20 +551,20 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
               </Grid>
               
               <Typography variant="subtitle2" sx={{ mt: 2 }} gutterBottom>
-                Break Times
+                Recurring Usage Times
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {['Lunch (12:00-14:00)', 'Evening (18:00-19:00)'].map(breakTime => (
+                {['Faculty Meetings (Mon 12:00-14:00)', 'Maintenance (Fri 16:00-18:00)'].map(timeBlock => (
                   <Chip 
-                    key={breakTime} 
-                    label={breakTime} 
+                    key={timeBlock} 
+                    label={timeBlock} 
                     onDelete={() => {}} 
                     color="primary" 
                     variant="outlined"
                   />
                 ))}
                 <Chip 
-                  label="+ Add Break" 
+                  label="+ Add Time Block" 
                   onClick={() => {}} 
                   color="primary" 
                   variant="outlined"
@@ -576,15 +573,15 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
             </Paper>
           )}
           
-          {/* Date Range Tab */}
+          {/* Date Range Exceptions Tab */}
           {tabValue === 2 && (
             <Paper variant="outlined" sx={{ p: 2 }}>
               <Typography variant="body2" sx={{ mb: 2 }}>
-                Set specific date ranges when this teacher is unavailable (e.g., for leave, conferences).
+                Set specific date ranges when this classroom is unavailable (e.g., for maintenance, events, exams).
               </Typography>
               
               <Grid container spacing={2}>
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     label="Start Date"
@@ -594,7 +591,7 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                <Grid item xs={12} md={5}>
+                <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
                     label="End Date"
@@ -604,22 +601,36 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
-                <Grid item xs={12} md={2}>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Reason</InputLabel>
+                    <Select
+                      value={unavailabilityReason}
+                      onChange={(e) => setUnavailabilityReason(e.target.value)}
+                      label="Reason"
+                    >
+                      <MenuItem value="Maintenance">Maintenance</MenuItem>
+                      <MenuItem value="Event">Special Event</MenuItem>
+                      <MenuItem value="Exam">Exam</MenuItem>
+                      <MenuItem value="Renovation">Renovation</MenuItem>
+                      <MenuItem value="Other">Other</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
                   <Button 
                     variant="contained" 
-                    color="primary" 
-                    fullWidth
-                    sx={{ height: '100%' }}
-                    onClick={handleSaveTimeRange}
+                    color="primary"
+                    onClick={handleAddDateRangeException}
                     disabled={!startDate || !endDate}
                   >
-                    Add Range
+                    Add Exception
                   </Button>
                 </Grid>
               </Grid>
               
               <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
-                Unavailable Date Ranges
+                Unavailable Date Periods
               </Typography>
               
               <TableContainer>
@@ -636,7 +647,7 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                     <TableRow>
                       <TableCell>2024-10-15</TableCell>
                       <TableCell>2024-10-20</TableCell>
-                      <TableCell>Conference</TableCell>
+                      <TableCell>Maintenance</TableCell>
                       <TableCell>
                         <Button size="small" color="error">
                           Delete
@@ -646,7 +657,7 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
                     <TableRow>
                       <TableCell>2024-12-24</TableCell>
                       <TableCell>2025-01-05</TableCell>
-                      <TableCell>Winter Holidays</TableCell>
+                      <TableCell>Holiday Closure</TableCell>
                       <TableCell>
                         <Button size="small" color="error">
                           Delete
@@ -660,20 +671,18 @@ const TeacherAvailabilitySettings = ({ teachers, availabilitySettings: externalA
           )}
         </>
       )}
-      {/* // Add save button for teacher availability
-      // Add this at the end of the component */}
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSaveAvailability}
-          disabled={!selectedTeacher}
+          disabled={!selectedClassroom}
         >
-          Save Teacher Availability
+          Save Classroom Availability
         </Button>
       </Box>
     </Box>
   );
 };
 
-export default TeacherAvailabilitySettings;
+export default ClassroomAvailabilitySettings; 

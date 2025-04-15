@@ -50,6 +50,17 @@ function App() {
     { id: 4, name: "Faculty Preference", description: "Prioritizes faculty scheduling preferences" }
   ]);
   const handleTabChange = (event, newValue) => {
+    console.log(`Tab changed from ${tabValue} to ${newValue}`);
+    
+    // 对于历史记录标签，使用专门的处理函数
+    if (newValue === 3) {
+      console.log("Navigating to History tab via handler");
+      // 强制通过navigateToScheduleHistory函数跳转
+      navigateToScheduleHistory(scheduleResults);
+      return;
+    }
+    
+    // 对于其他标签页，直接切换
     setTabValue(newValue);
   };
   // Handle parameter updates
@@ -86,12 +97,32 @@ function App() {
     // 确保schedules是一个数组
     const validSchedules = Array.isArray(result.schedules) ? result.schedules : [];
     
+    // 确保每个方案都有正确的状态和状态历史
+    const schedulesWithState = validSchedules.map(schedule => {
+      // 如果方案没有状态，设置为"Generated"
+      const newSchedule = {
+        ...schedule,
+        status: schedule.status || "Generated"
+      };
+      
+      // 确保每个排课方案都有状态历史记录
+      if (!newSchedule.statusHistory || newSchedule.statusHistory.length === 0) {
+        newSchedule.statusHistory = [{
+          status: newSchedule.status,
+          timestamp: new Date().toISOString(),
+          userId: "System"
+        }];
+      }
+      
+      return newSchedule;
+    });
+    
     // 设置排课结果
-    setScheduleResults(validSchedules);
+    setScheduleResults(schedulesWithState);
     
     // 设置活动排课方案ID
     // 使用评分最高的方案作为默认显示方案
-    const activeId = validSchedules.length > 0 ? validSchedules[0].id : null;
+    const activeId = schedulesWithState.length > 0 ? schedulesWithState[0].id : null;
     setActiveScheduleResultId(activeId);
     
     // 显示结果并切换到结果标签页
@@ -122,6 +153,55 @@ function App() {
       setActiveConstraintSubTab(subTab);
     }
   };
+
+  // 添加一个函数用于导航到排课历史页面
+  const navigateToScheduleHistory = (schedulesData = null) => {
+    // 如果传入了排课数据，传递给历史页面
+    if (schedulesData) {
+      // 更新排课数据，确保每个排课方案都有正确的状态和历史记录
+      const processedSchedules = schedulesData.map(schedule => {
+        // 确保每个方案都有正确的状态
+        const updatedSchedule = {
+          ...schedule,
+          status: schedule.status || 'Generated'
+        };
+
+        // 确保每个方案都有状态历史记录
+        if (!updatedSchedule.statusHistory || updatedSchedule.statusHistory.length === 0) {
+          updatedSchedule.statusHistory = [{
+            status: updatedSchedule.status,
+            timestamp: updatedSchedule.createdAt || new Date().toISOString(),
+            userId: 'System'
+          }];
+        }
+
+        return updatedSchedule;
+      });
+
+      setScheduleResults(prev => {
+        // 合并新旧数据，确保不重复并优先使用最新数据
+        const mergedSchedules = [...prev];
+        processedSchedules.forEach(newSchedule => {
+          // 查找是否已存在相同ID的排课方案
+          const existingIndex = mergedSchedules.findIndex(s => s.id === newSchedule.id);
+          if (existingIndex >= 0) {
+            // 如果存在，替换为最新数据
+            mergedSchedules[existingIndex] = newSchedule;
+          } else {
+            // 如果不存在，添加到数组
+            mergedSchedules.push(newSchedule);
+          }
+        });
+        
+        // 返回合并后的数据
+        return mergedSchedules;
+      });
+    }
+    
+    // 切换到历史记录标签页
+    setTabValue(3);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -138,7 +218,14 @@ function App() {
           <Tab label="Schedule Courses" />
           <Tab label="Schedule Exams" />
           <Tab label="Schedule Results" disabled={!showResults} />
-          <Tab label="Schedule History" />
+          <Tab 
+            label="Schedule History" 
+            onClick={() => {
+              console.log("Direct Schedule History tab click detected");
+              // 强制通过navigateToScheduleHistory函数跳转
+              navigateToScheduleHistory(scheduleResults);
+            }}
+          />
           <Tab label="Data Management" />
         </Tabs>
         
@@ -167,11 +254,17 @@ function App() {
             scheduleId={currentScheduleId} 
             scheduleResults={scheduleResults}
             onBack={() => setTabValue(0)} // Allow navigation back to creation screen
-  />        )}
+            onViewHistory={(updatedSchedules) => navigateToScheduleHistory(updatedSchedules || scheduleResults)} // 添加导航到历史页面的功能，接收最新状态
+          />
+        )}
         
         {/* Schedule History Tab */}
         {tabValue === 3 && (
-          <ScheduleHistory onHistoryItemClick={handleHistoryItemClick} />
+          <ScheduleHistory 
+            key={`history-${scheduleResults.map(s => `${s.id}-${s.status}`).join('|')}-${Date.now()}`} // 更精确的key确保组件重新渲染
+            onHistoryItemClick={handleHistoryItemClick} 
+            schedulesFromResults={[...scheduleResults]} // 强制新的数组引用
+          />
         )}
         
         {/* Data Management Tab */}
