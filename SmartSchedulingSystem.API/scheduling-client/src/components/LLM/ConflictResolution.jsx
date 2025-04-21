@@ -30,27 +30,127 @@ const ConflictResolution = ({
   useEffect(() => {
     setLocalStatus(conflict.status);
   }, [conflict.status]);
-
+  
   const handleAnalyze = async () => {
+    console.log('===== handleAnalyze 函数被调用 =====');
+    
+    // 如果有父组件的analyze函数，先调用它以保持状态更新
     if (onAnalyze) {
-      // Use parent component's analyze function if provided
+      console.log('外部onAnalyze函数存在，调用它进行状态更新');
       onAnalyze(conflict.id);
-      setExpanded(true);
-      return;
+      // 不再提前返回，继续执行本地API调用
     }
     
-    // Otherwise use local analyze function
+    // 无论如何都执行本地分析
     setLoading(true);
     setError('');
+    setExpanded(true);
+    
+    console.log('ConflictResolution: 开始本地API调用分析...');
+    console.log('ConflictResolution: 冲突数据:', conflict);
     
     try {
-      // Call LLM API for conflict analysis
-      const response = await analyzeConflicts(conflict);
-      setAnalysis(response);
-      setExpanded(true);
+      // Call LLM API for conflict analysis with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+      
+      let response;
+      try {
+        // 尝试从API获取数据
+        console.log('ConflictResolution: 准备调用analyzeConflicts API...');
+        response = await analyzeConflicts(conflict);
+        console.log('ConflictResolution: API调用返回结果:', response);
+        clearTimeout(timeoutId);
+        
+        // 检查是否是错误响应对象
+        if (response && response.error === true) {
+          console.error('ConflictResolution: API返回错误对象:', response);
+          
+          // 提取模拟响应
+          if (response.mockResponse) {
+            console.log('ConflictResolution: 使用API返回的模拟数据');
+            setError(`API错误: ${response.message || '未知错误'}. 显示模拟分析。`);
+            response = response.mockResponse;
+          } else {
+            throw new Error(response.message || '未知API错误');
+          }
+        }
+      } catch (apiError) {
+        console.error('API错误，详细信息:', apiError);
+        
+        // 尝试从错误对象中提取模拟响应
+        if (apiError.mockResponse) {
+          console.log('ConflictResolution: 使用错误对象中的模拟数据');
+          response = apiError.mockResponse;
+          setError(`API调用失败: ${apiError.message || '未知错误'}. 显示模拟分析。`);
+        } else {
+          // 使用默认模拟数据
+          console.log('ConflictResolution: 使用默认模拟数据');
+          response = {
+            rootCause: `${conflict.type}冲突通常发生在同一资源被多个课程同时需要的情况。这种冲突可以通过调整时间或者重新分配资源来解决。`,
+            solutions: [
+              {
+                id: 1,
+                description: "调整其中一门课程的时间安排",
+                compatibility: 85,
+                impacts: [
+                  "学生课表可能需要调整",
+                  "教师日程可能需要变更"
+                ]
+              },
+              {
+                id: 2,
+                description: "寻找替代资源（教室或教师）",
+                compatibility: 80,
+                impacts: [
+                  "课程质量可能受到轻微影响",
+                  "保持时间安排不变"
+                ]
+              },
+              {
+                id: 3,
+                description: "分班教学",
+                compatibility: 75,
+                impacts: [
+                  "需要额外的教学资源",
+                  "可以保持原有时间和教师安排"
+                ]
+              }
+            ],
+            _isMockData: true
+          };
+          
+          // 显示用户可见的错误信息
+          setError(`API调用失败: ${apiError.message || '未知错误'}. 显示模拟分析。`);
+        }
+      }
+      
+      console.log('ConflictResolution: 分析结果:', response);
+      
+      // 验证响应格式是否正确
+      if (!response || !response.solutions || !Array.isArray(response.solutions)) {
+        console.error('ConflictResolution: 响应格式不正确:', response);
+        setError('收到无效的API响应。请联系管理员或稍后再试。');
+      } else {
+        // 确保_isMockData标记存在
+        if (response._isMockData === undefined) {
+          response._isMockData = true; // 保守起见，未明确标记的假设为模拟数据
+        }
+        
+        setAnalysis(response);
+        setExpanded(true);
+      }
     } catch (error) {
-      console.error('Error analyzing conflict:', error);
-      setError('An error occurred while analyzing the conflict. Please try again later.');
+      console.error('ConflictResolution: 分析冲突时出错:', error);
+      
+      // 从错误响应对象中提取更详细的信息
+      if (error.details) {
+        setError(`分析冲突时出错: ${error.message}. 详情: ${error.details}`);
+      } else if (error.message) {
+        setError(`分析冲突时出错: ${error.message}`);
+      } else {
+        setError('分析冲突时出现未知错误。请稍后再试。');
+      }
     } finally {
       setLoading(false);
     }
@@ -131,9 +231,29 @@ const ConflictResolution = ({
           </Box>
         )}
         
+        {/* 错误信息显示 */}
         {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
+          <Alert 
+            severity="error" 
+            sx={{ mt: 2 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => setError('')}
+              >
+                DISMISS
+              </Button>
+            }
+          >
             {error}
+          </Alert>
+        )}
+        
+        {/* API模拟数据警告 */}
+        {analysis && analysis._isMockData && !isResolved && (
+          <Alert severity="warning" sx={{ mt: 2 }}>
+            Note: This analysis is based on mock data as the API connection failed.
           </Alert>
         )}
         

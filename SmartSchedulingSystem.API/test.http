@@ -1,0 +1,72 @@
+@host = http://localhost:5186
+
+### 测试服务器是否在运行
+GET {{host}}/test
+Accept: application/json
+
+### 获取状态信息
+GET {{host}}/status
+Accept: application/json
+
+### 获取健康信息
+GET {{host}}/status/health
+Accept: application/json
+
+### 获取功能列表
+GET {{host}}/status/features
+Accept: application/json
+
+### 获取所有教师
+GET {{host}}/api/teachers
+Accept: application/json
+
+### 获取单个教师（假设ID为1）
+GET {{host}}/api/teachers/1
+Accept: application/json
+
+### 获取所有课程
+GET {{host}}/api/courses
+Accept: application/json
+
+### 获取单个课程（假设ID为1）
+GET {{host}}/api/courses/1
+Accept: application/json
+
+### 获取所有教室
+GET {{host}}/api/classrooms
+Accept: application/json
+
+### 获取单个教室（假设ID为1）
+GET {{host}}/api/classrooms/1
+Accept: application/json
+
+### 创建新教师
+POST {{host}}/api/teachers
+Content-Type: application/json
+
+{
+  "name": "测试教师",
+  "email": "test@example.com",
+  "department": "计算机科学"
+}
+
+### 创建新课程
+POST {{host}}/api/courses
+Content-Type: application/json
+
+{
+  "name": "测试课程",
+  "code": "CS101",
+  "credits": 3
+}
+
+### 创建新教室
+POST {{host}}/api/classrooms
+Content-Type: application/json
+
+{
+  "name": "测试教室",
+  "capacity": 30,
+  "building": "主楼",
+  "roomNumber": "101"
+}

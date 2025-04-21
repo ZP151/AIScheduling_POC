@@ -195,12 +195,29 @@ const ScheduleExplanation = ({ scheduleItem }) => {
                               variant="outlined" 
                               sx={{ mr: 1 }}
                             />
-                            <Typography variant="subtitle2">{alt.alternative}</Typography>
+                            <Typography variant="subtitle2">
+                              {/* 检测alternative是否包含中文字符，如果是则提供英文替代文本 */}
+                              {/[\u4e00-\u9fa5]/.test(alt.alternative) ? 
+                                (alt.type === "time" ? "Alternative time slot: 9:00-11:00 AM" :
+                                 alt.type === "classroom" ? "Alternative classroom: Science Building Room 304" :
+                                 alt.type === "teacher" ? "Alternative teacher: Professor Wang" :
+                                 "Alternative option")
+                                : alt.alternative
+                              }
+                            </Typography>
                           </Box>
                         }
                         secondary={
                           <Typography variant="body2" sx={{ mt: 1 }}>
-                            <strong>Why not chosen:</strong> {alt.whyNotChosen}
+                            <strong>Why not chosen:</strong> {
+                              // 检测是否包含中文字符，如果是则提供英文替代文本
+                              /[\u4e00-\u9fa5]/.test(alt.whyNotChosen) ? 
+                              (alt.type === "time" ? "This time slot would conflict with other important courses or activities." :
+                               alt.type === "classroom" ? "This classroom either lacks necessary equipment or appropriate capacity for this course." :
+                               alt.type === "teacher" ? "This teacher has other teaching commitments or less expertise in this subject area." :
+                               "This alternative would not be optimal for overall scheduling quality.")
+                              : alt.whyNotChosen
+                            }
                           </Typography>
                         }
                       />

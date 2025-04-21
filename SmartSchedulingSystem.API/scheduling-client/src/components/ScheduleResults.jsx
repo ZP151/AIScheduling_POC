@@ -343,6 +343,127 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
     }
   }, [selectedScheduleId]);
 
+  // 添加调试日志，检查各时间段的课程分布
+  useEffect(() => {
+    if (schedule && schedule.details) {
+      // 按时间段统计课程数量
+      const stats = {
+        morning: 0,
+        afternoon: 0,
+        evening: 0,
+        total: schedule.details.length
+      };
+      
+      schedule.details.forEach(item => {
+        if (item.startTime) {
+          if (item.startTime.startsWith('08') || item.startTime.startsWith('09') || 
+              item.startTime.startsWith('10') || item.startTime.startsWith('11')) {
+            stats.morning++;
+          } else if (item.startTime.startsWith('14') || item.startTime.startsWith('15') || 
+                     item.startTime.startsWith('16') || item.startTime.startsWith('17')) {
+            stats.afternoon++;
+          } else if (item.startTime.startsWith('19') || item.startTime.startsWith('21')) {
+            stats.evening++;
+          }
+        }
+      });
+      
+      // 输出统计信息
+      console.log("课程时间段分布:");
+      console.log(`  早上: ${stats.morning} 门课程 (${(stats.morning / stats.total * 100).toFixed(1)}%)`);
+      console.log(`  下午: ${stats.afternoon} 门课程 (${(stats.afternoon / stats.total * 100).toFixed(1)}%)`);
+      console.log(`  晚上: ${stats.evening} 门课程 (${(stats.evening / stats.total * 100).toFixed(1)}%)`);
+    }
+  }, [schedule]);
+
+  // 添加调试日志，在组件加载时查看数据结构
+  // const [hasInjectedEveningCourses, setHasInjectedEveningCourses] = useState(false);
+
+  /*
+  useEffect(() => {
+    if (schedule && schedule.details && !hasInjectedEveningCourses) {
+      console.log("检查课表数据中是否有晚上课程...");
+      
+      // 特别检查晚上时间段的课程
+      const eveningCourses = schedule.details.filter(item => 
+        item.startTime && (item.startTime.includes("19") || item.startTime.includes("21"))
+      );
+      
+      if (eveningCourses.length > 0) {
+        console.log(`找到 ${eveningCourses.length} 门晚上时间段的课程`);
+        setHasInjectedEveningCourses(true); // 标记已经有了晚上课程，不需要再注入
+      } else {
+        console.log("没有找到晚上时间段的课程，注入模拟数据");
+        
+        // 没有找到晚上课程，注入模拟数据
+        injectMockEveningCourses();
+        setHasInjectedEveningCourses(true); // 标记已经注入了晚上课程
+      }
+    }
+  }, [schedule, hasInjectedEveningCourses]);
+  */
+
+  // 注入模拟的晚上课程数据
+  const injectMockEveningCourses = () => {
+    if (!schedule || !schedule.details || schedule.details.length === 0) return;
+    
+    // 复制一个现有课程作为模板
+    const templateCourse = {...schedule.details[0]};
+    
+    // 周一晚上19:00-20:30的课程
+    const mondayEveningCourse = {
+      ...templateCourse,
+      courseCode: "CS601",
+      courseName: "晚间编程实验室",
+      teacherName: "Prof. Night",
+      classroom: "Building A-101",
+      day: 1, // 周一
+      dayName: "Monday",
+      startTime: "19:00",
+      endTime: "20:30"
+    };
+    
+    // 周二晚上21:00-22:30的课程
+    const tuesdayEveningCourse = {
+      ...templateCourse,
+      courseCode: "CS602",
+      courseName: "高级夜间编程",
+      teacherName: "Prof. Moon",
+      classroom: "Building B-202",
+      day: 2, // 周二
+      dayName: "Tuesday",
+      startTime: "21:00",
+      endTime: "22:30"
+    };
+    
+    // 周四晚上19:00-20:30的课程
+    const thursdayEveningCourse = {
+      ...templateCourse,
+      courseCode: "CS603",
+      courseName: "夜间算法设计",
+      teacherName: "Prof. Star",
+      classroom: "Building C-303",
+      day: 4, // 周四
+      dayName: "Thursday",
+      startTime: "19:00",
+      endTime: "20:30"
+    };
+    
+    // 添加到课程列表
+    const updatedDetails = [...schedule.details, mondayEveningCourse, tuesdayEveningCourse, thursdayEveningCourse];
+    
+    // 创建更新后的课表对象
+    const updatedSchedule = {
+      ...schedule,
+      details: updatedDetails
+    };
+    
+    // 更新状态
+    setSchedule(updatedSchedule);
+    
+    console.log("已注入模拟晚上课程数据:", [mondayEveningCourse, tuesdayEveningCourse, thursdayEveningCourse]);
+  };
+
   const handleResultsTabChange = (event, newValue) => {
     setResultsTabValue(newValue);
   };
@@ -830,13 +951,52 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程
-                      const coursesInCell = schedule.details.filter(item => 
-                        item.startTime === startTime && 
-                        item.endTime === endTime && 
-                        item.day === dayNum &&
-                        (!item.weekSpecific || item.week === currentWeek)
-                      );
+                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      const coursesInCell = schedule.details.filter(item => {
+                        // 特殊处理晚上时间段的匹配逻辑
+                        if (startTime === "19:00" || startTime === "21:00") {
+                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
+                          const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
+                          
+                          // 因为startTime可能是"19:00"或"21:00"
+                          const matchesStartTime = 
+                            (startTime === "19:00" && itemStartsAt19) || 
+                            (startTime === "21:00" && itemStartsAt21);
+                            
+                          return matchesStartTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        } else {
+                          // 其他时间段仍然使用精确匹配
+                          return item.startTime === startTime && 
+                            item.endTime === endTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        }
+                      });
+                      
+                      // 调试信息 - 检查晚上时间段是否有课程
+                      if (startTime === "19:00" || startTime === "21:00") {
+                        // 只在第一次渲染时显示日志
+                        if (dayNum === 0 && !window.hasLoggedEveningSlots) {
+                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          window.hasLoggedEveningSlots = true;
+                        }
+                        
+                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
+                          const possibleMatches = schedule.details.filter(item => 
+                            item.day === dayNum &&
+                            (item.startTime.includes("19") || item.startTime.includes("21"))
+                          );
+                          
+                          if (possibleMatches.length > 0) {
+                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            window.hasLoggedEveningMatches = true;
+                          }
+                        }
+                      }
                       
                       // 检测同一教师在同一时间的冲突
                       const hasTeacherConflict = (() => {
@@ -970,13 +1130,52 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程
-                      const coursesInCell = schedule.details.filter(item => 
-                        item.startTime === startTime && 
-                        item.endTime === endTime && 
-                        item.day === dayNum &&
-                        (!item.weekSpecific || item.week === currentWeek)
-                      );
+                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      const coursesInCell = schedule.details.filter(item => {
+                        // 特殊处理晚上时间段的匹配逻辑
+                        if (startTime === "19:00" || startTime === "21:00") {
+                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
+                          const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
+                          
+                          // 因为startTime可能是"19:00"或"21:00"
+                          const matchesStartTime = 
+                            (startTime === "19:00" && itemStartsAt19) || 
+                            (startTime === "21:00" && itemStartsAt21);
+                            
+                          return matchesStartTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        } else {
+                          // 其他时间段仍然使用精确匹配
+                          return item.startTime === startTime && 
+                            item.endTime === endTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        }
+                      });
+                      
+                      // 调试信息 - 检查晚上时间段是否有课程
+                      if (startTime === "19:00" || startTime === "21:00") {
+                        // 只在第一次渲染时显示日志
+                        if (dayNum === 0 && !window.hasLoggedEveningSlots) {
+                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          window.hasLoggedEveningSlots = true;
+                        }
+                        
+                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
+                          const possibleMatches = schedule.details.filter(item => 
+                            item.day === dayNum &&
+                            (item.startTime.includes("19") || item.startTime.includes("21"))
+                          );
+                          
+                          if (possibleMatches.length > 0) {
+                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            window.hasLoggedEveningMatches = true;
+                          }
+                        }
+                      }
                       
                       // 检测同一教师在同一时间的冲突
                       const hasTeacherConflict = (() => {
@@ -1096,12 +1295,12 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
               {/* Evening section header */}
               <TableRow>
                 <TableCell colSpan={8} sx={{ backgroundColor: '#f5f5f5', fontWeight: 'bold' }}>
-                  Evening (19:00 - 21:00)
+                  Evening (19:00 - 23:00)
                 </TableCell>
               </TableRow>
               
               {/* Evening time slots */}
-              {['19:00-20:30'].map(timeSlot => {
+              {['19:00-20:30', '21:00-22:30'].map(timeSlot => {
                 const [startTime, endTime] = timeSlot.split('-');
                 return (
                   <TableRow key={`evening-${timeSlot}`}>
@@ -1110,13 +1309,52 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程
-                      const coursesInCell = schedule.details.filter(item => 
-                        item.startTime === startTime && 
-                        item.endTime === endTime && 
-                        item.day === dayNum &&
-                        (!item.weekSpecific || item.week === currentWeek)
-                      );
+                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      const coursesInCell = schedule.details.filter(item => {
+                        // 特殊处理晚上时间段的匹配逻辑
+                        if (startTime === "19:00" || startTime === "21:00") {
+                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
+                          const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
+                          
+                          // 因为startTime可能是"19:00"或"21:00"
+                          const matchesStartTime = 
+                            (startTime === "19:00" && itemStartsAt19) || 
+                            (startTime === "21:00" && itemStartsAt21);
+                            
+                          return matchesStartTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        } else {
+                          // 其他时间段仍然使用精确匹配
+                          return item.startTime === startTime && 
+                            item.endTime === endTime && 
+                            item.day === dayNum &&
+                            (!item.weekSpecific || item.week === currentWeek);
+                        }
+                      });
+                      
+                      // 调试信息 - 检查晚上时间段是否有课程
+                      if (startTime === "19:00" || startTime === "21:00") {
+                        // 只在第一次渲染时显示日志
+                        if (dayNum === 0 && !window.hasLoggedEveningSlots) {
+                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          window.hasLoggedEveningSlots = true;
+                        }
+                        
+                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
+                          const possibleMatches = schedule.details.filter(item => 
+                            item.day === dayNum &&
+                            (item.startTime.includes("19") || item.startTime.includes("21"))
+                          );
+                          
+                          if (possibleMatches.length > 0) {
+                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            window.hasLoggedEveningMatches = true;
+                          }
+                        }
+                      }
                       
                       // 检测同一教师在同一时间的冲突
                       const hasTeacherConflict = (() => {

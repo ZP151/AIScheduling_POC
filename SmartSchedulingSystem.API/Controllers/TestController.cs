@@ -87,12 +87,51 @@ namespace SmartSchedulingSystem.API.Controllers
                     return BadRequest(new { error = "Time slot information is missing from the request data" });
                 }
                 
+                // 打印输入的所有TimeSlotObjects，便于调试
+                Console.WriteLine("输入的所有TimeSlotObjects:");
+                foreach (var ts in request.TimeSlotObjects)
+                {
+                    Console.WriteLine($"  ID: {ts.Id}, 星期{ts.DayOfWeek} {ts.DayName}, 时间: {ts.StartTime}-{ts.EndTime}, StartTime类型: {ts.StartTime?.GetType().Name}, 长度: {ts.StartTime?.Length}");
+                    if (ts.StartTime != null)
+                    {
+                        // 检查时间格式和是否包含晚上时间段
+                        bool isEveningByStartsWith = ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21");
+                        bool isEveningByHour = false;
+                        if (ts.StartTime.Contains(":"))
+                        {
+                            var hour = ts.StartTime.Split(':')[0];
+                            if (int.TryParse(hour, out int hourValue))
+                            {
+                                isEveningByHour = hourValue >= 19 && hourValue <= 21;
+                            }
+                        }
+                        Console.WriteLine($"    StartsWith检测晚上时间段: {isEveningByStartsWith}, 小时值检测: {isEveningByHour}");
+                    }
+                }
+                
                 // 生成一个简单的模拟排课结果
                 var solutions = new List<object>();
                 var random = new Random();
                 
                 // 生成指定数量的排课方案
                 int solutionCount = request.SolutionCount > 0 ? request.SolutionCount : 3;
+                
+                // 对所有时间段进行分类，便于均匀分配
+                var allTimeSlots = request.TimeSlotObjects.ToList();
+                
+                // 按时间段类型分组，便于后续输出调试信息
+                var morningSlots = allTimeSlots.Where(ts => ts.StartTime != null && 
+                    (ts.StartTime.StartsWith("08") || ts.StartTime.StartsWith("09") || 
+                     ts.StartTime.StartsWith("10") || ts.StartTime.StartsWith("11"))).ToList();
+                     
+                var afternoonSlots = allTimeSlots.Where(ts => ts.StartTime != null && 
+                    (ts.StartTime.StartsWith("14") || ts.StartTime.StartsWith("15") || 
+                     ts.StartTime.StartsWith("16") || ts.StartTime.StartsWith("17"))).ToList();
+                     
+                var eveningSlots = allTimeSlots.Where(ts => ts.StartTime != null && 
+                    (ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21"))).ToList();
+                
+                Console.WriteLine($"早上时间段数量: {morningSlots.Count}, 下午时间段数量: {afternoonSlots.Count}, 晚上时间段数量: {eveningSlots.Count}");
                 
                 for (int i = 0; i < solutionCount; i++)
                 {
@@ -121,33 +160,98 @@ namespace SmartSchedulingSystem.API.Controllers
                     var tempSolution = solution;
                     var items = new List<object>();
                     
-                    // 为每个课程创建一个排课项
-                    foreach (var course in request.CourseSectionObjects)
+                    // 用于统计课程分配情况
+                    var assignmentStats = new Dictionary<string, int>
                     {
-                        // 随机选择教师、教室和时间槽
-                        var teacher = request.TeacherObjects[random.Next(request.TeacherObjects.Count)];
-                        var classroom = request.ClassroomObjects[random.Next(request.ClassroomObjects.Count)];
-                        var timeSlot = request.TimeSlotObjects[random.Next(request.TimeSlotObjects.Count)];
+                        { "Morning", 0 },
+                        { "Afternoon", 0 },
+                        { "Evening", 0 }
+                    };
+                    
+                    // 计算每个时间段区间应该分配的课程数量，确保均匀分配
+                    int totalCourses = request.CourseSectionObjects.Count;
+                    int totalTimeSlots = allTimeSlots.Count;
+                    
+                    // 如果有可用时间段，进行均匀分配
+                    if (totalTimeSlots > 0)
+                    {
+                        Console.WriteLine($"总课程数: {totalCourses}, 总时间段数: {totalTimeSlots}");
                         
-                        // 添加对前端期望的字段格式
-                        items.Add(new
+                        // 为每个课程分配时间段
+                        for (int courseIndex = 0; courseIndex < totalCourses; courseIndex++)
                         {
-                            courseSectionId = course.Id,
-                            courseCode = course.CourseCode,  // 添加courseCode字段
-                            courseName = course.CourseName,  // 添加courseName字段
-                            sectionCode = course.SectionCode,
-                            teacherId = teacher.Id,
-                            teacherName = teacher.Name,
-                            classroomId = classroom.Id,
-                            classroomName = classroom.Name,
-                            building = classroom.Building,   // 添加building字段
-                            timeSlotId = timeSlot.Id,
-                            dayOfWeek = timeSlot.DayOfWeek,
-                            dayName = timeSlot.DayName,
-                            startTime = timeSlot.StartTime,
-                            endTime = timeSlot.EndTime
-                        });
+                            var course = request.CourseSectionObjects[courseIndex];
+                            
+                            // 随机选择教师、教室
+                            var teacher = request.TeacherObjects[random.Next(request.TeacherObjects.Count)];
+                            var classroom = request.ClassroomObjects[random.Next(request.ClassroomObjects.Count)];
+                            
+                            // 选择时间段 - 使用纯随机分配
+                            // 完全随机选择时间段，不再考虑时间段类型的比例
+                            string timePeriod;
+                            Core.DTOs.TimeSlotExtDto timeSlot;
+                            
+                            // 从所有可用时间段中随机选择
+                            timeSlot = allTimeSlots[random.Next(allTimeSlots.Count)];
+                            
+                            // 根据选择的时间段确定时间段类型
+                            if (timeSlot.StartTime.StartsWith("08") || timeSlot.StartTime.StartsWith("09") || 
+                                timeSlot.StartTime.StartsWith("10") || timeSlot.StartTime.StartsWith("11"))
+                            {
+                                assignmentStats["Morning"]++;
+                                timePeriod = "Morning";
+                            }
+                            else if (timeSlot.StartTime.StartsWith("14") || timeSlot.StartTime.StartsWith("15") || 
+                                     timeSlot.StartTime.StartsWith("16") || timeSlot.StartTime.StartsWith("17"))
+                            {
+                                assignmentStats["Afternoon"]++;
+                                timePeriod = "Afternoon";
+                            }
+                            else if (timeSlot.StartTime.StartsWith("19") || timeSlot.StartTime.StartsWith("20") || timeSlot.StartTime.StartsWith("21"))
+                            {
+                                assignmentStats["Evening"]++;
+                                timePeriod = "Evening";
+                            }
+                            else
+                            {
+                                // 其他时间段
+                                timePeriod = "Other";
+                            }
+                            
+                            Console.WriteLine($"课程 {course.CourseName} 安排在 {timePeriod} 时间段: {timeSlot.StartTime}-{timeSlot.EndTime}, dayOfWeek:{timeSlot.DayOfWeek}, dayName:{timeSlot.DayName}");
+                            
+                            // 添加课程分配项
+                            items.Add(new
+                            {
+                                courseSectionId = course.Id,
+                                courseCode = course.CourseCode,
+                                courseName = course.CourseName,
+                                sectionCode = course.SectionCode,
+                                teacherId = teacher.Id,
+                                teacherName = teacher.Name,
+                                classroomId = classroom.Id,
+                                classroomName = classroom.Name,
+                                building = classroom.Building,
+                                timeSlotId = timeSlot.Id,
+                                dayOfWeek = timeSlot.DayOfWeek,
+                                dayName = timeSlot.DayName,
+                                startTime = timeSlot.StartTime,
+                                endTime = timeSlot.EndTime
+                            });
+                        }
                     }
+                    else
+                    {
+                        // 如果没有可用时间段，输出错误信息
+                        Console.WriteLine("错误：没有可用的时间段！");
+                    }
+                    
+                    // 打印课程分配统计
+                    Console.WriteLine("课程分配统计:");
+                    Console.WriteLine($"  早上: {assignmentStats["Morning"]} 门课程 ({(double)assignmentStats["Morning"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  下午: {assignmentStats["Afternoon"]} 门课程 ({(double)assignmentStats["Afternoon"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  晚上: {assignmentStats["Evening"]} 门课程 ({(double)assignmentStats["Evening"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  总计: {assignmentStats.Values.Sum()} 门课程, 目标: {totalCourses} 门课程");
                     
                     // 添加items到解决方案
                     var solutionWithItems = new
@@ -238,6 +342,141 @@ namespace SmartSchedulingSystem.API.Controllers
                     errorMessage = $"Internal server error: {ex.Message}"
                 });
             }
+        }
+        
+        // 添加一个新的API端点，返回包含晚上时间段的测试数据
+        [HttpGet("evening-test-data")]
+        public IActionResult GetEveningTestData()
+        {
+            // 创建包含晚上时间段的测试数据
+            var timeSlots = new List<Core.DTOs.TimeSlotExtDto>
+            {
+                // 早上时间段
+                new Core.DTOs.TimeSlotExtDto { Id = 1, DayOfWeek = 1, DayName = "Monday", StartTime = "08:00", EndTime = "09:30" },
+                new Core.DTOs.TimeSlotExtDto { Id = 2, DayOfWeek = 1, DayName = "Monday", StartTime = "10:00", EndTime = "11:30" },
+                
+                // 下午时间段
+                new Core.DTOs.TimeSlotExtDto { Id = 3, DayOfWeek = 1, DayName = "Monday", StartTime = "14:00", EndTime = "15:30" },
+                new Core.DTOs.TimeSlotExtDto { Id = 4, DayOfWeek = 1, DayName = "Monday", StartTime = "16:00", EndTime = "17:30" },
+                
+                // 晚上时间段 - 添加这些时间段
+                new Core.DTOs.TimeSlotExtDto { Id = 21, DayOfWeek = 1, DayName = "Monday", StartTime = "19:00", EndTime = "20:30" },
+                new Core.DTOs.TimeSlotExtDto { Id = 22, DayOfWeek = 1, DayName = "Monday", StartTime = "20:00", EndTime = "21:30" }
+            };
+            
+            // 打印调试信息
+            Console.WriteLine("生成的测试数据包含晚上时间段:");
+            foreach (var ts in timeSlots)
+            {
+                Console.WriteLine($"  ID: {ts.Id}, 星期{ts.DayOfWeek} {ts.DayName}, 时间: {ts.StartTime}-{ts.EndTime}");
+                
+                // 检查时间格式
+                bool isEveningByStartsWith = ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21");
+                bool isEveningByHour = false;
+                if (ts.StartTime.Contains(":"))
+                {
+                    var hour = ts.StartTime.Split(':')[0];
+                    if (int.TryParse(hour, out int hourValue))
+                    {
+                        isEveningByHour = hourValue >= 19 && hourValue <= 21;
+                    }
+                }
+                Console.WriteLine($"    StartsWith检测晚上时间段: {isEveningByStartsWith}, 小时值检测: {isEveningByHour}");
+            }
+            
+            // 分类统计
+            var morningSlots = timeSlots.Where(ts => ts.StartTime != null && 
+                (ts.StartTime.StartsWith("08") || ts.StartTime.StartsWith("09") || 
+                 ts.StartTime.StartsWith("10") || ts.StartTime.StartsWith("11"))).ToList();
+                 
+            var afternoonSlots = timeSlots.Where(ts => ts.StartTime != null && 
+                (ts.StartTime.StartsWith("14") || ts.StartTime.StartsWith("15") || 
+                 ts.StartTime.StartsWith("16") || ts.StartTime.StartsWith("17"))).ToList();
+                 
+            var eveningSlots = timeSlots.Where(ts => ts.StartTime != null && 
+                (ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21"))).ToList();
+            
+            Console.WriteLine($"早上时间段数量: {morningSlots.Count}, 下午时间段数量: {afternoonSlots.Count}, 晚上时间段数量: {eveningSlots.Count}");
+            
+            return Ok(new 
+            {
+                timeSlots = timeSlots,
+                counts = new 
+                {
+                    morning = morningSlots.Count,
+                    afternoon = afternoonSlots.Count,
+                    evening = eveningSlots.Count,
+                    total = timeSlots.Count
+                }
+            });
+        }
+        
+        // 添加一个新的API端点，生成包含晚上时间段的测试排课方案
+        [HttpGet("evening-schedule-test")]
+        public IActionResult GenerateEveningScheduleTest()
+        {
+            // 创建模拟的排课请求，包含晚上时间段
+            var request = new ScheduleRequestDto
+            {
+                SemesterId = 1,
+                GenerateMultipleSolutions = true,
+                SolutionCount = 3,
+                
+                // 课程数据
+                CourseSectionObjects = new List<Core.DTOs.CourseSectionExtDto>
+                {
+                    new Core.DTOs.CourseSectionExtDto { Id = 1, CourseCode = "CS101", CourseName = "Introduction to Computer Science", SectionCode = "A" },
+                    new Core.DTOs.CourseSectionExtDto { Id = 2, CourseCode = "CS201", CourseName = "Data Structures", SectionCode = "A" },
+                    new Core.DTOs.CourseSectionExtDto { Id = 3, CourseCode = "CS301", CourseName = "Algorithm Design", SectionCode = "A" },
+                    new Core.DTOs.CourseSectionExtDto { Id = 4, CourseCode = "CS401", CourseName = "Artificial Intelligence", SectionCode = "A" },
+                    new Core.DTOs.CourseSectionExtDto { Id = 5, CourseCode = "CS501", CourseName = "Computer Networks", SectionCode = "A" },
+                    new Core.DTOs.CourseSectionExtDto { Id = 6, CourseCode = "CS601", CourseName = "Evening Programming Lab", SectionCode = "A" }
+                },
+                
+                // 教师数据
+                TeacherObjects = new List<Core.DTOs.TeacherExtDto>
+                {
+                    new Core.DTOs.TeacherExtDto { Id = 1, Name = "Prof. Smith" },
+                    new Core.DTOs.TeacherExtDto { Id = 2, Name = "Dr. Johnson" },
+                    new Core.DTOs.TeacherExtDto { Id = 3, Name = "Prof. Williams" }
+                },
+                
+                // 教室数据
+                ClassroomObjects = new List<Core.DTOs.ClassroomExtDto>
+                {
+                    new Core.DTOs.ClassroomExtDto { Id = 1, Name = "101", Building = "Main Building" },
+                    new Core.DTOs.ClassroomExtDto { Id = 2, Name = "201", Building = "Science Building" },
+                    new Core.DTOs.ClassroomExtDto { Id = 3, Name = "301", Building = "Computer Building" }
+                },
+                
+                // 时间段数据，包含晚上时间段
+                TimeSlotObjects = new List<Core.DTOs.TimeSlotExtDto>
+                {
+                    // 周一
+                    new Core.DTOs.TimeSlotExtDto { Id = 1, DayOfWeek = 1, DayName = "Monday", StartTime = "08:00", EndTime = "09:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 2, DayOfWeek = 1, DayName = "Monday", StartTime = "10:00", EndTime = "11:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 3, DayOfWeek = 1, DayName = "Monday", StartTime = "14:00", EndTime = "15:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 4, DayOfWeek = 1, DayName = "Monday", StartTime = "16:00", EndTime = "17:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 21, DayOfWeek = 1, DayName = "Monday", StartTime = "19:00", EndTime = "20:30" },
+                    
+                    // 周二
+                    new Core.DTOs.TimeSlotExtDto { Id = 5, DayOfWeek = 2, DayName = "Tuesday", StartTime = "08:00", EndTime = "09:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 6, DayOfWeek = 2, DayName = "Tuesday", StartTime = "10:00", EndTime = "11:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 7, DayOfWeek = 2, DayName = "Tuesday", StartTime = "14:00", EndTime = "15:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 8, DayOfWeek = 2, DayName = "Tuesday", StartTime = "16:00", EndTime = "17:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 22, DayOfWeek = 2, DayName = "Tuesday", StartTime = "19:00", EndTime = "20:30" },
+                    
+                    // 周三
+                    new Core.DTOs.TimeSlotExtDto { Id = 9, DayOfWeek = 3, DayName = "Wednesday", StartTime = "08:00", EndTime = "09:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 10, DayOfWeek = 3, DayName = "Wednesday", StartTime = "10:00", EndTime = "11:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 11, DayOfWeek = 3, DayName = "Wednesday", StartTime = "14:00", EndTime = "15:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 12, DayOfWeek = 3, DayName = "Wednesday", StartTime = "16:00", EndTime = "17:30" },
+                    new Core.DTOs.TimeSlotExtDto { Id = 23, DayOfWeek = 3, DayName = "Wednesday", StartTime = "19:00", EndTime = "20:30" },
+                }
+            };
+            
+            // 使用mock-schedule端点的逻辑处理请求
+            return MockSchedule(request);
         }
     }
 } 

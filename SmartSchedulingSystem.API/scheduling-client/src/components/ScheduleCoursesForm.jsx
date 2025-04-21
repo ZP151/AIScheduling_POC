@@ -545,30 +545,30 @@ const ScheduleCoursesForm = ({
   const handleGenerateSchedule = () => {
     // 验证数据
     if (!formData.semester) {
-      showFeedback('请选择学期', 'error');
+        showFeedback('Please select a semester', 'error');
       return;
     }
     
     // 确保至少选择了一个课程
     if (!formData.courses || formData.courses.length === 0) {
-      showFeedback('请至少选择一个课程', 'error');
+        showFeedback('Please select at least one course', 'error');
       return;
     }
     
     // 确保至少选择了一个教师
     if (!formData.teachers || formData.teachers.length === 0) {
-      showFeedback('请至少选择一个教师', 'error');
+        showFeedback('Please select at least one teacher', 'error');
       return;
     }
     
     // 确保至少选择了一个教室
     if (!formData.classrooms || formData.classrooms.length === 0) {
-      showFeedback('请至少选择一个教室', 'error');
+        showFeedback('Please select at least one classroom', 'error');
       return;
     }
     
     setIsGenerating(true);
-    showFeedback('正在生成排课方案，请稍候...', 'info');
+      showFeedback('The scheduling program is being generated, please wait...', 'info');
     
     // 准备约束设置
     const constraintSettings = formData.constraintSettings || [];

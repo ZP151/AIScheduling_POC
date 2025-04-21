@@ -245,10 +245,12 @@ export const generateScheduleApi = async (formData) => {
       for (let day = 1; day <= 5; day++) {
         const dayName = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"][day];
         const slots = [
-          { id: (day-1)*4 + 1, startTime: "08:00", endTime: "09:30" },
-          { id: (day-1)*4 + 2, startTime: "10:00", endTime: "11:30" },
-          { id: (day-1)*4 + 3, startTime: "14:00", endTime: "15:30" },
-          { id: (day-1)*4 + 4, startTime: "16:00", endTime: "17:30" }
+          { id: (day-1)*6 + 1, startTime: "08:00", endTime: "09:30" },
+          { id: (day-1)*6 + 2, startTime: "10:00", endTime: "11:30" },
+          { id: (day-1)*6 + 3, startTime: "14:00", endTime: "15:30" },
+          { id: (day-1)*6 + 4, startTime: "16:00", endTime: "17:30" },
+          { id: (day-1)*6 + 5, startTime: "19:00", endTime: "20:30" },
+          { id: (day-1)*6 + 6, startTime: "21:00", endTime: "22:30" }
         ];
         
         slots.forEach(slot => {

@@ -62,7 +62,11 @@ export const mockCourses = [
   { id: 9, code: 'PHYS101', name: 'Physics I', department: 'Physics', enrollment: 100, subjectId: 3 },
   { id: 10, code: 'PHYS201', name: 'Physics II', department: 'Physics', enrollment: 85, subjectId: 3 },
   { id: 11, code: 'FIN101', name: 'Financial Accounting', department: 'Finance', enrollment: 120, subjectId: 4 },
-  { id: 12, code: 'MKT101', name: 'Marketing Principles', department: 'Marketing', enrollment: 110, subjectId: 5 }
+  { id: 12, code: 'MKT101', name: 'Marketing Principles', department: 'Marketing', enrollment: 110, subjectId: 5 },
+  { id: 13, code: 'ECON101', name: 'Introduction to Economics', department: 'Economics', enrollment: 100, subjectId: 8 },
+  { id: 14, code: 'BUS201', name: 'Business Administration', department: 'Business', enrollment: 100, subjectId: 9 },
+  { id: 15, code: 'CS601', name: 'Evening Programming Lab', department: 'Computer Science', enrollment: 50, subjectId: 1 },
+  { id: 16, code: 'CS701', name: 'Advanced Programming Techniques', department: 'Computer Science', enrollment: 50, subjectId: 1 },
 ];
   
   // 在services/mockData.js中添加教师学科关系
@@ -113,14 +117,21 @@ export const mockCourses = [
     { id: 4, name: 'Classroom Type Match', type: 'Soft', description: 'Match courses with appropriate classroom types', weight: 0.7, isActive: true }
   ];
   
+  // 添加一个辅助函数来获取星期几的名称
+  function getDayName(day) {
+    const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return dayNames[day] || 'Unknown';
+  }
+  
   // 修改时间槽模拟数据，采用GenerateStandardTimeSlots风格的时间段
   export const mockTimeSlots = (() => {
     const slots = [];
     let slotId = 1;
     
-    // Sunday(0) to Saturday(6)
-    for (let day = 0; day <= 6; day++) {
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    // 周一到周日
+    for (let day = 1; day <= 7; day++) {
+      // 修复dayNames数组，使索引与day值匹配
+      const dayNames = ['', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const dayName = dayNames[day];
       
       // Morning slots (8:00 - 12:00)
@@ -161,13 +172,23 @@ export const mockCourses = [
         type: 'Afternoon'
       });
       
-      // Evening slots (19:00 - 21:00)
+      // Evening slots (19:00 - 22:30)
       slots.push({
         id: slotId++,
         dayOfWeek: day,
         dayName,
         startTime: '19:00',
         endTime: '20:30',
+        type: 'Evening'
+      });
+      
+      // 添加第二个晚上时间段，与第一个不重叠
+      slots.push({
+        id: slotId++,
+        dayOfWeek: day,
+        dayName,
+        startTime: '21:00',
+        endTime: '22:30',
         type: 'Evening'
       });
     }
@@ -267,6 +288,36 @@ export const mockCourses = [
           dayName: 'Wednesday',
           startTime: '08:00',
           endTime: '09:30'
+        },
+        {
+          courseCode: 'CS401',
+          courseName: 'Software Engineering Workshop',
+          teacherName: 'Prof. Davis',
+          classroom: 'Building A-305',
+          day: 1,
+          dayName: 'Monday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'BUS201',
+          courseName: 'Business Administration',
+          teacherName: 'Prof. Taylor',
+          classroom: 'Building C-101',
+          day: 2,
+          dayName: 'Tuesday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'CS601',
+          courseName: 'Evening Programming Lab',
+          teacherName: 'Prof. Anderson',
+          classroom: 'Building A-401',
+          day: 4,
+          dayName: 'Thursday',
+          startTime: '21:00',
+          endTime: '22:30'
         }
       ]
     },
@@ -275,9 +326,137 @@ export const mockCourses = [
       name: 'Spring 2025 Schedule v2',
       createdAt: '2025-01-16T14:45:00',
       status: 'Draft',
-      semesterName: 'Summer 2025', // 添加这个字段
+      semesterName: 'Summer 2025',
       details: [
-        // Similar structure to above but with different assignments
+        {
+          courseCode: 'CS101',
+          courseName: 'Introduction to Computer Science',
+          teacherName: 'Prof. Johnson',
+          classroom: 'Building A-201',
+          day: 1,
+          dayName: 'Monday',
+          startTime: '10:00',
+          endTime: '11:30'
+        },
+        {
+          courseCode: 'MATH101',
+          courseName: 'Advanced Mathematics',
+          teacherName: 'Prof. Williams',
+          classroom: 'Building B-301',
+          day: 3,
+          dayName: 'Wednesday',
+          startTime: '08:00',
+          endTime: '09:30'
+        },
+        {
+          courseCode: 'CS301',
+          courseName: 'Algorithm Design',
+          teacherName: 'Prof. Smith',
+          classroom: 'Building A-101',
+          day: 2,
+          dayName: 'Tuesday',
+          startTime: '14:00',
+          endTime: '15:30'
+        },
+        {
+          courseCode: 'PSYCH101',
+          courseName: 'Introduction to Psychology',
+          teacherName: 'Prof. Martinez',
+          classroom: 'Building D-201',
+          day: 2,
+          dayName: 'Tuesday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'LANG101',
+          courseName: 'Foreign Language Studies',
+          teacherName: 'Prof. Chen',
+          classroom: 'Building C-202',
+          day: 3,
+          dayName: 'Wednesday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'MUS101',
+          courseName: 'Music Appreciation',
+          teacherName: 'Prof. Garcia',
+          classroom: 'Building E-101',
+          day: 4,
+          dayName: 'Thursday',
+          startTime: '21:00',
+          endTime: '22:30'
+        },
+        {
+          courseCode: 'ART101',
+          courseName: 'Introduction to Fine Arts',
+          teacherName: 'Prof. Lee',
+          classroom: 'Building E-202',
+          day: 5,
+          dayName: 'Friday',
+          startTime: '19:00',
+          endTime: '20:30'
+        }
+      ]
+    },
+    {
+      id: 103,
+      name: 'Evening Program - Fall 2025',
+      createdAt: '2025-06-20T09:15:00',
+      status: 'Published',
+      semesterName: 'Fall 2025',
+      details: [
+        {
+          courseCode: 'CS501',
+          courseName: 'Advanced Programming Techniques',
+          teacherName: 'Prof. Wilson',
+          classroom: 'Building A-301',
+          day: 1,
+          dayName: 'Monday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'ECON101',
+          courseName: 'Introduction to Economics',
+          teacherName: 'Prof. Evans',
+          classroom: 'Building C-301',
+          day: 2,
+          dayName: 'Tuesday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'PHIL201',
+          courseName: 'Critical Thinking',
+          teacherName: 'Prof. Nelson',
+          classroom: 'Building D-101',
+          day: 3,
+          dayName: 'Wednesday',
+          startTime: '19:00',
+          endTime: '20:30'
+        },
+        {
+          courseCode: 'BUS201',
+          courseName: 'Business Administration',
+          teacherName: 'Prof. Baker',
+          classroom: 'Building C-201',
+          day: 4,
+          dayName: 'Thursday',
+          startTime: '21:00',
+          endTime: '22:30'
+        },
+        {
+          courseCode: 'CS601',
+          courseName: 'Evening Programming Lab',
+          teacherName: 'Prof. Thompson',
+          classroom: 'Building A-401',
+          day: 5,
+          dayName: 'Friday',
+          startTime: '19:00',
+          endTime: '20:30'
+        }
       ]
     }
   ];

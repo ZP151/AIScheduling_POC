@@ -29,6 +29,16 @@ const RequirementAnalyzer  = ({ onAddConstraints }) => {
     try {
       // Call LLM API for constraint analysis
       const response = await analyzeConstraints(input);
+      
+      // 处理隐式约束，确保它们默认为软约束(Soft)
+      if (response.implicitConstraints && response.implicitConstraints.length > 0) {
+        response.implicitConstraints = response.implicitConstraints.map(constraint => ({
+          ...constraint,
+          type: 'Soft', // 强制将所有隐式约束设置为软约束
+          weight: constraint.weight || 0.7 // 如果没有权重，设置一个默认值
+        }));
+      }
+      
       setResults(response);
     } catch (error) {
       console.error('Error analyzing constraints:', error);
@@ -63,7 +73,7 @@ const RequirementAnalyzer  = ({ onAddConstraints }) => {
         multiline
         rows={4}
         label="Describe your scheduling requirements"
-        placeholder="Example: We need to schedule an Advanced Mathematics course, twice a week, 2 hours each session. Professor Zhang is only available on Monday and Wednesday mornings. The class has approximately 120 students and requires projection equipment. Also, this course should preferably not be on the same day as the Physics course because it's a heavy workload for students."
+        placeholder="Example: I need to schedule a Data Structure course for 120 students. The class requires a room with projection equipment. Professor Smith will be teaching this course and is only available on Wednesday mornings. Each class must be 2 hours long. Ideally, this class should not be scheduled on the same day as Algorithm Design since many students take both courses and the workload would be too heavy. The classroom should be accessible for students with mobility issues, and if possible, should be close to the Computer Science building."
         value={input}
         onChange={handleInputChange}
         variant="outlined"
@@ -125,37 +135,42 @@ const RequirementAnalyzer  = ({ onAddConstraints }) => {
             ))}
           </Box>
           
-          <Typography variant="subtitle1" sx={{ mt: 3, display: 'flex', alignItems: 'center' }}>
-            <LightbulbIcon color="primary" sx={{ mr: 1 }} />
-            Implicit Constraints (System Detected)
-          </Typography>
-          
-          <Box sx={{ mt: 1 }}>
-            {results.implicitConstraints.map((constraint) => (
-              <Card key={constraint.id} variant="outlined" sx={{ mb: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="subtitle2">
-                      {constraint.name}
-                    </Typography>
-                    <Chip 
-                      size="small" 
-                      label={constraint.type} 
-                      color={constraint.type === 'Hard' ? 'error' : 'primary'} 
-                    />
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {constraint.description}
-                  </Typography>
-                  {constraint.type === 'Soft' && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      Suggested Weight: {constraint.weight.toFixed(1)}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
+          {/* 只有当隐式约束存在且不为空时才显示 */}
+          {results.implicitConstraints && results.implicitConstraints.length > 0 && (
+            <>
+              <Typography variant="subtitle1" sx={{ mt: 3, display: 'flex', alignItems: 'center' }}>
+                <LightbulbIcon color="primary" sx={{ mr: 1 }} />
+                Implicit Constraints (System Detected)
+              </Typography>
+              
+              <Box sx={{ mt: 1 }}>
+                {results.implicitConstraints.map((constraint) => (
+                  <Card key={constraint.id} variant="outlined" sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="subtitle2">
+                          {constraint.name}
+                        </Typography>
+                        <Chip 
+                          size="small" 
+                          label={constraint.type} 
+                          color={constraint.type === 'Hard' ? 'error' : 'primary'} 
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        {constraint.description}
+                      </Typography>
+                      {constraint.type === 'Soft' && (
+                        <Typography variant="body2" sx={{ mt: 1 }}>
+                          Suggested Weight: {constraint.weight.toFixed(1)}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </Box>
+            </>
+          )}
           
           {onAddConstraints && (
             <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>

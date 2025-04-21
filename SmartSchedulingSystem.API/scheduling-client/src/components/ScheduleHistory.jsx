@@ -31,7 +31,8 @@ import {
   DialogContent,
   IconButton,
   Tooltip,
-  Alert
+  Alert,
+  DialogActions
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
@@ -39,6 +40,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { mockSemesters } from '../services/mockData';
 import { getScheduleHistory, publishSchedule, cancelSchedule } from '../services/api';
 import { format } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 
 const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
   const [filters, setFilters] = useState({
@@ -57,6 +59,10 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
   // Status history dialog state
   const [statusHistoryOpen, setStatusHistoryOpen] = useState(false);
   const [selectedScheduleHistory, setSelectedScheduleHistory] = useState(null);
+
+  // 新增状态用于报告对话框
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportType, setReportType] = useState('');
 
   // Load schedule history data
   useEffect(() => {
@@ -374,6 +380,172 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
       // Pass all filter conditions
       return true;
     });
+  };
+
+  // 处理报告生成按钮点击
+  const handleGenerateReport = (type) => {
+    setReportType(type);
+    setReportDialogOpen(true);
+  };
+  
+  // 关闭报告对话框
+  const handleCloseReportDialog = () => {
+    setReportDialogOpen(false);
+  };
+  
+  // 从schedules数据中提取教室利用率数据
+  const generateClassroomUtilizationData = () => {
+    // 合并所有方案的课程安排
+    const allScheduleDetails = schedules.flatMap(schedule => schedule.details || []);
+    
+    // 统计每个教室的使用次数
+    const classroomUsage = {};
+    allScheduleDetails.forEach(detail => {
+      const classroom = detail.classroom;
+      if (classroom) {
+        classroomUsage[classroom] = (classroomUsage[classroom] || 0) + 1;
+      }
+    });
+    
+    // 转换为图表数据格式
+    return Object.keys(classroomUsage).map(classroom => ({
+      name: classroom,
+      sessions: classroomUsage[classroom]
+    })).sort((a, b) => b.sessions - a.sessions).slice(0, 10); // 只显示使用最多的10个教室
+  };
+  
+  // 从schedules数据中提取教师工作负载数据
+  const generateFacultyWorkloadData = () => {
+    // 合并所有方案的课程安排
+    const allScheduleDetails = schedules.flatMap(schedule => schedule.details || []);
+    
+    // 统计每个教师的教学课时
+    const teacherWorkload = {};
+    allScheduleDetails.forEach(detail => {
+      const teacher = detail.teacherName;
+      if (teacher) {
+        // 假设每节课1.5小时
+        teacherWorkload[teacher] = (teacherWorkload[teacher] || 0) + 1.5;
+      }
+    });
+    
+    // 转换为图表数据格式
+    return Object.keys(teacherWorkload).map(teacher => ({
+      name: teacher,
+      hours: teacherWorkload[teacher]
+    })).sort((a, b) => b.hours - a.hours).slice(0, 8); // 只显示工作量最大的8位教师
+  };
+  
+  // 从schedules数据中提取课程需求趋势数据
+  const generateCourseDemandData = () => {
+    // 合并所有方案的课程安排
+    const allScheduleDetails = schedules.flatMap(schedule => schedule.details || []);
+    
+    // 按课程代码分组
+    const courseCounts = {};
+    allScheduleDetails.forEach(detail => {
+      const courseCode = detail.courseCode;
+      if (courseCode) {
+        courseCounts[courseCode] = (courseCounts[courseCode] || 0) + 1;
+      }
+    });
+    
+    // 按学科分组（假设课程代码的前两个字符表示学科）
+    const subjectCounts = {};
+    Object.keys(courseCounts).forEach(code => {
+      const subject = code.substring(0, 2);
+      subjectCounts[subject] = (subjectCounts[subject] || 0) + courseCounts[code];
+    });
+    
+    // 转换为饼图数据格式
+    return Object.keys(subjectCounts).map(subject => ({
+      name: subject,
+      value: subjectCounts[subject]
+    }));
+  };
+  
+  // 渲染不同类型的报告对话框内容
+  const renderReportContent = () => {
+    switch (reportType) {
+      case 'classroom':
+        const classroomData = generateClassroomUtilizationData();
+        return (
+          <>
+            <Typography variant="h6" gutterBottom>Classroom Utilization Report</Typography>
+            <Typography variant="body2" paragraph>
+              This report shows the most frequently used classrooms across all schedules.
+            </Typography>
+            <Box sx={{ width: '100%', height: 400 }}>
+              <BarChart width={550} height={350} data={classroomData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis label={{ value: 'Sessions', angle: -90, position: 'insideLeft' }} />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="sessions" fill="#8884d8" name="Number of Sessions" />
+              </BarChart>
+            </Box>
+          </>
+        );
+      
+      case 'faculty':
+        const facultyData = generateFacultyWorkloadData();
+        return (
+          <>
+            <Typography variant="h6" gutterBottom>Faculty Workload Report</Typography>
+            <Typography variant="body2" paragraph>
+              This report shows the teaching hours distribution among faculty members.
+            </Typography>
+            <Box sx={{ width: '100%', height: 400 }}>
+              <BarChart width={550} height={350} data={facultyData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis label={{ value: 'Hours', angle: -90, position: 'insideLeft' }} />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="hours" fill="#82ca9d" name="Teaching Hours" />
+              </BarChart>
+            </Box>
+          </>
+        );
+      
+      case 'course':
+        const courseData = generateCourseDemandData();
+        const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658', '#8dd1e1'];
+        return (
+          <>
+            <Typography variant="h6" gutterBottom>Course Demand Trends</Typography>
+            <Typography variant="body2" paragraph>
+              This report shows the distribution of courses by subject area.
+            </Typography>
+            <Box sx={{ width: '100%', height: 400, display: 'flex', justifyContent: 'center' }}>
+              <PieChart width={400} height={350}>
+                <Pie
+                  data={courseData}
+                  cx={200}
+                  cy={150}
+                  labelLine={true}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {courseData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip formatter={(value, name, props) => [`${value} sessions`, `Subject: ${props.payload.name}`]} />
+                <Legend />
+              </PieChart>
+            </Box>
+          </>
+        );
+      
+      default:
+        return <Typography>No report data available</Typography>;
+    }
   };
 
   return (
@@ -725,7 +897,7 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
         </DialogContent>
       </Dialog>
       
-      {/* Usage Reports paragraph */}
+      {/* Usage Reports section */}
       <Box sx={{ mt: 4 }}>
         <Typography variant="h6" gutterBottom>
           Usage Reports
@@ -737,7 +909,13 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
                 <Typography variant="subtitle1" gutterBottom>
                   Classroom Utilization
                 </Typography>
-                <Button variant="contained" fullWidth>Generate Report</Button>
+                <Button 
+                  variant="contained" 
+                  fullWidth
+                  onClick={() => handleGenerateReport('classroom')}
+                >
+                  Generate Report
+                </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -747,7 +925,13 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
                 <Typography variant="subtitle1" gutterBottom>
                   Faculty Workload
                 </Typography>
-                <Button variant="contained" fullWidth>Generate Report</Button>
+                <Button 
+                  variant="contained" 
+                  fullWidth
+                  onClick={() => handleGenerateReport('faculty')}
+                >
+                  Generate Report
+                </Button>
               </CardContent>
             </Card>
           </Grid>
@@ -757,12 +941,39 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
                 <Typography variant="subtitle1" gutterBottom>
                   Course Demand Trends
                 </Typography>
-                <Button variant="contained" fullWidth>Generate Report</Button>
+                <Button 
+                  variant="contained" 
+                  fullWidth
+                  onClick={() => handleGenerateReport('course')}
+                >
+                  Generate Report
+                </Button>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       </Box>
+      
+      {/* Report Dialog */}
+      <Dialog
+        open={reportDialogOpen}
+        onClose={handleCloseReportDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {reportType === 'classroom' && 'Classroom Utilization Report'}
+          {reportType === 'faculty' && 'Faculty Workload Report'}
+          {reportType === 'course' && 'Course Demand Trends Report'}
+        </DialogTitle>
+        <DialogContent dividers>
+          {renderReportContent()}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseReportDialog}>Close</Button>
+          <Button color="primary">Export as PDF</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = 'http://localhost:8080/api';
 
 const llmApi = axios.create({
   baseURL: API_URL,
@@ -12,10 +12,12 @@ const llmApi = axios.create({
 // Natural language chat
 export const chatWithLLM = async (message, conversation = []) => {
   try {
-    // For quick development/testing, we can mock the response
+    // 始终使用API，不使用模拟数据
+    /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockChatResponse(message);
     }
+    */
     
     const response = await llmApi.post('/llm/chat', { message, conversation });
     return response.data;
@@ -28,10 +30,12 @@ export const chatWithLLM = async (message, conversation = []) => {
 // Constraint identification and analysis
 export const analyzeConstraints = async (input) => {
   try {
-    // For quick development/testing, we can mock the response
+    // 始终使用API，不使用模拟数据
+    /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockConstraintAnalysis(input);
     }
+    */
     
     const response = await llmApi.post('/llm/analyze-constraints', { input });
     return response.data;
@@ -43,27 +47,118 @@ export const analyzeConstraints = async (input) => {
 
 // Conflict analysis and resolution
 export const analyzeConflicts = async (conflict) => {
+  console.log('llmApi服务: 开始调用冲突分析API');
+  console.log('llmApi服务: 冲突数据:', conflict);
+  
+  // 首先定义默认的模拟响应，确保在任何情况下都能返回结果
+  let mockResponse = mockConflictAnalysis(conflict);
+  
   try {
-    // For quick development/testing, we can mock the response
-    if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
-      return mockConflictAnalysis(conflict);
+    // 设置超时选项
+    const options = {
+      timeout: 30000, // 30秒超时
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    // 格式化冲突类型以匹配后端期望的格式
+    let formattedConflict = { ...conflict };
+    
+    // 处理类型差异 - 将前端的类型映射到后端期望的类型
+    if (formattedConflict.type) {
+      if (formattedConflict.type.includes('Teachers')) {
+        formattedConflict.type = 'Teacher Conflict';
+      } else if (formattedConflict.type.includes('Classrooms')) {
+        formattedConflict.type = 'Classroom Conflict';
+      }
     }
     
-    const response = await llmApi.post('/llm/analyze-conflicts', { conflict });
-    return response.data;
+    // 确保请求格式匹配后端期望的ConflictAnalysisRequest模型
+    const requestData = { conflict: formattedConflict };
+    
+    // 调用API
+    console.log('llmApi服务: 发送请求到:', `${API_URL}/llm/analyze-conflicts`);
+    console.log('llmApi服务: 请求格式:', requestData);
+    
+    const response = await llmApi.post('/llm/analyze-conflicts', requestData, options);
+    
+    // 验证响应内容
+    const data = response.data;
+    console.log('llmApi服务: 收到原始响应:', data);
+    
+    if (!data) {
+      console.error('llmApi服务: 响应为空');
+      throw new Error('响应为空');
+    }
+    
+    if (!data.solutions || !Array.isArray(data.solutions)) {
+      console.error('llmApi服务: 响应缺少solutions数组:', data);
+      throw new Error('响应格式不正确: 缺少solutions数组');
+    }
+    
+    if (!data.rootCause) {
+      console.error('llmApi服务: 响应缺少rootCause字段:', data);
+      data.rootCause = '未能确定冲突根本原因';
+    }
+    
+    // 添加标记表示这不是模拟数据
+    data._isMockData = false;
+    
+    console.log('llmApi服务: 成功获取有效API响应:', data);
+    return data;
   } catch (error) {
-    console.error('Conflict Analysis API Error:', error);
-    throw error;
+    console.error('llmApi服务: 冲突分析API错误:', error);
+    
+    // 确保模拟响应已被正确标记
+    if (!mockResponse._isMockData) {
+      mockResponse._isMockData = true;
+    }
+    
+    // 记录详细的错误信息
+    if (error.response) {
+      console.error('llmApi服务: 错误状态码:', error.response.status);
+      console.error('llmApi服务: 错误数据:', error.response.data);
+      
+      // 返回一个带有详细错误信息的对象，包含模拟数据
+      return {
+        error: true,
+        httpStatus: error.response.status,
+        message: `API响应错误: ${error.response.status}`,
+        details: error.response.data,
+        mockResponse: mockResponse
+      };
+    } else if (error.request) {
+      console.error('llmApi服务: 未收到响应。请求对象:', error.request);
+      
+      return {
+        error: true,
+        message: '服务器未响应请求，请检查API服务是否运行',
+        details: '未收到服务器响应',
+        mockResponse: mockResponse
+      };
+    } else {
+      console.error('llmApi服务: 请求配置错误:', error.message);
+      
+      return {
+        error: true,
+        message: `请求错误: ${error.message}`,
+        details: error.stack,
+        mockResponse: mockResponse
+      };
+    }
   }
 };
 
 // Schedule explanation
 export const explainSchedule = async (scheduleItem) => {
   try {
-    // For quick development/testing, we can mock the response
+    // 始终使用API，不使用模拟数据
+    /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockScheduleExplanation(scheduleItem);
     }
+    */
     
     const response = await llmApi.post('/llm/explain-schedule', { scheduleItem });
     return response.data;
@@ -76,10 +171,12 @@ export const explainSchedule = async (scheduleItem) => {
 // Parameter optimization
 export const optimizeParameters = async (currentParameters, historicalData = null) => {
   try {
-    // For quick development/testing, we can mock the response
+    // 始终使用API，不使用模拟数据
+    /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockParameterOptimization(currentParameters);
     }
+    */
     
     const response = await llmApi.post('/llm/optimize-parameters', { 
       currentParameters, 
@@ -167,97 +264,122 @@ const mockConstraintAnalysis = (input) => {
 };
 
 const mockConflictAnalysis = (conflict) => {
-  // Mock conflict analysis based on conflict type
-  if (conflict.type === 'Teacher Conflict') {
+  // 默认的通用冲突分析响应
+  const defaultResponse = {
+    rootCause: "Resource allocation conflicts typically occur when the same resource is required by multiple courses simultaneously. These conflicts can be resolved by adjusting scheduling times or reallocating resources.",
+    solutions: [
+      {
+        id: 1,
+        description: "Adjust the timing of one of the courses",
+        compatibility: 85,
+        impacts: [
+          "Student schedules may need adjustment",
+          "Teacher schedules may need to be modified"
+        ]
+      },
+      {
+        id: 2,
+        description: "Find alternative resources (classroom or teacher)",
+        compatibility: 80,
+        impacts: [
+          "Course quality may be slightly affected",
+          "Maintains the original time schedule"
+        ]
+      },
+      {
+        id: 3,
+        description: "Split the class into multiple sections",
+        compatibility: 75,
+        impacts: [
+          "Requires additional teaching resources",
+          "Can maintain original time and teacher arrangements"
+        ]
+      }
+    ],
+    _isMockData: true  // 添加标记表示这是模拟数据
+  };
+
+  // 如果没有提供冲突信息，返回默认响应
+  if (!conflict) return defaultResponse;
+
+  // 检查并标准化冲突类型
+  let conflictType = conflict.type || "";
+  if (typeof conflictType === 'string') {
+    conflictType = conflictType.trim().toLowerCase();
+  }
+
+  // 根据冲突类型返回特定的模拟数据
+  if (conflictType.includes('teacher') || conflictType.includes('教师')) {
     return {
-      rootCause: "Professor Smith is the preferred teacher for both Introduction to Computer Science and Algorithm Design, and both courses are scheduled at the same time on Monday mornings due to high demand for this time slot.",
+      rootCause: "Teacher time conflicts occur when the same teacher is scheduled to teach two different courses during the same time slot. This is typically a resource allocation issue caused by the scheduling system not properly accounting for teacher availability.",
       solutions: [
         {
           id: 1,
-          description: "Reassign Algorithm Design to Professor Johnson, who also has expertise in this subject area.",
-          compatibility: 85,
-          impacts: [
-            "Professor Johnson's teaching load will increase by 2 hours per week",
-            "Overall teaching quality remains high as Professor Johnson is also qualified for this course"
-          ]
-        },
-        {
-          id: 2,
-          description: "Reschedule Algorithm Design to Wednesday 08:00-09:30, keeping the same teacher.",
+          description: "Reschedule one of the courses to a time when the teacher is available",
           compatibility: 90,
           impacts: [
-            "Classroom would need to be changed to A-201",
-            "No student conflicts detected"
-          ]
-        },
-        {
-          id: 3,
-          description: "Keep the same teacher but reschedule Introduction to Computer Science to Monday 10:00-11:30.",
-          compatibility: 75,
-          impacts: [
-            "Time conflicts with other courses for 3 students",
-            "Would require swapping with Data Structures course"
-          ]
-        }
-      ]
-    };
-  } else if (conflict.type === 'Classroom Conflict') {
-    return {
-      rootCause: "Building B-301 is one of the few large classrooms equipped with specialized equipment needed for both Physics I and Advanced Mathematics, and Tuesday 10:00-11:30 is a prime time slot when most students are available.",
-      solutions: [
-        {
-          id: 1,
-          description: "Move Physics I to classroom B-302, which has similar equipment and capacity.",
-          compatibility: 95,
-          impacts: [
-            "No changes to time schedule required",
-            "B-302 has slightly older equipment but meets all requirements"
+            "May require adjustments to students' other courses",
+            "Teacher course load remains unchanged"
           ]
         },
         {
           id: 2,
-          description: "Reschedule Advanced Mathematics to Tuesday 08:00-09:30, keeping the same classroom.",
-          compatibility: 80,
-          impacts: [
-            "5 students have conflicts with other courses at this time",
-            "Professor Williams has indicated slight preference against early morning classes"
-          ]
-        },
-        {
-          id: 3,
-          description: "Reschedule Physics I to Thursday 10:00-11:30 in the same classroom.",
-          compatibility: 70,
-          impacts: [
-            "8 students have conflicts with other courses at this time",
-            "Professor Brown would need to rearrange office hours"
-          ]
-        }
-      ]
-    };
-  } else {
-    return {
-      rootCause: "This conflict appears to be due to competing requirements for limited resources during high-demand time slots.",
-      solutions: [
-        {
-          id: 1,
-          description: "Reschedule one of the conflicting courses to a different time slot.",
+          description: "Assign a different teacher to one of the courses",
           compatibility: 85,
           impacts: [
-            "May cause some student schedule disruptions",
-            "All core requirements still met"
+            "May affect course quality if the replacement teacher has less expertise",
+            "Maintains the original time schedule"
+          ]
+        },
+        {
+          id: 3,
+          description: "Split one course into two smaller classes taught at different times",
+          compatibility: 70,
+          impacts: [
+            "Increases teacher workload",
+            "May improve teaching quality (smaller class sizes)"
+          ]
+        }
+      ],
+      _isMockData: true  // 添加标记表示这是模拟数据
+    };
+  } else if (conflictType.includes('classroom') || conflictType.includes('教室')) {
+    return {
+      rootCause: "Classroom conflicts occur when multiple courses are scheduled in the same room at the same time. This typically happens due to limited classroom resources or the scheduling system not properly accounting for room usage.",
+      solutions: [
+        {
+          id: 1,
+          description: "Move one course to a different classroom of the same type",
+          compatibility: 95,
+          impacts: [
+            "Need to confirm the alternative classroom has the required equipment",
+            "Students may need to adjust to the new classroom location"
           ]
         },
         {
           id: 2,
-          description: "Find an alternative room or teacher depending on the specific conflict.",
-          compatibility: 80,
+          description: "Reschedule one course to a time when the classroom is available",
+          compatibility: 85,
           impacts: [
-            "Might require adjusting other course parameters",
-            "Maintains original time preferences"
+            "May affect students' existing course schedules",
+            "Maintains the same classroom resources"
+          ]
+        },
+        {
+          id: 3,
+          description: "For smaller classes, consider combining them in a larger classroom",
+          compatibility: 70,
+          impacts: [
+            "May require adjustments to teaching methods",
+            "Improves classroom utilization efficiency"
           ]
         }
-      ]
+      ],
+      _isMockData: true  // 添加标记表示这是模拟数据
     };
+  } else {
+    // 通用冲突分析
+    return defaultResponse;
   }
 };
 
