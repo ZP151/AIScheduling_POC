@@ -123,6 +123,88 @@ export const mockCourses = [
     return dayNames[day] || 'Unknown';
   }
   
+  // 教室设备类型定义
+  export const mockEquipmentTypes = [
+    { id: 1, name: 'Projector', description: 'Projection device for slides and videos', movable: false },
+    { id: 2, name: 'Computer', description: 'Desktop computers for teacher and students', movable: false },
+    { id: 3, name: 'Interactive Whiteboard', description: 'Smart board supporting touch and electronic writing', movable: false },
+    { id: 4, name: 'Teaching Podium', description: 'Podium for teachers', movable: false },
+    { id: 5, name: 'Student Desks & Chairs', description: 'Desk and chair combination for students', movable: true },
+    { id: 6, name: 'Lab Bench', description: 'Workbench in laboratory', movable: false },
+    { id: 7, name: 'Power Outlets', description: 'Wall or floor power outlets', movable: false },
+    { id: 8, name: 'Network Ports', description: 'Wired network connection ports', movable: false },
+    { id: 9, name: 'Audio System', description: 'Classroom audio playback system', movable: false },
+    { id: 10, name: 'Air Conditioning', description: 'Temperature control equipment', movable: false },
+    { id: 11, name: 'Curtains', description: 'Blackout curtains for rooms requiring dark environment', movable: false },
+    { id: 12, name: 'Lab Equipment', description: 'Specialized laboratory equipment', movable: false }
+  ];
+
+  // 教室设备数据，基于教室类型的默认配置
+  export const mockClassroomEquipment = [
+    // ComputerLab - 教室ID 1
+    { id: 1, classroomId: 1, equipmentTypeId: 1, quantity: 1, status: 'Good' },
+    { id: 2, classroomId: 1, equipmentTypeId: 2, quantity: 25, status: 'Good' },
+    { id: 3, classroomId: 1, equipmentTypeId: 3, quantity: 1, status: 'Good' },
+    { id: 4, classroomId: 1, equipmentTypeId: 4, quantity: 1, status: 'Good' },
+    { id: 5, classroomId: 1, equipmentTypeId: 5, quantity: 25, status: 'Good' },
+    { id: 6, classroomId: 1, equipmentTypeId: 7, quantity: 30, status: 'Good' },
+    { id: 7, classroomId: 1, equipmentTypeId: 8, quantity: 26, status: 'Good' },
+    { id: 8, classroomId: 1, equipmentTypeId: 9, quantity: 1, status: 'Good' },
+    { id: 9, classroomId: 1, equipmentTypeId: 10, quantity: 2, status: 'Good' },
+    { id: 10, classroomId: 1, equipmentTypeId: 11, quantity: 4, status: 'Needs Repair' },
+    
+    // ComputerLab - 教室ID 2
+    { id: 11, classroomId: 2, equipmentTypeId: 1, quantity: 1, status: 'Good' },
+    { id: 12, classroomId: 2, equipmentTypeId: 2, quantity: 30, status: 'Good' },
+    { id: 13, classroomId: 2, equipmentTypeId: 3, quantity: 1, status: 'Good' },
+    { id: 14, classroomId: 2, equipmentTypeId: 4, quantity: 1, status: 'Good' },
+    { id: 15, classroomId: 2, equipmentTypeId: 5, quantity: 30, status: 'Partially Damaged' },
+    { id: 16, classroomId: 2, equipmentTypeId: 7, quantity: 35, status: 'Good' },
+    { id: 17, classroomId: 2, equipmentTypeId: 8, quantity: 31, status: 'Good' },
+    { id: 18, classroomId: 2, equipmentTypeId: 9, quantity: 1, status: 'Needs Repair' },
+    { id: 19, classroomId: 2, equipmentTypeId: 10, quantity: 2, status: 'Good' },
+    { id: 20, classroomId: 2, equipmentTypeId: 11, quantity: 4, status: 'Good' },
+    
+    // Lecture - 教室ID 3
+    { id: 21, classroomId: 3, equipmentTypeId: 1, quantity: 1, status: 'Good' },
+    { id: 22, classroomId: 3, equipmentTypeId: 3, quantity: 1, status: 'Good' },
+    { id: 23, classroomId: 3, equipmentTypeId: 4, quantity: 1, status: 'Good' },
+    { id: 24, classroomId: 3, equipmentTypeId: 5, quantity: 80, status: 'Good' },
+    { id: 25, classroomId: 3, equipmentTypeId: 7, quantity: 10, status: 'Good' },
+    { id: 26, classroomId: 3, equipmentTypeId: 9, quantity: 1, status: 'Good' },
+    { id: 27, classroomId: 3, equipmentTypeId: 10, quantity: 3, status: 'Good' },
+    { id: 28, classroomId: 3, equipmentTypeId: 11, quantity: 6, status: 'Good' },
+    
+    // LargeHall - 教室ID 5
+    { id: 29, classroomId: 5, equipmentTypeId: 1, quantity: 2, status: 'Good' },
+    { id: 30, classroomId: 5, equipmentTypeId: 3, quantity: 1, status: 'Good' },
+    { id: 31, classroomId: 5, equipmentTypeId: 4, quantity: 1, status: 'Good' },
+    { id: 32, classroomId: 5, equipmentTypeId: 5, quantity: 150, status: 'Good' },
+    { id: 33, classroomId: 5, equipmentTypeId: 7, quantity: 20, status: 'Good' },
+    { id: 34, classroomId: 5, equipmentTypeId: 9, quantity: 2, status: 'Good' },
+    { id: 35, classroomId: 5, equipmentTypeId: 10, quantity: 6, status: 'Good' },
+    { id: 36, classroomId: 5, equipmentTypeId: 11, quantity: 10, status: 'Good' },
+    
+    // Laboratory - 教室ID 7
+    { id: 37, classroomId: 7, equipmentTypeId: 1, quantity: 1, status: 'Good' },
+    { id: 38, classroomId: 7, equipmentTypeId: 2, quantity: 10, status: 'Good' },
+    { id: 39, classroomId: 7, equipmentTypeId: 4, quantity: 1, status: 'Good' },
+    { id: 40, classroomId: 7, equipmentTypeId: 6, quantity: 15, status: 'Good' },
+    { id: 41, classroomId: 7, equipmentTypeId: 7, quantity: 30, status: 'Good' },
+    { id: 42, classroomId: 7, equipmentTypeId: 8, quantity: 15, status: 'Good' },
+    { id: 43, classroomId: 7, equipmentTypeId: 9, quantity: 1, status: 'Good' },
+    { id: 44, classroomId: 7, equipmentTypeId: 10, quantity: 2, status: 'Good' },
+    { id: 45, classroomId: 7, equipmentTypeId: 12, quantity: 10, status: 'Partially Damaged' }
+  ];
+
+  // 设备与教室类型映射，描述每种教室类型默认应该有的设备
+  export const mockRoomTypeEquipment = [
+    { roomType: 'ComputerLab', equipmentTypeIds: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11] },
+    { roomType: 'Lecture', equipmentTypeIds: [1, 3, 4, 5, 7, 9, 10, 11] },
+    { roomType: 'LargeHall', equipmentTypeIds: [1, 3, 4, 5, 7, 9, 10, 11] },
+    { roomType: 'Laboratory', equipmentTypeIds: [1, 2, 4, 6, 7, 8, 9, 10, 12] }
+  ];
+  
   // 修改时间槽模拟数据，采用GenerateStandardTimeSlots风格的时间段
   export const mockTimeSlots = (() => {
     const slots = [];

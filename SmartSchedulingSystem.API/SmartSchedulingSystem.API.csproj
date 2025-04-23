@@ -36,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SmartSchedulingSystem.Core\SmartSchedulingSystem.Core.csproj" />
     <ProjectReference Include="..\SmartSchedulingSystem.Data\SmartSchedulingSystem.Data.csproj" />
+    <ProjectReference Include="..\SmartSchedulingSystem.Scheduling\SmartSchedulingSystem.Scheduling.csproj" />
   </ItemGroup>
 
 </Project>

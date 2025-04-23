@@ -22,6 +22,30 @@ builder.Services.AddCors(options =>
     });
 });
 
+// 添加SchedulingEngine相关服务
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Engine.ConstraintManager>();
+
+// 添加缺少的依赖项
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.CP.CPModelBuilder>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.CP.SolutionConverter>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.LS.MoveGenerator>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.LS.SimulatedAnnealingController>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.ConstraintAnalyzer>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.ParameterAdjuster>();
+// 添加SolutionDiversifier服务
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.SolutionDiversifier>();
+
+// 添加主要服务
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Utils.ProblemAnalyzer>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Engine.SolutionEvaluator>();
+builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Engine.SchedulingEngine>();
+
+// 添加调度参数
+builder.Services.AddSingleton<SmartSchedulingSystem.Scheduling.Utils.SchedulingParameters>();
+
 // 构建应用
 var app = builder.Build();
 

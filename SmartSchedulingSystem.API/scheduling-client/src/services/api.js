@@ -335,10 +335,17 @@ export const generateScheduleApi = async (formData) => {
       // 使用模拟排课API而非真实排课API
       // const response = await apiRequest('/Scheduling/generate', 'POST', scheduleRequest);
       
-      // 使用测试控制器的mock-schedule端点
-      console.log('Using test controller\'s mock-schedule endpoint...');
-      const response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
-      
+      // // 使用测试控制器的mock-schedule端点，用随机算法排课，容易出现冲突，因此可以来测试llms的冲突分析
+      // console.log('Using test controller\'s mock-schedule endpoint...');
+      // const response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
+       
+      // 使用排课控制器的generate端点
+       console.log('Using Schedule controller\'s generate endpoint...');
+       // 使用level1级别的约束
+       // const response = await apiRequest('/Schedule/generate', 'POST', scheduleRequest);
+       // 使用level2级别的约束，加上了两种可用性约束
+       const response = await apiRequest('/Schedule/generate-advanced', 'POST', scheduleRequest);
+       
       console.log('Schedule generation successful:', response);
       return response;
     } catch (apiError) {
