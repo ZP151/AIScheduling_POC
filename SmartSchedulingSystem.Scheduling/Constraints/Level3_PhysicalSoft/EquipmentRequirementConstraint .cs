@@ -5,7 +5,7 @@ using System.Linq;
 using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Models;
 
-namespace SmartSchedulingSystem.Scheduling.Constraints.Soft
+namespace SmartSchedulingSystem.Scheduling.Constraints.Level3_PhysicalSoft
 {
     public class EquipmentRequirementConstraint : IConstraint
     {
@@ -18,8 +18,12 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Soft
         public bool IsHard { get; } = false;
         public bool IsActive { get; set; } = true;
         public double Weight { get; set; } = 0.8;
-        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level2_PhysicalSoft;
+        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level3_PhysicalSoft;
         public string Category => "Physical Resources";
+        
+        // 添加缺少的属性
+        public string DefinitionId => "EquipmentRequirementConstraint";
+        public string BasicRule => "ResourceRequirements";
 
         public EquipmentRequirementConstraint(
             Dictionary<int, List<string>> sectionRequiredEquipment,

@@ -64,6 +64,31 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public IConstraint Constraint { get; set; }
 
         /// <summary>
+        /// 约束ID
+        /// </summary>
+        public int ConstraintId => Constraint?.Id ?? 0;
+
+        /// <summary>
+        /// 约束名称
+        /// </summary>
+        public string ConstraintName => Constraint?.Name ?? string.Empty;
+
+        /// <summary>
+        /// 是否是硬约束
+        /// </summary>
+        public bool IsHard => Constraint?.IsHard ?? false;
+
+        /// <summary>
+        /// 约束权重
+        /// </summary>
+        public double Weight => Constraint?.Weight ?? 1.0;
+
+        /// <summary>
+        /// 约束是否满足
+        /// </summary>
+        public bool Satisfied => Score >= 0.99; // 当得分接近1时认为约束满足
+
+        /// <summary>
         /// 约束满足程度（0-1，1为完全满足）
         /// </summary>
         public double Score { get; set; }

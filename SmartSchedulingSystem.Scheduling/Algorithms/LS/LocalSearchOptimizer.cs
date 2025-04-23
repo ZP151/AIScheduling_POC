@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+using SmartSchedulingSystem.Scheduling.Utils;
 
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
@@ -20,7 +21,8 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         private readonly ConstraintAnalyzer _constraintAnalyzer;
         private readonly SolutionEvaluator _evaluator;
         private readonly ILogger<LocalSearchOptimizer> _logger;
-        private readonly SchedulingParameters _parameters;
+        private readonly Utils.SchedulingParameters _parameters;
+        private readonly Random _random;
 
         public LocalSearchOptimizer(
             MoveGenerator moveGenerator,
@@ -28,14 +30,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             ConstraintAnalyzer constraintAnalyzer,
             SolutionEvaluator evaluator,
             ILogger<LocalSearchOptimizer> logger,
-            SchedulingParameters parameters = null)
+            Utils.SchedulingParameters parameters = null)
         {
             _moveGenerator = moveGenerator ?? throw new ArgumentNullException(nameof(moveGenerator));
             _saController = saController ?? throw new ArgumentNullException(nameof(saController));
             _constraintAnalyzer = constraintAnalyzer ?? throw new ArgumentNullException(nameof(constraintAnalyzer));
             _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _parameters = parameters ?? new SchedulingParameters();
+            _parameters = parameters ?? new Utils.SchedulingParameters();
+            _random = new Random();
         }
         /// <summary>
         /// 优化多个初始解
@@ -110,6 +113,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             // 深拷贝初始解
             var currentSolution = initialSolution.Clone();
             var bestSolution = initialSolution.Clone();
+
+            // 保存当前约束应用级别
+            var currentConstraintLevel = SmartSchedulingSystem.Scheduling.Engine.GlobalConstraintManager.Current?.GetCurrentApplicationLevel() 
+                                       ?? Engine.ConstraintApplicationLevel.Basic;
+            
+            _logger.LogDebug($"使用约束级别 {currentConstraintLevel} 进行局部搜索优化");
 
             // 首次评估解
             var currentEvaluation = _evaluator.Evaluate(currentSolution);
@@ -190,24 +199,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         continue;
                     }
                     IMove bestMove = SelectBestMove(moves, currentSolution);
-                    //// 评估并选择最佳移动
-                    //IMove bestMove = null;
-                    //double bestMoveScore = double.MinValue;
-
-                    //foreach (var move in moves)
-                    //{
-                    //    var newSolution = move.Apply(currentSolution);
-                    //    double score = _evaluator.Evaluate(newSolution).Score;
-
-                    //    if (score > bestMoveScore)
-                    //    {
-                    //        bestMove = move;
-                    //        bestMoveScore = score;
-                    //    }
-                    //}
 
                     // 应用移动并评估
                     var newSolution = bestMove.Apply(currentSolution);
+                    
+                    // 确保应用移动后的解仍然满足当前约束级别的要求
+                    var hardConstraintsSatisfied = _evaluator.EvaluateHardConstraints(newSolution) >= 1.0;
+                    if (!hardConstraintsSatisfied)
+                    {
+                        _logger.LogDebug("迭代 {Iteration}: 移动 {MoveDescription} 违反了硬约束，拒绝", 
+                            iteration, bestMove.GetDescription());
+                        continue;
+                    }
+                    
                     double newScore = _evaluator.Evaluate(newSolution).Score;
 
                     // 决定是否接受新解
@@ -219,6 +223,9 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                             iteration, bestMove.GetDescription(), newScore);
 
                         currentSolution = newSolution;
+                        
+                        // 保存当前解使用的约束级别
+                        currentSolution.ConstraintLevel = currentConstraintLevel;
 
                         // 更新约束分数缓存
                         foreach (var constraint in allConstraints)
@@ -268,7 +275,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             }
 
             _logger.LogInformation("局部搜索完成，共 {Iteration} 次迭代，最终评分: {Score}", iteration, bestScore);
-
+            
+            // 确保最佳解记录了使用的约束级别
+            bestSolution.ConstraintLevel = currentConstraintLevel;
+            
             return bestSolution;
         }
 
@@ -293,6 +303,50 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             }
 
             return bestMove;
+        }
+
+        /// <summary>
+        /// 使用指定参数优化解决方案
+        /// </summary>
+        /// <param name="initialSolution">初始解</param>
+        /// <param name="maxIterations">最大迭代次数</param>
+        /// <param name="initialTemperature">初始温度</param>
+        /// <param name="coolingRate">冷却率</param>
+        /// <returns>优化后的解</returns>
+        public SchedulingSolution OptimizeSolution(
+            SchedulingSolution initialSolution, 
+            int maxIterations, 
+            double initialTemperature, 
+            double coolingRate)
+        {
+            _logger.LogInformation("使用指定参数开始局部搜索优化...");
+            _logger.LogInformation($"参数: maxIterations={maxIterations}, initialTemperature={initialTemperature}, coolingRate={coolingRate}");
+            
+            // 保存原始参数
+            var originalMaxIterations = _parameters.MaxLsIterations;
+            var originalTemperature = _parameters.InitialTemperature;
+            var originalCoolingRate = _parameters.CoolingRate;
+            
+            try
+            {
+                // 应用新参数
+                _parameters.MaxLsIterations = maxIterations;
+                _parameters.InitialTemperature = initialTemperature;
+                _parameters.CoolingRate = coolingRate;
+                
+                // 重置模拟退火控制器并应用新参数
+                _saController.Reset(initialTemperature, coolingRate);
+                
+                // 调用标准优化方法
+                return OptimizeSolution(initialSolution);
+            }
+            finally
+            {
+                // 恢复原始参数
+                _parameters.MaxLsIterations = originalMaxIterations;
+                _parameters.InitialTemperature = originalTemperature;
+                _parameters.CoolingRate = originalCoolingRate;
+            }
         }
 
     }

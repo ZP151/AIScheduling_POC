@@ -24,6 +24,11 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public SchedulingEvaluation Evaluation { get; set; } // optional
 
         /// <summary>
+        /// 解决方案的得分，直接返回Evaluation.Score
+        /// </summary>
+        public double Score => Evaluation?.Score ?? 0;
+
+        /// <summary>
         /// 解决方案名称
         /// </summary>
         public string Name { get; set; }
@@ -39,9 +44,19 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         /// <summary>
+        /// 生成时间
+        /// </summary>
+        public DateTime GeneratedAt { get; set; } = DateTime.Now;
+
+        /// <summary>
         /// 创建此解决方案的算法
         /// </summary>
         public string Algorithm { get; set; }
+
+        /// <summary>
+        /// 添加属性来跟踪解是在哪个约束级别下生成的
+        /// </summary>
+        public Engine.ConstraintApplicationLevel ConstraintLevel { get; set; } = Engine.ConstraintApplicationLevel.Basic;
 
         /// <summary>
         /// 获取特定课程班级的排课分配
@@ -220,6 +235,21 @@ namespace SmartSchedulingSystem.Scheduling.Models
             }).ToList();
 
             return clone;
+        }
+
+        /// <summary>
+        /// 获取下一个冲突ID
+        /// </summary>
+        public int GetNextConflictId()
+        {
+            // 如果评估对象存在，计算现有冲突的最大ID并加1
+            if (Evaluation != null && Evaluation.Conflicts != null && Evaluation.Conflicts.Any())
+            {
+                return Evaluation.Conflicts.Max(c => c.Id) + 1;
+            }
+            
+            // 否则从1开始
+            return 1;
         }
     }
 

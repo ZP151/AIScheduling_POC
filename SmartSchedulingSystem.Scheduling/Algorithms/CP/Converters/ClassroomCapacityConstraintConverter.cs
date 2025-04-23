@@ -11,6 +11,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
     /// </summary>
     public class ClassroomCapacityConstraintConverter : ICPConstraintConverter
     {
+        /// <summary>
+        /// 获取约束转换器的约束级别
+        /// </summary>
+        public Engine.ConstraintApplicationLevel ConstraintLevel => Engine.ConstraintApplicationLevel.Basic;
+
         private readonly Dictionary<int, int> _classroomCapacities;
         private readonly Dictionary<int, int> _expectedEnrollments;
 

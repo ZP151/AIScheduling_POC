@@ -56,11 +56,6 @@ namespace SmartSchedulingSystem.Scheduling.Models
         ClassroomConflict,
 
         /// <summary>
-        /// 学生冲突（同一学生在同一时间有两门课）
-        /// </summary>
-        StudentConflict,
-
-        /// <summary>
         /// 教师可用性冲突（教师在安排的时间不可用）
         /// </summary>
         TeacherAvailabilityConflict,
@@ -79,11 +74,6 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// 教室类型不匹配
         /// </summary>
         ClassroomTypeMismatch,
-
-        /// <summary>
-        /// 性别限制冲突
-        /// </summary>
-        GenderRestrictionConflict,
 
         /// <summary>
         /// 校区间旅行时间冲突
@@ -106,16 +96,22 @@ namespace SmartSchedulingSystem.Scheduling.Models
         TeacherWorkloadExceeded,
 
         /// <summary>
-        /// 假期冲突
-        /// </summary>
-        HolidayConflict,
-
-        /// <summary>
         /// 约束评估错误
         /// </summary>
         ConstraintEvaluationError,
 
         BuildingProximityConflict,
+        
+        /// <summary>
+        /// 教师不可用
+        /// </summary>
+        TeacherUnavailable,
+        
+        /// <summary>
+        /// 教室不可用
+        /// </summary>
+        ClassroomUnavailable,
+        
         /// <summary>
         /// 其他冲突
         /// </summary>

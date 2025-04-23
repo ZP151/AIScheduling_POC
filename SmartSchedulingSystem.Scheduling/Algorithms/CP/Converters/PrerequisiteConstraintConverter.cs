@@ -11,6 +11,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
     /// </summary>
     public class PrerequisiteConstraintConverter : ICPConstraintConverter
     {
+        /// <summary>
+        /// 获取约束转换器的约束级别
+        /// </summary>
+        public Engine.ConstraintApplicationLevel ConstraintLevel => Engine.ConstraintApplicationLevel.Basic;
+
         private readonly Dictionary<int, List<int>> _prerequisites; // 课程ID -> 先修课程ID列表
         private readonly Dictionary<int, int> _courseSectionMap; // 班级ID -> 课程ID
 

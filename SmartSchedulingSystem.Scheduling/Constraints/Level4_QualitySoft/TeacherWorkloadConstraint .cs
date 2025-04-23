@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
+namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
 {
     public class TeacherWorkloadConstraint : IConstraint
     {
@@ -15,8 +15,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
         public bool IsHard { get; } = false;
         public bool IsActive { get; set; } = true;
         public double Weight { get; set; } = 0.8;
-        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level3_QualitySoft;
+        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level4_QualitySoft;
         public string Category => "Resource Utilization";
+        
+        public string DefinitionId => "TeacherWorkloadConstraint";
+        public string BasicRule => "TeacherWorkload";
 
         private readonly Dictionary<int, int> _maxWeeklyHours;
         private readonly Dictionary<int, int> _maxDailyHours;

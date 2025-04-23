@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
+namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
 {
     public class TeacherScheduleCompactnessConstraint : IConstraint
     {
@@ -15,8 +15,10 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
         public bool IsHard { get; } = false;
         public bool IsActive { get; set; } = true;
         public double Weight { get; set; } = 0.7;
-        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level3_QualitySoft;
+        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level4_QualitySoft;
         public string Category => "Preference";
+        public string DefinitionId => "TeacherScheduleCompactnessConstraint";
+        public string BasicRule => "TeacherComfort";
 
         private readonly int _maxConsecutiveHours;
 

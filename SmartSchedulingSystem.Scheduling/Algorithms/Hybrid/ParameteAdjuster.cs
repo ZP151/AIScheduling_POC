@@ -1,17 +1,25 @@
-﻿using SmartSchedulingSystem.Scheduling.Models;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SmartSchedulingSystem.Scheduling.Utils;
+using SmartSchedulingSystem.Scheduling.Models;
 
 namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
-    /// 根据问题特征自动调整算法参数
+    /// 参数调整器 - 根据问题特性和中间结果动态调整参数
     /// </summary>
     public class ParameterAdjuster
     {
-        private readonly SchedulingParameters _parameters;
+        private readonly Utils.SchedulingParameters _parameters;
 
-        public ParameterAdjuster(SchedulingParameters parameters)
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="parameters">排课参数</param>
+        public ParameterAdjuster(Utils.SchedulingParameters parameters)
         {
             _parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }

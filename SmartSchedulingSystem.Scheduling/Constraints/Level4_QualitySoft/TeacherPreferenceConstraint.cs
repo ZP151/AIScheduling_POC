@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SmartSchedulingSystem.Scheduling.Models;
 
-namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
+namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
 {
     public class TeacherPreferenceConstraint : IConstraint
     {
@@ -15,8 +15,13 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
         public bool IsHard { get; } = false;
         public bool IsActive { get; set; } = true;
         public double Weight { get; set; } = 0.7;
-        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level3_QualitySoft;
+        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level4_QualitySoft;
         public string Category => "Preference";
+        
+        // 添加缺少的属性
+        public string DefinitionId => "TeacherPreferenceConstraint";
+        public string BasicRule => "TeacherPreference";
+        
         public TeacherPreferenceConstraint(Dictionary<(int TeacherId, int TimeSlotId), int> preferences)
         {
             _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
@@ -80,11 +85,6 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.QualitySoft
             double averageScore = evaluated > 0 ? totalScore / evaluated : 1.0;
 
             return (averageScore, conflicts);
-        }
-
-        public double Evaluate(SchedulingSolution solution, out object conflicts)
-        {
-            throw new NotImplementedException();
         }
 
         public bool IsSatisfied(SchedulingSolution solution)

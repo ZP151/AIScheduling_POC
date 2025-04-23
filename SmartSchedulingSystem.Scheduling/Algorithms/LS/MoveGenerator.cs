@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SmartSchedulingSystem.Scheduling.Utils;
 
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
@@ -16,16 +17,16 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         private readonly Random _random = new Random();
         private readonly ILogger<MoveGenerator> _logger;
         private readonly ConstraintManager _constraintManager;
-        private readonly SchedulingParameters _parameters;
+        private readonly Utils.SchedulingParameters _parameters;
 
         public MoveGenerator(
             ILogger<MoveGenerator> logger,
             ConstraintManager constraintManager,
-            SchedulingParameters parameters = null)
+            Utils.SchedulingParameters parameters = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _constraintManager = constraintManager ?? throw new ArgumentNullException(nameof(constraintManager));
-            _parameters = parameters ?? new SchedulingParameters();
+            _parameters = parameters ?? new Utils.SchedulingParameters();
         }
 
         /// <summary>
@@ -279,20 +280,36 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             SchedulingAssignment assignment,
             List<IMove> moves)
         {
-            // 获取所有可用的时间槽
+            try
+            {
+                // 获取可用的时间段
             var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
 
-            _logger.LogDebug($"找到 {availableTimeSlots.Count} 个可用时间槽供移动");
-
-            foreach (var timeSlotId in availableTimeSlots)
-            {
-                var move = new TimeMove(assignment.Id, timeSlotId);
-
-                // 验证移动是否满足所有硬约束
-                if (IsValidMove(solution, move))
+                if (availableTimeSlots.Count == 0)
                 {
-                    moves.Add(move);
+                    _logger.LogDebug("没有找到可用的时间段");
+                    return;
                 }
+
+                _logger.LogDebug($"找到 {availableTimeSlots.Count} 个可用的时间段");
+
+                // 随机选择一些时间段添加为移动
+                var selectedTimeSlots = availableTimeSlots
+                    .OrderBy(x => _random.Next()) // 随机打乱
+                    .Take(Math.Min(3, availableTimeSlots.Count))
+                    .ToList();
+
+                foreach (var timeSlotId in selectedTimeSlots)
+            {
+                    // 创建时间段移动
+                    var move = new TimeSlotMove(assignment.Id, timeSlotId);
+                    moves.Add(move);
+                    _logger.LogDebug($"添加时间段移动: 分配 {assignment.Id} 移至时间段 {timeSlotId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "添加时间段移动时发生错误");
             }
         }
         // 在MoveGenerator.cs中添加必要的辅助方法

@@ -2,17 +2,18 @@
 using SmartSchedulingSystem.Scheduling.Algorithms.CP;
 using SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters;
 using SmartSchedulingSystem.Scheduling.Constraints;
-using SmartSchedulingSystem.Scheduling.Constraints.Hard;
-using SmartSchedulingSystem.Scheduling.Constraints.PhysicalSoft;
-using SmartSchedulingSystem.Scheduling.Constraints.QualitySoft;
-using SmartSchedulingSystem.Scheduling.Constraints.Soft;
+using SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard;
+using SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard;
+using SmartSchedulingSystem.Scheduling.Constraints.Level3_PhysicalSoft;
+using SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft;
 using SmartSchedulingSystem.Scheduling.Engine;
 using SmartSchedulingSystem.Scheduling.Algorithms.Hybrid;
 using SmartSchedulingSystem.Scheduling.Algorithms.LS;
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
+using SmartSchedulingSystem.Scheduling.Interfaces;
 using System;
-using SchedulSmartSchedulingSystemingSystem.Scheduling.Constraints.Soft;
+using System.Collections.Generic;
 
 namespace SmartSchedulingSystem.Scheduling
 {
@@ -24,10 +25,10 @@ namespace SmartSchedulingSystem.Scheduling
         /// <summary>
         /// 注册排课服务
         /// </summary>
-        public static IServiceCollection AddSchedulingServices(this IServiceCollection services, SchedulingParameters parameters = null)
+        public static IServiceCollection AddSchedulingServices(this IServiceCollection services, Utils.SchedulingParameters parameters = null)
         {
             // 使用默认参数或提供的参数
-            parameters ??= SchedulingParameters.CreateDefault();
+            parameters ??= new Utils.SchedulingParameters();
 
             // 注册参数
             services.AddSingleton(parameters);
@@ -35,14 +36,12 @@ namespace SmartSchedulingSystem.Scheduling
             // 注册核心组件
             services.AddSingleton<ConstraintManager>();
             services.AddSingleton<SolutionEvaluator>();
-            services.AddSingleton<SolutionConverter>();
-            services.AddSingleton<SolutionDiversifier>();
+            services.AddSingleton<Algorithms.CP.SolutionConverter>();
+            services.AddSingleton<Algorithms.Hybrid.SolutionDiversifier>();
             services.AddSingleton<ProblemAnalyzer>();
 
             // 注册约束转换器
             services.AddTransient<ICPConstraintConverter, TeacherConflictConstraintConverter>();
-            services.AddTransient<ICPConstraintConverter, TeacherAvailabilityConstraintConverter>();
-            services.AddTransient<ICPConstraintConverter, ClassroomAvailabilityConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, ClassroomCapacityConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, ClassroomConflictConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, PrerequisiteConstraintConverter>();
@@ -106,14 +105,11 @@ namespace SmartSchedulingSystem.Scheduling
             services.AddSingleton<IConstraint, TeacherConflictConstraint>();
             services.AddSingleton<IConstraint, ClassroomConflictConstraint>();
             services.AddSingleton<IConstraint, TeacherAvailabilityConstraint>();
-            services.AddSingleton<IConstraint, PrerequisiteConstraint>();
             services.AddSingleton<IConstraint, ClassroomCapacityConstraint>();
             services.AddSingleton<IConstraint, ClassroomAvailabilityConstraint>();
 
             // 注册物理软约束 - 修改为Singleton以避免生命周期冲突
-            services.AddSingleton<IConstraint, TimeAvailabilityConstraint>();
             services.AddSingleton<IConstraint, EquipmentRequirementConstraint>();
-            services.AddSingleton<IConstraint, LocationProximityConstraint>();
             services.AddSingleton<IConstraint, ClassroomTypeMatchConstraint>();
 
             // 注册质量软约束 - 修改为Singleton以避免生命周期冲突

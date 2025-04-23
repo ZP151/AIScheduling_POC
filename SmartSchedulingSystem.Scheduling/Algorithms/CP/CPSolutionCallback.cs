@@ -1,65 +1,69 @@
 ﻿using Google.OrTools.Sat;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 {
     /// <summary>
-    /// 基础CP求解器回调，用于收集解决方案
+    /// CP求解器的解决方案回调类，用于收集求解过程中的解决方案
     /// </summary>
     public class CPSolutionCallback : CpSolverSolutionCallback
     {
-        private readonly Dictionary<string, IntVar> _variables;
-        private readonly int _maxSolutions;
-        private int _solutionCount = 0;
-
+        private readonly Dictionary<string, IntVar> _variableDict;
+        private readonly int _targetSolutionCount;
+        
+        public List<Dictionary<string, long>> Solutions { get; private set; }
+        public int SolutionCount => Solutions.Count;
+        
         /// <summary>
-        /// 收集到的解决方案
+        /// 初始化解决方案回调
         /// </summary>
-        public List<Dictionary<string, long>> Solutions { get; } = new List<Dictionary<string, long>>();
-
-        public CPSolutionCallback(Dictionary<string, IntVar> variables, int maxSolutions)
+        /// <param name="variableDict">变量字典</param>
+        /// <param name="targetSolutionCount">目标解数量</param>
+        public CPSolutionCallback(Dictionary<string, IntVar> variableDict, int targetSolutionCount)
         {
-            _variables = variables;
-            _maxSolutions = maxSolutions;
+            _variableDict = variableDict ?? throw new ArgumentNullException(nameof(variableDict));
+            _targetSolutionCount = Math.Max(1, targetSolutionCount);
+            Solutions = new List<Dictionary<string, long>>();
         }
-
+        
+        /// <summary>
+        /// 当找到新解时调用
+        /// </summary>
         public override void OnSolutionCallback()
         {
-            Console.WriteLine("收到回调，找到新解!");
-            // 为了调试，输出一些变量的值
-            var activeVariables = _variables.Where(v => Value(v.Value) > 0).ToList();
-            Console.WriteLine($"发现 {activeVariables.Count} 个活跃变量(值>0)");
-
-            // 存储当前解
-            var solution = new Dictionary<string, long>();
-            foreach (var entry in _variables)
+            // 如果已经收集了足够的解决方案，可以提前停止求解
+            if (Solutions.Count >= _targetSolutionCount)
             {
-                long value = Value(entry.Value);
-                solution[entry.Key] = value;
-
-                // 输出活跃变量
-                if (value > 0)
-                {
-                    Console.WriteLine($"变量 {entry.Key} = {value}");
-                }
+                StopSearch();
+                return;
             }
-
-            Solutions.Add(solution);
-            _solutionCount++;
-
-            Console.WriteLine($"当前已收集 {_solutionCount} 个解");
-
-            // 如果达到最大解数，停止搜索
-            if (_solutionCount >= _maxSolutions)
+            
+            // 收集当前解决方案的变量值
+            var solution = new Dictionary<string, long>();
+            
+            foreach (var entry in _variableDict)
             {
-                Console.WriteLine("达到最大解数，停止搜索");
+                solution[entry.Key] = Value(entry.Value);
+            }
+            
+            // 添加到解决方案列表
+            Solutions.Add(solution);
+            
+            // 如果达到目标解数量，停止搜索
+            if (Solutions.Count >= _targetSolutionCount)
+            {
                 StopSearch();
             }
         }
-
+        
         /// <summary>
-        /// 获取找到的解决方案数量
+        /// 重置回调状态
         /// </summary>
-        public int SolutionCount => _solutionCount;
+        public void Reset()
+        {
+            Solutions.Clear();
+        }
     }
 }

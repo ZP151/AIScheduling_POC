@@ -22,6 +22,11 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public int SectionId { get; set; }
 
         /// <summary>
+        /// 课程班级ID（与SectionId同义，用于兼容性）
+        /// </summary>
+        public int CourseSectionId { get => SectionId; set => SectionId = value; }
+
+        /// <summary>
         /// 课程班级代码
         /// </summary>
         public string SectionCode { get; set; }
@@ -49,6 +54,11 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public string ClassroomName { get; set; }
 
         /// <summary>
+        /// 教室所在建筑
+        /// </summary>
+        public string Building { get; set; }
+
+        /// <summary>
         /// 时间槽ID
         /// </summary>
         public int TimeSlotId { get; set; }
@@ -73,6 +83,29 @@ namespace SmartSchedulingSystem.Scheduling.Models
         /// </summary>
         public List<int> WeekPattern { get; set; } = new List<int>();
 
- 
+        /// <summary>
+        /// 教师导航属性（运行时填充，不存储）
+        /// </summary>
+        public TeacherInfo Teacher { get; set; }
+
+        /// <summary>
+        /// 教室导航属性（运行时填充，不存储）
+        /// </summary>
+        public ClassroomInfo Classroom { get; set; }
+
+        /// <summary>
+        /// 课程班级导航属性（运行时填充，不存储）
+        /// </summary>
+        public CourseSectionInfo CourseSection { get; set; }
+
+        /// <summary>
+        /// 时间槽导航属性（运行时填充，不存储）
+        /// </summary>
+        public TimeSlotInfo TimeSlot { get; set; }
+
+        /// <summary>
+        /// 周数（与WeekPattern对应，用于兼容性）
+        /// </summary>
+        public int Week { get => WeekPattern.Count > 0 ? WeekPattern.First() : 1; }
     }
 }

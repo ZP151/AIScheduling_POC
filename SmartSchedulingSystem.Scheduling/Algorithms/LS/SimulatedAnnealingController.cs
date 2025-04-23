@@ -86,6 +86,23 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
+        /// 使用指定参数重置
+        /// </summary>
+        /// <param name="initialTemperature">初始温度</param>
+        /// <param name="coolingRate">冷却率</param>
+        public void Reset(double initialTemperature, double coolingRate)
+        {
+            _initialTemperature = initialTemperature;
+            _coolingRate = coolingRate;
+            _currentTemperature = _initialTemperature;
+            _iteration = 0;
+            _noImprovementCount = 0;
+            _bestScore = double.MinValue;
+
+            _logger.LogInformation($"模拟退火控制器已使用新参数重置，初始温度: {_initialTemperature}, 冷却率: {_coolingRate}");
+        }
+
+        /// <summary>
         /// 更新最佳得分并计算无改进次数
         /// </summary>
         /// <param name="score">当前得分</param>

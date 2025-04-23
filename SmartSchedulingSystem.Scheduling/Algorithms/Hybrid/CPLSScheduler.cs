@@ -24,7 +24,8 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         private readonly SolutionEvaluator _evaluator;
         private readonly ParameterAdjuster _parameterAdjuster;
         private readonly SolutionDiversifier _solutionDiversifier;
-        private readonly SchedulingParameters _parameters;
+        private readonly Utils.SchedulingParameters _parameters;
+        private readonly Random _random;
 
         public CPLSScheduler(
             ILogger<CPLSScheduler> logger,
@@ -33,7 +34,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
             SolutionEvaluator evaluator,
             ParameterAdjuster parameterAdjuster,
             SolutionDiversifier solutionDiversifier,
-            SchedulingParameters parameters = null)
+            Utils.SchedulingParameters parameters = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _cpScheduler = cpScheduler ?? throw new ArgumentNullException(nameof(cpScheduler));
@@ -41,7 +42,8 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
             _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
             _parameterAdjuster = parameterAdjuster ?? throw new ArgumentNullException(nameof(parameterAdjuster));
             _solutionDiversifier = solutionDiversifier ?? throw new ArgumentNullException(nameof(solutionDiversifier));
-            _parameters = parameters ?? new SchedulingParameters();
+            _parameters = parameters ?? new Utils.SchedulingParameters();
+            _random = new Random();
         }
 
         /// <summary>
@@ -71,68 +73,113 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     };
                 }
 
-                // 3. CP阶段：生成初始解
-                _logger.LogInformation("CP阶段：生成初始解...");
-                List<SchedulingSolution> initialSolutions = _cpScheduler.GenerateInitialSolutions(
-                    problem, _parameters.InitialSolutionCount);
-
-                if (initialSolutions.Count == 0)
+                // 3. CP阶段：采用渐进式约束应用，使用最小级别约束生成初始解
+                _logger.LogInformation("CP阶段：使用基本级别约束(Basic)生成初始解...");
+                
+                // 先设置约束管理器为最小级别
+                var originalLevel = GlobalConstraintManager.Current?.GetCurrentApplicationLevel() ?? ConstraintApplicationLevel.Basic;
+                try
                 {
-                    _logger.LogWarning("CP阶段未能生成任何初始解");
-                    return new SchedulingResult
+                    // 设置约束管理器为基本级别
+                    GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
+                    
+                    List<SchedulingSolution> initialSolutions = _cpScheduler.GenerateInitialSolutions(
+                        problem, _parameters.InitialSolutionCount);
+
+                    if (initialSolutions.Count == 0)
                     {
-                        Status = SchedulingStatus.Failure,
-                        Message = "未能生成满足硬约束的初始解",
-                        Solutions = new List<SchedulingSolution>(),
-                        ExecutionTimeMs = sw.ElapsedMilliseconds
+                        _logger.LogWarning("CP阶段未能生成任何初始解");
+                        return new SchedulingResult
+                        {
+                            Status = SchedulingStatus.Failure,
+                            Message = "未能生成满足基本硬约束的初始解",
+                            Solutions = new List<SchedulingSolution>(),
+                            ExecutionTimeMs = sw.ElapsedMilliseconds
+                        };
+                    }
+
+                    _logger.LogInformation($"CP阶段完成，使用Basic级别约束生成了 {initialSolutions.Count} 个初始解");
+
+                    // 4. 初步评估初始解
+                    foreach (var solution in initialSolutions)
+                    {
+                        double score = _evaluator.Evaluate(solution).Score;
+                        _logger.LogDebug($"初始解评分: {score:F4}");
+                    }
+
+                    // 5. 使用局部搜索优化每个初始解，并逐步应用更高级别的约束
+                    _logger.LogInformation("LS阶段：逐步应用更高级别约束优化解...");
+                    
+                    List<SchedulingSolution> optimizedSolutions = new List<SchedulingSolution>();
+                    
+                    // 渐进式约束应用在优化阶段
+                    // 先用Level1的核心硬约束优化
+                    _logger.LogInformation("阶段1: 使用Basic级别约束进行局部搜索优化...");
+                    GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
+                    var basicOptimizedSolutions = _localSearchOptimizer.OptimizeSolutions(initialSolutions);
+                    
+                    if (basicOptimizedSolutions.Any())
+                    {
+                        // 再用Level1+Level2约束优化
+                        _logger.LogInformation("阶段2: 使用Standard级别约束进行进一步优化...");
+                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Standard);
+                        var standardOptimizedSolutions = _localSearchOptimizer.OptimizeSolutions(basicOptimizedSolutions);
+                        
+                        if (standardOptimizedSolutions.Any())
+                        {
+                            optimizedSolutions = standardOptimizedSolutions;
+                        }
+                        else
+                        {
+                            optimizedSolutions = basicOptimizedSolutions;
+                        }
+                    }
+                    else
+                    {
+                        optimizedSolutions = initialSolutions;
+                    }
+
+                    _logger.LogInformation($"LS阶段完成，优化了 {optimizedSolutions.Count} 个解");
+
+                    // 6. 评估和排序优化后的解
+                    optimizedSolutions = optimizedSolutions
+                        .OrderByDescending(s => _evaluator.Evaluate(s))
+                        .ToList();
+
+                    // 记录最终解的评分
+                    if (optimizedSolutions.Any())
+                    {
+                        double bestScore = _evaluator.Evaluate(optimizedSolutions.First()).Score;
+                        _logger.LogInformation($"最优解评分: {bestScore:F4}");
+                    }
+
+                    // 7. 准备返回结果
+                    sw.Stop();
+                    var result = new SchedulingResult
+                    {
+                        Status = optimizedSolutions.Any() ? SchedulingStatus.Success : SchedulingStatus.PartialSuccess,
+                        Message = optimizedSolutions.Any()
+                            ? "成功生成排课方案"
+                            : "生成了部分满足约束的排课方案",
+                        Solutions = optimizedSolutions,
+                        ExecutionTimeMs = sw.ElapsedMilliseconds,
+                        Statistics = ComputeStatistics(optimizedSolutions, problem)
                     };
+
+                    _logger.LogInformation($"排课完成，耗时: {sw.ElapsedMilliseconds}ms，" +
+                                         $"状态: {result.Status}，解数量: {result.Solutions.Count}");
+
+                    return result;
                 }
-
-                _logger.LogInformation($"CP阶段完成，生成了 {initialSolutions.Count} 个初始解");
-
-                // 4. 初步评估初始解
-                foreach (var solution in initialSolutions)
+                finally
                 {
-                    double score = _evaluator.Evaluate(solution).Score;
-                    _logger.LogDebug($"初始解评分: {score:F4}");
+                    // 恢复约束管理器原始级别
+                    if (GlobalConstraintManager.Current != null)
+                    {
+                        GlobalConstraintManager.Current.SetConstraintApplicationLevel(originalLevel);
+                        _logger.LogInformation($"已恢复约束应用级别为: {originalLevel}");
+                    }
                 }
-
-                // 5. 使用局部搜索优化每个初始解
-                _logger.LogInformation("LS阶段：优化解...");
-
-                List<SchedulingSolution> optimizedSolutions = _localSearchOptimizer.OptimizeSolutions(initialSolutions);
-
-                _logger.LogInformation($"LS阶段完成，优化了 {optimizedSolutions.Count} 个解");
-
-                // 6. 评估和排序优化后的解
-                optimizedSolutions = optimizedSolutions
-                    .OrderByDescending(s => _evaluator.Evaluate(s))
-                    .ToList();
-
-                // 记录最终解的评分
-                if (optimizedSolutions.Any())
-                {
-                    double bestScore = _evaluator.Evaluate(optimizedSolutions.First()).Score;
-                    _logger.LogInformation($"最优解评分: {bestScore:F4}");
-                }
-
-                // 7. 准备返回结果
-                sw.Stop();
-                var result = new SchedulingResult
-                {
-                    Status = optimizedSolutions.Any() ? SchedulingStatus.Success : SchedulingStatus.PartialSuccess,
-                    Message = optimizedSolutions.Any()
-                        ? "成功生成排课方案"
-                        : "生成了部分满足约束的排课方案",
-                    Solutions = optimizedSolutions,
-                    ExecutionTimeMs = sw.ElapsedMilliseconds,
-                    Statistics = ComputeStatistics(optimizedSolutions, problem)
-                };
-
-                _logger.LogInformation($"排课完成，耗时: {sw.ElapsedMilliseconds}ms，" +
-                                     $"状态: {result.Status}，解数量: {result.Solutions.Count}");
-
-                return result;
             }
             catch (Exception ex)
             {
@@ -391,22 +438,21 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         /// </summary>
         private bool CheckFeasibility(SchedulingProblem problem)
         {
+            CpSolverStatus status = CpSolverStatus.Unknown;
+
             try
             {
                 _logger.LogInformation("检查排课问题可行性...");
-                // 首先输出问题规模信息
-                _logger.LogInformation($"问题规模: 课程数={problem.CourseSections.Count}, " +
-                    $"教师数={problem.Teachers.Count}, 教室数={problem.Classrooms.Count}, " +
-                    $"时间槽数={problem.TimeSlots.Count}");
-                // 使用CP求解器检查是否存在可行解
-                CpSolverStatus status;
+
                 // 增加求解时间以提高找到可行解的概率
-                var tempParams = new SchedulingParameters
+                var tempParams = new Utils.SchedulingParameters
                 {
                     CpTimeLimit = 120, // 给予更多时间
                     InitialSolutionCount = 1 // 只需要一个解即可证明可行性
                 };
-                bool isFeasible = _cpScheduler.CheckFeasibility(problem, out status,tempParams);
+                
+                // 修改方法调用匹配CPScheduler类中的CheckFeasibility方法签名
+                bool isFeasible = _cpScheduler.CheckFeasibility(null, problem);
 
                 if (isFeasible)
                 {
@@ -527,20 +573,65 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         {
             try
             {
-                _logger.LogInformation("调整算法参数...");
+                _logger.LogDebug("根据问题特性调整算法参数...");
 
-                _parameterAdjuster.AdjustParameters(problem);
+                // 基于问题规模调整参数
+                if (problem.CourseSections.Count > 200)
+                {
+                    _parameters.InitialSolutionCount = 3;
+                    _parameters.CpTimeLimit = 300; // 大规模问题给CP更多时间
+                }
+                else if (problem.CourseSections.Count > 100)
+                {
+                    _parameters.InitialSolutionCount = 5;
+                    _parameters.CpTimeLimit = 180;
+                }
+                else
+                {
+                    _parameters.InitialSolutionCount = 8;
+                    _parameters.CpTimeLimit = 120;
+                }
 
-                // 记录调整后的关键参数
-                _logger.LogInformation($"初始解数量: {_parameters.InitialSolutionCount}");
-                _logger.LogInformation($"CP求解时间限制: {_parameters.CpTimeLimit}秒");
-                _logger.LogInformation($"LS最大迭代次数: {_parameters.MaxLsIterations}");
+                // 根据问题约束数量调整约束级别
+                if (problem.Constraints != null)
+                {
+                    int hardConstraintCount = problem.Constraints.Count(c => c.IsHard);
+                    
+                    // 根据硬约束数量来决定初始约束应用级别
+                    if (hardConstraintCount > 10)
+                    {
+                        // 复杂问题从基本约束开始
+                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
+                        _logger.LogInformation("约束较多，设置初始约束级别为Basic");
+                    }
+                    else if (hardConstraintCount > 5)
+                    {
+                        // 中等复杂度从Basic开始
+                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
+                        _logger.LogInformation("约束适中，设置初始约束级别为Basic");
+                    }
+                    else
+                    {
+                        // 简单问题从Standard开始
+                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Standard);
+                        _logger.LogInformation("约束较少，设置初始约束级别为Standard");
+                    }
+                }
+                else
+                {
+                    // 默认从基本约束开始，确保能找到初始解
+                    GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
+                    _logger.LogInformation("未提供约束信息，默认设置初始约束级别为Basic");
+                }
+
+                _logger.LogDebug($"参数调整完成：初始解数量={_parameters.InitialSolutionCount}, CP时间限制={_parameters.CpTimeLimit}秒");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "调整算法参数时出错");
-                // 出错时使用默认参数
+                _logger.LogError(ex, "调整参数时出错");
             }
         }
+
+       
     }
 }

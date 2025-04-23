@@ -4,21 +4,26 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Models;
+using SmartSchedulingSystem.Scheduling.Utils;
 
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
     /// <summary>
-    /// 评估排课方案的质量
+    /// 解决方案评估器接口
     /// </summary>
     public interface ISolutionEvaluator
     {
         SchedulingEvaluation Evaluate(SchedulingSolution solution);
     }
+
+    /// <summary>
+    /// 评估排课解决方案的类
+    /// </summary>
     public class SolutionEvaluator : ISolutionEvaluator
     {
         private readonly ILogger<SolutionEvaluator> _logger;
         private readonly ConstraintManager _constraintManager;
-        private readonly SchedulingParameters _parameters;
+        private readonly Utils.SchedulingParameters _parameters;
 
         // 缓存评估结果，减少重复计算
         private readonly Dictionary<int, Dictionary<int, double>> _constraintScoreCache = new Dictionary<int, Dictionary<int, double>>();
@@ -26,11 +31,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         public SolutionEvaluator(
             ILogger<SolutionEvaluator> logger,
             ConstraintManager constraintManager,
-            SchedulingParameters parameters = null)
+            Utils.SchedulingParameters parameters = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _constraintManager = constraintManager ?? throw new ArgumentNullException(nameof(constraintManager));
-            _parameters = parameters ?? new SchedulingParameters();
+            _parameters = parameters ?? new Utils.SchedulingParameters();
         }
 
         /// <summary>
@@ -174,7 +179,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         public double EvaluatePhysicalSoftConstraints(SchedulingSolution solution)
         {
             var physicalSoftConstraints = _constraintManager.GetSoftConstraints()
-                .Where(c => c.Hierarchy == ConstraintHierarchy.Level2_PhysicalSoft)
+                .Where(c => c.Hierarchy == ConstraintHierarchy.Level3_PhysicalSoft)
                 .ToList();
 
             if (physicalSoftConstraints.Count == 0)
@@ -221,7 +226,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         public double EvaluateQualitySoftConstraints(SchedulingSolution solution)
         {
             var qualitySoftConstraints = _constraintManager.GetSoftConstraints()
-                .Where(c => c.Hierarchy == ConstraintHierarchy.Level3_QualitySoft)
+                .Where(c => c.Hierarchy == ConstraintHierarchy.Level4_QualitySoft)
                 .ToList();
 
             if (qualitySoftConstraints.Count == 0)
@@ -297,11 +302,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         private double EvaluateSoftConstraintsFromCache(Dictionary<int, double> cachedScores)
         {
             var physicalSoftConstraints = _constraintManager.GetSoftConstraints()
-                .Where(c => c.Hierarchy == ConstraintHierarchy.Level2_PhysicalSoft)
+                .Where(c => c.Hierarchy == ConstraintHierarchy.Level3_PhysicalSoft)
                 .ToList();
 
             var qualitySoftConstraints = _constraintManager.GetSoftConstraints()
-                .Where(c => c.Hierarchy == ConstraintHierarchy.Level3_QualitySoft)
+                .Where(c => c.Hierarchy == ConstraintHierarchy.Level4_QualitySoft)
                 .ToList();
 
             // 计算物理软约束得分
@@ -416,5 +421,77 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 .Where(c => c.IsActive && c.Hierarchy == hierarchy);
         }
 
+        /// <summary>
+        /// 获取指定层级的软约束
+        /// </summary>
+        private List<IConstraint> GetSoftConstraintsByHierarchy(ConstraintHierarchy hierarchy)
+        {
+            return _constraintManager.GetAllConstraints()
+                .Where(c => c.IsActive && !c.IsHard && c.Hierarchy == hierarchy)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 评估并返回软约束评估结果
+        /// </summary>
+        private List<ConstraintEvaluation> EvaluateAndGetSoftConstraintEvaluations(SchedulingSolution solution)
+        {
+            var evaluations = new List<ConstraintEvaluation>();
+            
+            // 获取活跃的软约束
+            var softConstraints = _constraintManager.GetSoftConstraints()
+                .Where(c => c.IsActive)
+                .ToList();
+            
+            // 按约束层级分组评估
+            var physicalSoftConstraints = softConstraints.Where(c => c.Hierarchy == ConstraintHierarchy.Level3_PhysicalSoft).ToList();
+            var qualitySoftConstraints = softConstraints.Where(c => c.Hierarchy == ConstraintHierarchy.Level4_QualitySoft).ToList();
+            
+            // 评估物理软约束
+            foreach (var constraint in physicalSoftConstraints)
+            {
+                try
+                {
+                    var (score, conflicts) = constraint.Evaluate(solution);
+                    var weight = constraint.Weight * _parameters.PhysicalSoftConstraintWeight;
+                    var evaluation = new ConstraintEvaluation
+                    {
+                        Constraint = constraint,
+                        Score = score,
+                        Conflicts = conflicts
+                    };
+                    
+                    evaluations.Add(evaluation);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"评估约束 {constraint.Name} 时出错");
+                }
+            }
+            
+            // 评估质量软约束
+            foreach (var constraint in qualitySoftConstraints)
+            {
+                try
+                {
+                    var (score, conflicts) = constraint.Evaluate(solution);
+                    var weight = constraint.Weight * _parameters.QualitySoftConstraintWeight;
+                    var evaluation = new ConstraintEvaluation
+                    {
+                        Constraint = constraint,
+                        Score = score,
+                        Conflicts = conflicts
+                    };
+                    
+                    evaluations.Add(evaluation);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"评估约束 {constraint.Name} 时出错");
+                }
+            }
+            
+            return evaluations;
+        }
     }
 }

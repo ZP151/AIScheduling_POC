@@ -5,7 +5,7 @@ using System.Linq;
 using SmartSchedulingSystem.Scheduling.Constraints;
 using SmartSchedulingSystem.Scheduling.Models;
 
-namespace SchedulSmartSchedulingSystemingSystem.Scheduling.Constraints.Soft
+namespace SmartSchedulingSystem.Scheduling.Constraints.Level3_PhysicalSoft
 {
     public class ClassroomTypeMatchConstraint : IConstraint
     {
@@ -18,8 +18,12 @@ namespace SchedulSmartSchedulingSystemingSystem.Scheduling.Constraints.Soft
         public bool IsHard { get; } = false;
         public bool IsActive { get; set; } = true;
         public double Weight { get; set; } = 0.7;
-        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level2_PhysicalSoft;
+        public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level3_PhysicalSoft;
         public string Category => "Physical Resources";
+        
+        // 添加缺少的属性
+        public string DefinitionId => "ClassroomTypeMatchConstraint";
+        public string BasicRule => "ResourceMatching";
 
         public ClassroomTypeMatchConstraint(
             Dictionary<int, string> courseSectionTypes,

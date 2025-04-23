@@ -33,12 +33,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         /// <summary>
         /// 为排课问题构建CP模型
         /// </summary>
-        public CpModel BuildModel(SchedulingProblem problem)
+        public CpModel BuildModel(SchedulingProblem problem, ConstraintApplicationLevel level = ConstraintApplicationLevel.Basic)
         {
             _variables.Clear();
 
             Console.WriteLine("============ CP模型构建开始 ============");
             Console.WriteLine($"Problem详情: {problem.Name}, {problem.CourseSections.Count}门课程");
+            Console.WriteLine($"约束应用级别: {level}");
 
             if (problem == null)
                 throw new ArgumentNullException(nameof(problem));
@@ -46,23 +47,45 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             var model = new CpModel();
             _variables = CreateDecisionVariables(model, problem);
 
-            // 添加核心约束
+            // 添加核心约束 (Level1_CoreHard)
             Console.WriteLine("添加OneCourseOneAssignment约束");
             AddOneCourseOneAssignmentConstraints(model, _variables, problem);  // 每门课必须分配一次
+            
             Console.WriteLine("添加教师冲突约束");
             AddTeacherConflictConstraints(model, _variables, problem);   // 教师不能同时教两门课
-
+            
+            Console.WriteLine("添加教室冲突约束");
             AddClassroomConflictConstraints(model, _variables, problem); // 教室不能同时安排两门课
-            AddTeacherAvailabilityConstraints(model, _variables, problem); // 教师可用性约束
-            AddClassroomAvailabilityConstraints(model, _variables, problem); // 教室可用性约束
-            AddClassroomCapacityConstraints(model, _variables, problem); // 教室容量约束
-            AddPrerequisiteConstraints(model, _variables, problem);      // 先修课程约束
 
+            // 根据约束级别选择性添加约束
+            if (level >= ConstraintApplicationLevel.Basic)
+            {
+                Console.WriteLine("添加教室容量约束");
+                AddClassroomCapacityConstraints(model, _variables, problem); // 教室容量约束
+                
+                Console.WriteLine("添加先修课程约束");
+                AddPrerequisiteConstraints(model, _variables, problem);      // 先修课程约束
+            }
 
-            // 应用所有自定义约束转换器
+            // 只在更高级别添加Level2及以上的约束
+            if (level >= ConstraintApplicationLevel.Standard)
+            {
+                Console.WriteLine("添加教师可用性约束");
+                AddTeacherAvailabilityConstraints(model, _variables, problem); // 教师可用性约束 (Level2)
+                
+                Console.WriteLine("添加教室可用性约束");
+                AddClassroomAvailabilityConstraints(model, _variables, problem); // 教室可用性约束 (Level2)
+            }
+
+            // 应用当前约束级别允许的自定义约束转换器
             foreach (var converter in _constraintConverters)
             {
-                converter.AddToModel(model, _variables, problem);
+                // 只应用当前级别允许的约束转换器
+                if (IsConverterAllowedAtLevel(converter, level))
+                {
+                    Console.WriteLine($"应用约束转换器: {converter.GetType().Name}");
+                    converter.AddToModel(model, _variables, problem);
+                }
             }
 
             // 设置目标函数（最大化软约束满足度）
@@ -74,7 +97,41 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         }
 
         /// <summary>
-        /// 创建决策变量
+        /// 判断约束转换器是否允许在当前约束级别应用
+        /// </summary>
+        private bool IsConverterAllowedAtLevel(ICPConstraintConverter converter, ConstraintApplicationLevel level)
+        {
+            // 根据转换器类型判断其约束级别
+            string converterName = converter.GetType().Name;
+            
+            // 核心硬约束转换器(Level1) - 在所有级别都允许
+            if (converterName.Contains("TeacherConflict") || 
+                converterName.Contains("ClassroomConflict") ||
+                converterName.Contains("ClassroomCapacity") ||
+                converterName.Contains("Prerequisite"))
+            {
+                return true;
+            }
+            
+            // 可变硬约束转换器(Level2) - 只在Standard及以上级别允许
+            if (level >= ConstraintApplicationLevel.Standard &&
+                (converterName.Contains("TeacherAvailability") || 
+                 converterName.Contains("ClassroomAvailability")))
+            {
+                return true;
+            }
+            
+            // 软约束转换器(Level3和Level4) - 只在Complete级别允许
+            if (level >= ConstraintApplicationLevel.Complete)
+            {
+                return true;
+            }
+            
+            return false;
+        }
+
+        /// <summary>
+        /// 创建决策变量 - 优化版本，减少变量数量以提高求解速度
         /// </summary>
         private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
         {
@@ -93,21 +150,66 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 return variables;
             }
 
-            // 为每门课程创建变量
+            // 为每门课程创建变量 - 采用预筛选方式减少变量数量
             foreach (var section in problem.CourseSections)
             {
                 bool sectionHasVariables = false;
                 _logger.LogDebug($"为课程 {section.Id} ({section.CourseName}) 创建变量...");
 
+                // 筛选满足容量要求的教室，减少变量数量
+                var suitableRooms = problem.Classrooms
+                    .Where(room => room.Capacity >= section.Enrollment)
+                    .ToList();
+
+                if (suitableRooms.Count == 0)
+                {
+                    _logger.LogWarning($"警告: 课程 {section.Id} ({section.CourseName}) 容量为 {section.Enrollment}，没有找到容量足够的教室");
+                    
+                    // 如果没有容量足够的教室，选择容量最大的几个教室
+                    suitableRooms = problem.Classrooms
+                        .OrderByDescending(room => room.Capacity)
+                        .Take(3)
+                        .ToList();
+                    
+                    _logger.LogWarning($"为避免无解，选择了 {suitableRooms.Count} 个容量最大的教室");
+                }
+
+                // 筛选有资格教授此课程的教师，减少变量数量
+                var qualifiedTeachers = new List<TeacherInfo>();
+                
+                // 查找教师课程偏好
+                var teacherPreferences = problem.TeacherCoursePreferences
+                    .Where(tcp => tcp.CourseId == section.CourseId && tcp.ProficiencyLevel >= 2)
+                    .ToList();
+                
+                if (teacherPreferences.Count > 0)
+                {
+                    // 基于偏好选择教师
+                    var preferredTeacherIds = teacherPreferences.Select(tp => tp.TeacherId).ToHashSet();
+                    qualifiedTeachers = problem.Teachers
+                        .Where(t => preferredTeacherIds.Contains(t.Id))
+                        .ToList();
+                }
+                
+                if (qualifiedTeachers.Count == 0)
+                {
+                    _logger.LogWarning($"警告: 课程 {section.Id} ({section.CourseName}) 没有合格的教师");
+                    
+                    // 如果没有合格的教师，选择所有教师避免无解
+                    qualifiedTeachers = problem.Teachers.ToList();
+                    _logger.LogWarning($"为避免无解，选择了所有 {qualifiedTeachers.Count} 个教师");
+                }
+
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    foreach (var classroom in problem.Classrooms)
-                    {
-                        // 暂时不检查容量，确保能创建变量
-                        foreach (var teacher in problem.Teachers)
-                        {
-                            // 暂时不检查教师资格，确保能创建变量
+                    // 初始时忽略可用性约束，以便生成更多可能的变量
+                    var availableRooms = suitableRooms;
+                    var availableTeachers = qualifiedTeachers;
 
+                    foreach (var classroom in availableRooms)
+                    {
+                        foreach (var teacher in availableTeachers)
+                        {
                             // 创建变量
                             string varName = $"c{section.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
                             var variable = model.NewBoolVar(varName);
@@ -115,9 +217,6 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                             variableCount++;
                             sectionHasVariables = true;
 
-                            _logger.LogDebug($"创建变量: {varName}");
-
-                            // 为了限制变量数量，每个课程只创建少量变量用于测试
                             if (variableCount % 1000 == 0)
                             {
                                 _logger.LogInformation($"已创建 {variableCount} 个变量...");
@@ -128,181 +227,80 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
                 if (!sectionHasVariables)
                 {
-                    _logger.LogWarning($"课程 {section.Id} ({section.CourseName}) 没有创建任何变量");
+                    _logger.LogWarning($"课程 {section.Id} ({section.CourseName}) 没有创建任何变量，可能无法生成有效解");
                 }
             }
 
             _logger.LogInformation($"变量创建完成，总共创建了 {variables.Count} 个变量");
             return variables;
         }
-        //private Dictionary<string, IntVar> CreateDecisionVariables(CpModel model, SchedulingProblem problem)
-        //{
-        //    int variableCount = 0;
-        //    // 为每个课程-时间-教室-教师的可能组合创建二元变量
-        //    foreach (var course in problem.CourseSections)
-        //    {
-        //        foreach (var timeSlot in problem.TimeSlots)
-        //        {
-        //            foreach (var classroom in problem.Classrooms)
-        //            {
-        //                // 检查教室容量是否满足课程需求的基本过滤
-        //                if (classroom.Capacity < course.Enrollment)
-        //                    continue;
-
-        //                foreach (var teacher in problem.Teachers)
-        //                {
-        //                    Console.WriteLine($"考虑变量: 课程={course.Id}, 时间={timeSlot.Id}, 教室={classroom.Id}, 教师={teacher.Id}");
-
-        //                    //// 基本筛选：检查教师是否可以教授此课程
-        //                    //bool teacherCanTeachCourse =
-        //                    //    problem.TeacherCoursePreferences
-        //                    //        .Any(tcp => tcp.TeacherId == teacher.Id &&
-        //                    //                   tcp.CourseId == course.CourseId &&
-        //                    //                   tcp.ProficiencyLevel >= 2);
-
-        //                    //if (!teacherCanTeachCourse)
-        //                    //    continue;
-
-        //                    //// 检查教师在此时间段是否可用
-        //                    //bool teacherAvailable =
-        //                    //    !problem.TeacherAvailabilities
-        //                    //        .Any(ta => ta.TeacherId == teacher.Id &&
-        //                    //                  ta.TimeSlotId == timeSlot.Id &&
-        //                    //                  !ta.IsAvailable);
-
-        //                    //if (!teacherAvailable)
-        //                    //    continue;
-
-        //                    //// 检查教室在此时间段是否可用
-        //                    //bool classroomAvailable =
-        //                    //    !problem.ClassroomAvailabilities
-        //                    //        .Any(ca => ca.ClassroomId == classroom.Id &&
-        //                    //                  ca.TimeSlotId == timeSlot.Id &&
-        //                    //                  !ca.IsAvailable);
-
-        //                    //if (!classroomAvailable)
-        //                    //    continue;
-
-        //                    // 创建唯一标识符
-        //                    string varName = $"c{course.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
-
-        //                    // 创建0-1整数变量(0=不分配，1=分配)
-        //                    var variable = model.NewBoolVar(varName);
-        //                    _variables[varName] = variable;
-        //                    variableCount++;
-
-        //                }
-        //            }
-        //        }
-        //    }
-        //    Console.WriteLine($"总共创建了 {variableCount} 个决策变量");
-
-        //    // 如果某门课程没有可行的分配，记录日志
-        //    foreach (var course in problem.CourseSections)
-        //    {
-        //        var courseVars = _variables.Where(kv => kv.Key.StartsWith($"c{course.Id}_")).ToList();
-        //        if (courseVars.Count == 0)
-        //        {
-        //            Console.WriteLine($"警告: 课程 {course.Id} ({course.CourseName}) 没有可行的分配，可能无法生成有效解");
-        //        }
-        //    }
-
-        //    return _variables;
-        //}
 
         /// <summary>
         /// 设置目标函数，优化软约束满足度
         /// </summary>
         private void SetupObjectiveFunction(CpModel model, Dictionary<string, IntVar> _variables, SchedulingProblem problem)
         {
-            // 创建目标函数表达式
-            LinearExpr objective = LinearExpr.Constant(0);
+            // 创建目标函数项列表
+            var terms = new List<IntVar>();
+            var coefficients = new List<int>();
 
-            // 1. 教师偏好满足度（教师在自己偏好的时间段教课）
-            foreach (var teacher in problem.Teachers)
+            int objectiveConstant = 0;
+
+            // 1. 偏好匹配项 - 教师和课程的匹配得分
+            foreach (var section in problem.CourseSections)
             {
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    // 获取教师对此时间段的偏好级别（1-5）
-                    int preferenceLevel = 3; // 默认中等偏好
-
-                    var preference = problem.TeacherAvailabilities
-                        .FirstOrDefault(ta => ta.TeacherId == teacher.Id && ta.TimeSlotId == timeSlot.Id);
-
-                    if (preference != null && preference.PreferenceLevel > 0)
+                    foreach (var classroom in problem.Classrooms)
                     {
-                        preferenceLevel = preference.PreferenceLevel;
-                    }
+                        // 计算教室类型与课程需求的匹配得分
+                        int roomTypeScore = CalculateRoomTypeMatchScore(section, classroom, problem);
 
-                    // 找到所有教师在此时间段的变量
-                    var teacherTimeVars = _variables
-                        .Where(kv => kv.Key.Contains($"_t{timeSlot.Id}_") && kv.Key.EndsWith($"_f{teacher.Id}"))
-                        .Select(kv => kv.Value)
-                        .ToList();
+                        // 计算教室容量与课程人数的匹配得分
+                        int capacityScore = CalculateCapacityScore(section.Enrollment, classroom.Capacity);
 
-                    if (teacherTimeVars.Count > 0)
-                    {
-                        // 将教师偏好级别添加到目标函数
-                        foreach (var variable in teacherTimeVars)
+                        // 评估时间段偏好
+                        int timeSlotScore = 10; // 默认分数
+                        
+                        // 移除对晚上时间段的特殊权重设置，使所有时间段具有相同的权重
+                        // 不再区分时间段类型(早上、下午、晚上)，公平对待每个时间段
+
+                        foreach (var teacher in problem.Teachers)
                         {
-                            objective += preferenceLevel * variable;
+                            string varName = $"c{section.Id}_t{timeSlot.Id}_r{classroom.Id}_f{teacher.Id}";
+                            if (_variables.TryGetValue(varName, out var variable))
+                            {
+                                // 计算教师对这门课程的偏好得分
+                                int teacherPreferenceScore = 0;
+                                var preference = problem.TeacherCoursePreferences
+                                    .FirstOrDefault(tcp => tcp.TeacherId == teacher.Id && tcp.CourseId == section.CourseId);
+
+                                if (preference != null)
+                                {
+                                    // 根据教师的专业水平和偏好计算得分
+                                    teacherPreferenceScore = preference.ProficiencyLevel * 5 + preference.PreferenceLevel * 2;
+                                }
+
+                                // 将所有得分累加
+                                int totalScore = teacherPreferenceScore + roomTypeScore + capacityScore + timeSlotScore;
+
+                                terms.Add(variable);
+                                coefficients.Add(totalScore);
+                            }
                         }
                     }
                 }
             }
 
-            // 2. 教室类型匹配度
-            foreach (var course in problem.CourseSections)
+            // 2. 添加约束偏好 - 教师工作量平衡等
+            
+            // 添加工作日平衡项等其他目标
+
+            // 设置目标函数
+            if (terms.Count > 0)
             {
-                foreach (var classroom in problem.Classrooms)
-                {
-                    // 计算课程与教室类型的匹配度（0-5）
-                    int matchScore = CalculateRoomTypeMatchScore(course, classroom, problem);
-
-                    // 找到所有此课程使用此教室的变量
-                    var courseRoomVars = _variables
-                        .Where(kv => kv.Key.StartsWith($"c{course.Id}_") && kv.Key.Contains($"_r{classroom.Id}_"))
-                        .Select(kv => kv.Value)
-                        .ToList();
-
-                    if (courseRoomVars.Count > 0)
-                    {
-                        // 将匹配度添加到目标函数
-                        foreach (var variable in courseRoomVars)
-                        {
-                            objective += matchScore * variable;
-                        }
-                    }
-                }
+                model.Maximize(LinearExpr.WeightedSum(terms.ToArray(), coefficients.ToArray()) + objectiveConstant);
             }
-
-            // 3. 教室容量适合度（避免小班大教室或大班小教室）
-            foreach (var course in problem.CourseSections)
-            {
-                foreach (var classroom in problem.Classrooms)
-                {
-                    // 计算容量适合度（0-5）
-                    int capacityScore = CalculateCapacityScore(course.Enrollment, classroom.Capacity);
-
-                    // 找到所有此课程使用此教室的变量
-                    var courseRoomVars = _variables
-                        .Where(kv => kv.Key.StartsWith($"c{course.Id}_") && kv.Key.Contains($"_r{classroom.Id}_"))
-                        .Select(kv => kv.Value)
-                        .ToList();
-
-                    if (courseRoomVars.Count > 0)
-                    {
-                        // 将容量适合度添加到目标函数
-                        foreach (var variable in courseRoomVars)
-                        {
-                            objective += capacityScore * variable;
-                        }
-                    }
-                }
-            }
-
-            // 设置目标：最大化总分数
-            model.Maximize(objective);
         }
 
         /// <summary>
@@ -310,51 +308,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         /// </summary>
         private int CalculateRoomTypeMatchScore(CourseSectionInfo course, ClassroomInfo classroom, SchedulingProblem problem)
         {
-            // 这里进行简化评分
-            // 5分：完美匹配
-            // 3分：基本满足
-            // 1分：勉强可用
-            // 0分：不匹配
-
-            // 如果课程要求特定教室类型
-            if (!string.IsNullOrEmpty(course.RequiredRoomType))
+            // 如果课程有教室类型需求，但是类型不匹配
+            if (!string.IsNullOrEmpty(course.RequiredRoomType) && 
+                !string.IsNullOrEmpty(classroom.RoomType) && 
+                !IsCompatibleRoomType(course.RequiredRoomType, classroom.RoomType))
             {
-                if (course.RequiredRoomType.Equals(classroom.Type, StringComparison.OrdinalIgnoreCase))
-                {
-                    return 5; // 完美匹配
-                }
-
-                // 检查是否为可接受的替代类型
-                if (IsCompatibleRoomType(course.RequiredRoomType, classroom.Type))
-                {
-                    return 3; // 基本满足
-                }
-
                 return 0; // 不匹配
-            }
-
-            // 如果课程有设备需求
-            if (!string.IsNullOrEmpty(course.RequiredEquipment))
-            {
-                var requiredEquipments = course.RequiredEquipment.Split(',');
-                var availableEquipments = classroom.Equipment?.Split(',') ?? new string[0];
-
-                // 计算满足的设备比例
-                int matchedEquipments = requiredEquipments
-                    .Count(req => availableEquipments.Any(avail =>
-                        avail.Trim().Equals(req.Trim(), StringComparison.OrdinalIgnoreCase)));
-
-                if (matchedEquipments == requiredEquipments.Length)
-                {
-                    return 5; // 完全满足设备需求
-                }
-
-                if (matchedEquipments > 0)
-                {
-                    return 3; // 部分满足设备需求
-                }
-
-                return 1; // 没有满足设备需求
             }
 
             // 默认为普通教室，任何教室都可接受

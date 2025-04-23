@@ -8,6 +8,52 @@ using SmartSchedulingSystem.Scheduling.Engine;
 
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
+    /// <summary>
+    /// 冲突解决策略枚举
+    /// </summary>
+    public enum ConflictResolutionStrategy
+    {
+        /// <summary>
+        /// 自动：让系统自动选择最佳解决方案
+        /// </summary>
+        Auto,
+        
+        /// <summary>
+        /// 重分配教师：为发生冲突的课程分配不同的教师
+        /// </summary>
+        ReassignTeacher,
+        
+        /// <summary>
+        /// 重分配教室：为发生冲突的课程分配不同的教室
+        /// </summary>
+        ReassignClassroom,
+        
+        /// <summary>
+        /// 重分配时间：为发生冲突的课程分配不同的时间段
+        /// </summary>
+        ReassignTime,
+        
+        /// <summary>
+        /// 忽略冲突：接受冲突，不做任何修改
+        /// </summary>
+        IgnoreConflict,
+        
+        /// <summary>
+        /// 顺序处理：按照优先级顺序逐个处理冲突
+        /// </summary>
+        Sequential,
+        
+        /// <summary>
+        /// 整体处理：考虑所有冲突的相互影响进行处理
+        /// </summary>
+        Holistic,
+        
+        /// <summary>
+        /// 混合处理：结合顺序和整体处理的优点
+        /// </summary>
+        Hybrid
+    }
+
     public interface IConflictResolver
     {
         Task<SchedulingSolution> ResolveConflictsAsync(
@@ -22,6 +68,9 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             CancellationToken cancellationToken = default);
     }
 
+    /// <summary>
+    /// 冲突解决器 - 负责处理和解决排课中的冲突
+    /// </summary>
     public class ConflictResolver : IConflictResolver
     {
         private readonly ISolutionEvaluator _evaluator;

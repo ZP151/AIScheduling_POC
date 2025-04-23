@@ -11,6 +11,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
     /// </summary>
     public class TeacherConflictConstraintConverter : ICPConstraintConverter
     {
+        /// <summary>
+        /// 获取约束转换器的约束级别
+        /// </summary>
+        public Engine.ConstraintApplicationLevel ConstraintLevel => Engine.ConstraintApplicationLevel.Basic;
+
         public void AddToModel(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem)
         {
             if (model == null) throw new ArgumentNullException(nameof(model));  
