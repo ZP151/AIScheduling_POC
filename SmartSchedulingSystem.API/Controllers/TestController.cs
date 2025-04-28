@@ -10,7 +10,7 @@ namespace SmartSchedulingSystem.API.Controllers
     [Route("api/[controller]")]
     public class TestController : ControllerBase
     {
-        // 不注入任何服务，避免依赖注入问题
+        // Do not inject any services to avoid dependency injection issues
         
         [HttpGet("ping")]
         public IActionResult Ping()
@@ -23,7 +23,7 @@ namespace SmartSchedulingSystem.API.Controllers
         {
             try
             {
-                // 只检查请求数据，不调用任何服务
+                // Only check request data, do not call any services
                 var summary = new
                 {
                     SemesterId = request.SemesterId,
@@ -46,7 +46,7 @@ namespace SmartSchedulingSystem.API.Controllers
 
                 return Ok(new
                 {
-                    message = "请求数据检查成功",
+                    message = "Request data check successful",
                     request_summary = summary,
                     data_valid = true
                 });
@@ -55,7 +55,7 @@ namespace SmartSchedulingSystem.API.Controllers
             {
                 return StatusCode(500, new 
                 { 
-                    error = "处理请求数据时出错", 
+                    error = "Error processing request data", 
                     message = ex.Message,
                     data_valid = false
                 });
@@ -69,7 +69,7 @@ namespace SmartSchedulingSystem.API.Controllers
             {
                 if (request.CourseSectionObjects == null || !request.CourseSectionObjects.Any())
                 {
-                    return BadRequest(new { error = "请求数据中缺少课程信息" });
+                    return BadRequest(new { error = "Course information missing in request data" });
                 }
                 
                 if (request.TeacherObjects == null || !request.TeacherObjects.Any())
@@ -87,14 +87,14 @@ namespace SmartSchedulingSystem.API.Controllers
                     return BadRequest(new { error = "Time slot information is missing from the request data" });
                 }
                 
-                // 打印输入的所有TimeSlotObjects，便于调试
-                Console.WriteLine("输入的所有TimeSlotObjects:");
+                // Print all input TimeSlotObjects for debugging
+                Console.WriteLine("All input TimeSlotObjects:");
                 foreach (var ts in request.TimeSlotObjects)
                 {
-                    Console.WriteLine($"  ID: {ts.Id}, 星期{ts.DayOfWeek} {ts.DayName}, 时间: {ts.StartTime}-{ts.EndTime}, StartTime类型: {ts.StartTime?.GetType().Name}, 长度: {ts.StartTime?.Length}");
+                    Console.WriteLine($"  ID: {ts.Id}, Week {ts.DayOfWeek} {ts.DayName}, Time: {ts.StartTime}-{ts.EndTime}, StartTime type: {ts.StartTime?.GetType().Name}, Length: {ts.StartTime?.Length}");
                     if (ts.StartTime != null)
                     {
-                        // 检查时间格式和是否包含晚上时间段
+                        // Check time format and whether it includes evening time slots
                         bool isEveningByStartsWith = ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21");
                         bool isEveningByHour = false;
                         if (ts.StartTime.Contains(":"))
@@ -105,21 +105,21 @@ namespace SmartSchedulingSystem.API.Controllers
                                 isEveningByHour = hourValue >= 19 && hourValue <= 21;
                             }
                         }
-                        Console.WriteLine($"    StartsWith检测晚上时间段: {isEveningByStartsWith}, 小时值检测: {isEveningByHour}");
+                        Console.WriteLine($"    StartsWith evening time slot check: {isEveningByStartsWith}, Hour value check: {isEveningByHour}");
                     }
                 }
                 
-                // 生成一个简单的模拟排课结果
+                // Generate a simple mock scheduling result
                 var solutions = new List<object>();
                 var random = new Random();
                 
-                // 生成指定数量的排课方案
+                // Generate specified number of scheduling solutions
                 int solutionCount = request.SolutionCount > 0 ? request.SolutionCount : 3;
                 
-                // 对所有时间段进行分类，便于均匀分配
+                // Categorize all time slots for even distribution
                 var allTimeSlots = request.TimeSlotObjects.ToList();
                 
-                // 按时间段类型分组，便于后续输出调试信息
+                // Group by time slot type for subsequent debug output
                 var morningSlots = allTimeSlots.Where(ts => ts.StartTime != null && 
                     (ts.StartTime.StartsWith("08") || ts.StartTime.StartsWith("09") || 
                      ts.StartTime.StartsWith("10") || ts.StartTime.StartsWith("11"))).ToList();
@@ -131,7 +131,7 @@ namespace SmartSchedulingSystem.API.Controllers
                 var eveningSlots = allTimeSlots.Where(ts => ts.StartTime != null && 
                     (ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21"))).ToList();
                 
-                Console.WriteLine($"早上时间段数量: {morningSlots.Count}, 下午时间段数量: {afternoonSlots.Count}, 晚上时间段数量: {eveningSlots.Count}");
+                Console.WriteLine($"Morning time slots: {morningSlots.Count}, Afternoon time slots: {afternoonSlots.Count}, Evening time slots: {eveningSlots.Count}");
                 
                 for (int i = 0; i < solutionCount; i++)
                 {
@@ -140,7 +140,7 @@ namespace SmartSchedulingSystem.API.Controllers
                         scheduleId = 1000 + i,
                         createdAt = DateTime.Now,
                         status = "Generated",
-                        score = Math.Round(0.7 + random.NextDouble() * 0.3, 2), // 随机生成0.7-1.0之间的分数
+                        score = Math.Round(0.7 + random.NextDouble() * 0.3, 2), // Randomly generate scores between 0.7-1.0
                         items = new List<object>(),
                         algorithmType = "Test",
                         executionTimeMs = 50 + random.Next(100),
@@ -156,11 +156,11 @@ namespace SmartSchedulingSystem.API.Controllers
                         }
                     };
                     
-                    // 创建临时解决方案对象
+                    // Create temporary solution object
                     var tempSolution = solution;
                     var items = new List<object>();
                     
-                    // 用于统计课程分配情况
+                    // For statistics on course assignments
                     var assignmentStats = new Dictionary<string, int>
                     {
                         { "Morning", 0 },
@@ -168,33 +168,33 @@ namespace SmartSchedulingSystem.API.Controllers
                         { "Evening", 0 }
                     };
                     
-                    // 计算每个时间段区间应该分配的课程数量，确保均匀分配
+                    // Calculate how many courses should be assigned to each time slot interval, ensuring even distribution
                     int totalCourses = request.CourseSectionObjects.Count;
                     int totalTimeSlots = allTimeSlots.Count;
                     
-                    // 如果有可用时间段，进行均匀分配
+                    // If time slots are available, distribute evenly
                     if (totalTimeSlots > 0)
                     {
-                        Console.WriteLine($"总课程数: {totalCourses}, 总时间段数: {totalTimeSlots}");
+                        Console.WriteLine($"Total courses: {totalCourses}, Total time slots: {totalTimeSlots}");
                         
-                        // 为每个课程分配时间段
+                        // Assign time slots for each course
                         for (int courseIndex = 0; courseIndex < totalCourses; courseIndex++)
                         {
                             var course = request.CourseSectionObjects[courseIndex];
                             
-                            // 随机选择教师、教室
+                            // Randomly select teachers and classrooms
                             var teacher = request.TeacherObjects[random.Next(request.TeacherObjects.Count)];
                             var classroom = request.ClassroomObjects[random.Next(request.ClassroomObjects.Count)];
                             
-                            // 选择时间段 - 使用纯随机分配
-                            // 完全随机选择时间段，不再考虑时间段类型的比例
+                            // Select time slots - using pure random assignment
+                            // Completely random time slot selection, no longer considering the ratio of time slot types
                             string timePeriod;
                             Core.DTOs.TimeSlotExtDto timeSlot;
                             
-                            // 从所有可用时间段中随机选择
+                            // Randomly select from all available time slots
                             timeSlot = allTimeSlots[random.Next(allTimeSlots.Count)];
                             
-                            // 根据选择的时间段确定时间段类型
+                            // Determine time slot type based on selected time slot
                             if (timeSlot.StartTime.StartsWith("08") || timeSlot.StartTime.StartsWith("09") || 
                                 timeSlot.StartTime.StartsWith("10") || timeSlot.StartTime.StartsWith("11"))
                             {
@@ -214,13 +214,13 @@ namespace SmartSchedulingSystem.API.Controllers
                             }
                             else
                             {
-                                // 其他时间段
+                                // Other time slots
                                 timePeriod = "Other";
                             }
                             
-                            Console.WriteLine($"课程 {course.CourseName} 安排在 {timePeriod} 时间段: {timeSlot.StartTime}-{timeSlot.EndTime}, dayOfWeek:{timeSlot.DayOfWeek}, dayName:{timeSlot.DayName}");
+                            Console.WriteLine($"Course {course.CourseName} scheduled at {timePeriod} time slot: {timeSlot.StartTime}-{timeSlot.EndTime}, dayOfWeek:{timeSlot.DayOfWeek}, dayName:{timeSlot.DayName}");
                             
-                            // 添加课程分配项
+                            // Add course assignment item
                             items.Add(new
                             {
                                 courseSectionId = course.Id,
@@ -242,18 +242,18 @@ namespace SmartSchedulingSystem.API.Controllers
                     }
                     else
                     {
-                        // 如果没有可用时间段，输出错误信息
-                        Console.WriteLine("错误：没有可用的时间段！");
+                        // If no time slots are available, output error message
+                        Console.WriteLine("Error: No available time slots!");
                     }
                     
-                    // 打印课程分配统计
-                    Console.WriteLine("课程分配统计:");
-                    Console.WriteLine($"  早上: {assignmentStats["Morning"]} 门课程 ({(double)assignmentStats["Morning"] / totalCourses * 100:F1}%)");
-                    Console.WriteLine($"  下午: {assignmentStats["Afternoon"]} 门课程 ({(double)assignmentStats["Afternoon"] / totalCourses * 100:F1}%)");
-                    Console.WriteLine($"  晚上: {assignmentStats["Evening"]} 门课程 ({(double)assignmentStats["Evening"] / totalCourses * 100:F1}%)");
-                    Console.WriteLine($"  总计: {assignmentStats.Values.Sum()} 门课程, 目标: {totalCourses} 门课程");
+                    // Print course assignment statistics
+                    Console.WriteLine("Course assignment statistics:");
+                    Console.WriteLine($"  Morning: {assignmentStats["Morning"]} courses ({(double)assignmentStats["Morning"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  Afternoon: {assignmentStats["Afternoon"]} courses ({(double)assignmentStats["Afternoon"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  Evening: {assignmentStats["Evening"]} courses ({(double)assignmentStats["Evening"] / totalCourses * 100:F1}%)");
+                    Console.WriteLine($"  Total: {assignmentStats.Values.Sum()} courses, Target: {totalCourses} courses");
                     
-                    // 添加items到解决方案
+                    // Add items to solution
                     var solutionWithItems = new
                     {
                         scheduleId = tempSolution.scheduleId,
@@ -271,7 +271,7 @@ namespace SmartSchedulingSystem.API.Controllers
                     solutions.Add(solutionWithItems);
                 }
                 
-                // 计算最佳分数
+                // Calculate best score
                 double bestScore = 0;
                 foreach (dynamic sol in solutions)
                 {
@@ -281,7 +281,7 @@ namespace SmartSchedulingSystem.API.Controllers
                     }
                 }
                 
-                // 计算平均分数
+                // Calculate average score
                 double totalScore = 0;
                 foreach (dynamic sol in solutions)
                 {
@@ -289,7 +289,7 @@ namespace SmartSchedulingSystem.API.Controllers
                 }
                 double averageScore = Math.Round(totalScore / solutions.Count, 2);
                 
-                // 创建结果对象
+                // Create result object
                 var result = new
                 {
                     solutions = solutions,
@@ -301,7 +301,7 @@ namespace SmartSchedulingSystem.API.Controllers
                             createdAt = solution.createdAt,
                             status = solution.status,
                             score = solution.score,
-                            // 将items转换为前端期望的details格式
+                            // Convert items to details format expected by frontend
                             details = ((System.Collections.Generic.List<object>)solution.items).Select(i => {
                                 dynamic item = i;
                                 return new {
@@ -344,33 +344,33 @@ namespace SmartSchedulingSystem.API.Controllers
             }
         }
         
-        // 添加一个新的API端点，返回包含晚上时间段的测试数据
+        // Add a new API endpoint that returns test data with evening time slots
         [HttpGet("evening-test-data")]
         public IActionResult GetEveningTestData()
         {
-            // 创建包含晚上时间段的测试数据
+            // Create test data that includes evening time slots
             var timeSlots = new List<Core.DTOs.TimeSlotExtDto>
             {
-                // 早上时间段
+                // Morning time slots
                 new Core.DTOs.TimeSlotExtDto { Id = 1, DayOfWeek = 1, DayName = "Monday", StartTime = "08:00", EndTime = "09:30" },
                 new Core.DTOs.TimeSlotExtDto { Id = 2, DayOfWeek = 1, DayName = "Monday", StartTime = "10:00", EndTime = "11:30" },
                 
-                // 下午时间段
+                // Afternoon time slots
                 new Core.DTOs.TimeSlotExtDto { Id = 3, DayOfWeek = 1, DayName = "Monday", StartTime = "14:00", EndTime = "15:30" },
                 new Core.DTOs.TimeSlotExtDto { Id = 4, DayOfWeek = 1, DayName = "Monday", StartTime = "16:00", EndTime = "17:30" },
                 
-                // 晚上时间段 - 添加这些时间段
+                // Evening time slots - add these slots
                 new Core.DTOs.TimeSlotExtDto { Id = 21, DayOfWeek = 1, DayName = "Monday", StartTime = "19:00", EndTime = "20:30" },
                 new Core.DTOs.TimeSlotExtDto { Id = 22, DayOfWeek = 1, DayName = "Monday", StartTime = "20:00", EndTime = "21:30" }
             };
             
-            // 打印调试信息
-            Console.WriteLine("生成的测试数据包含晚上时间段:");
+            // Print debug information
+            Console.WriteLine("Generated test data includes evening time slots:");
             foreach (var ts in timeSlots)
             {
-                Console.WriteLine($"  ID: {ts.Id}, 星期{ts.DayOfWeek} {ts.DayName}, 时间: {ts.StartTime}-{ts.EndTime}");
+                Console.WriteLine($"  ID: {ts.Id}, Week {ts.DayOfWeek} {ts.DayName}, Time: {ts.StartTime}-{ts.EndTime}");
                 
-                // 检查时间格式
+                // Check time format
                 bool isEveningByStartsWith = ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21");
                 bool isEveningByHour = false;
                 if (ts.StartTime.Contains(":"))
@@ -381,10 +381,10 @@ namespace SmartSchedulingSystem.API.Controllers
                         isEveningByHour = hourValue >= 19 && hourValue <= 21;
                     }
                 }
-                Console.WriteLine($"    StartsWith检测晚上时间段: {isEveningByStartsWith}, 小时值检测: {isEveningByHour}");
+                Console.WriteLine($"    StartsWith evening time slot check: {isEveningByStartsWith}, Hour value check: {isEveningByHour}");
             }
             
-            // 分类统计
+            // Categorized statistics
             var morningSlots = timeSlots.Where(ts => ts.StartTime != null && 
                 (ts.StartTime.StartsWith("08") || ts.StartTime.StartsWith("09") || 
                  ts.StartTime.StartsWith("10") || ts.StartTime.StartsWith("11"))).ToList();
@@ -396,7 +396,7 @@ namespace SmartSchedulingSystem.API.Controllers
             var eveningSlots = timeSlots.Where(ts => ts.StartTime != null && 
                 (ts.StartTime.StartsWith("19") || ts.StartTime.StartsWith("20") || ts.StartTime.StartsWith("21"))).ToList();
             
-            Console.WriteLine($"早上时间段数量: {morningSlots.Count}, 下午时间段数量: {afternoonSlots.Count}, 晚上时间段数量: {eveningSlots.Count}");
+            Console.WriteLine($"Morning time slots: {morningSlots.Count}, Afternoon time slots: {afternoonSlots.Count}, Evening time slots: {eveningSlots.Count}");
             
             return Ok(new 
             {
@@ -411,18 +411,18 @@ namespace SmartSchedulingSystem.API.Controllers
             });
         }
         
-        // 添加一个新的API端点，生成包含晚上时间段的测试排课方案
+        // Add a new API endpoint to generate test scheduling solutions that include evening time slots
         [HttpGet("evening-schedule-test")]
         public IActionResult GenerateEveningScheduleTest()
         {
-            // 创建模拟的排课请求，包含晚上时间段
+            // Create simulated scheduling request including evening time slots
             var request = new ScheduleRequestDto
             {
                 SemesterId = 1,
                 GenerateMultipleSolutions = true,
                 SolutionCount = 3,
                 
-                // 课程数据
+                // Course data
                 CourseSectionObjects = new List<Core.DTOs.CourseSectionExtDto>
                 {
                     new Core.DTOs.CourseSectionExtDto { Id = 1, CourseCode = "CS101", CourseName = "Introduction to Computer Science", SectionCode = "A" },
@@ -433,7 +433,7 @@ namespace SmartSchedulingSystem.API.Controllers
                     new Core.DTOs.CourseSectionExtDto { Id = 6, CourseCode = "CS601", CourseName = "Evening Programming Lab", SectionCode = "A" }
                 },
                 
-                // 教师数据
+                // Teacher data
                 TeacherObjects = new List<Core.DTOs.TeacherExtDto>
                 {
                     new Core.DTOs.TeacherExtDto { Id = 1, Name = "Prof. Smith" },
@@ -441,7 +441,7 @@ namespace SmartSchedulingSystem.API.Controllers
                     new Core.DTOs.TeacherExtDto { Id = 3, Name = "Prof. Williams" }
                 },
                 
-                // 教室数据
+                // Classroom data
                 ClassroomObjects = new List<Core.DTOs.ClassroomExtDto>
                 {
                     new Core.DTOs.ClassroomExtDto { Id = 1, Name = "101", Building = "Main Building" },
@@ -449,24 +449,24 @@ namespace SmartSchedulingSystem.API.Controllers
                     new Core.DTOs.ClassroomExtDto { Id = 3, Name = "301", Building = "Computer Building" }
                 },
                 
-                // 时间段数据，包含晚上时间段
+                // Time slot data, including evening time slots
                 TimeSlotObjects = new List<Core.DTOs.TimeSlotExtDto>
                 {
-                    // 周一
+                    // Monday
                     new Core.DTOs.TimeSlotExtDto { Id = 1, DayOfWeek = 1, DayName = "Monday", StartTime = "08:00", EndTime = "09:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 2, DayOfWeek = 1, DayName = "Monday", StartTime = "10:00", EndTime = "11:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 3, DayOfWeek = 1, DayName = "Monday", StartTime = "14:00", EndTime = "15:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 4, DayOfWeek = 1, DayName = "Monday", StartTime = "16:00", EndTime = "17:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 21, DayOfWeek = 1, DayName = "Monday", StartTime = "19:00", EndTime = "20:30" },
                     
-                    // 周二
+                    // Tuesday
                     new Core.DTOs.TimeSlotExtDto { Id = 5, DayOfWeek = 2, DayName = "Tuesday", StartTime = "08:00", EndTime = "09:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 6, DayOfWeek = 2, DayName = "Tuesday", StartTime = "10:00", EndTime = "11:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 7, DayOfWeek = 2, DayName = "Tuesday", StartTime = "14:00", EndTime = "15:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 8, DayOfWeek = 2, DayName = "Tuesday", StartTime = "16:00", EndTime = "17:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 22, DayOfWeek = 2, DayName = "Tuesday", StartTime = "19:00", EndTime = "20:30" },
                     
-                    // 周三
+                    // Wednesday
                     new Core.DTOs.TimeSlotExtDto { Id = 9, DayOfWeek = 3, DayName = "Wednesday", StartTime = "08:00", EndTime = "09:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 10, DayOfWeek = 3, DayName = "Wednesday", StartTime = "10:00", EndTime = "11:30" },
                     new Core.DTOs.TimeSlotExtDto { Id = 11, DayOfWeek = 3, DayName = "Wednesday", StartTime = "14:00", EndTime = "15:30" },
@@ -475,7 +475,7 @@ namespace SmartSchedulingSystem.API.Controllers
                 }
             };
             
-            // 使用mock-schedule端点的逻辑处理请求
+            // Use mock-schedule endpoint logic to process request
             return MockSchedule(request);
         }
     }

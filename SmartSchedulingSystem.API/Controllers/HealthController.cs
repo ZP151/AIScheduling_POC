@@ -7,9 +7,9 @@ namespace SmartSchedulingSystem.API.Controllers
     public class HealthController : ControllerBase
     {
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult CheckHealth()
         {
-            return Ok(new { status = "健康", message = "API服务正常运行", timestamp = DateTime.Now });
+            return Ok(new { status = "Healthy", message = "API service is running normally", timestamp = DateTime.Now });
         }
     }
 } 

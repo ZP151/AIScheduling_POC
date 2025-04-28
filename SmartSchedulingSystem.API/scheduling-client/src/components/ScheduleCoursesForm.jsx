@@ -51,7 +51,7 @@ import {
 } from '../services/mockData';
 
 // 导入真实API服务
-import { generateScheduleApi } from '../services/api';
+import { generateScheduleApi, API_ENDPOINTS } from '../services/api';
 
 import RequirementAnalyzer  from './LLM/RequirementAnalyzer';
 import ParameterOptimization from './LLM/ParameterOptimization';
@@ -73,6 +73,9 @@ const ScheduleCoursesForm = ({
     courses: [],
     teachers: [],
     classrooms: [],
+
+    // API端点选择
+    apiEndpointType: API_ENDPOINTS.TEST_MOCK,
 
      // Add these new organizational scope parameters
     campus: '',
@@ -581,6 +584,9 @@ const ScheduleCoursesForm = ({
       teachers: formData.teachers || [], // 将在API中转换为teacherIds
       classrooms: formData.classrooms || [], // 将在API中转换为classroomIds
       
+      // API端点类型
+      apiEndpointType: formData.apiEndpointType,
+      
       // 组织单位数据
       campus: formData.campus || null,
       school: formData.school || null,
@@ -724,9 +730,6 @@ const ScheduleCoursesForm = ({
               </FormControl>
             </Grid>
             
-            {/* // Add this to the "Basic Settings" accordion in ScheduleCoursesForm.jsx
-            // After the semester selection, before the courses selection */}
-
             <Grid item xs={12}>
               <Typography variant="subtitle2" gutterBottom>Scheduling Scope</Typography>
               <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
@@ -797,7 +800,6 @@ const ScheduleCoursesForm = ({
                     </FormControl>
                   </Grid>
                   
-                  {/* // 在ScheduleCoursesForm.jsx中增加Subject选择部分，放在Department和Programme选择之间 */}
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth margin="normal">
                       <InputLabel id="subject-label">Subject</InputLabel>
@@ -846,7 +848,6 @@ const ScheduleCoursesForm = ({
                 </Grid>
               </Paper>
             </Grid>
-          
 
             <Grid item xs={12} md={6}>
               <FormControl fullWidth margin="normal">
@@ -946,6 +947,36 @@ const ScheduleCoursesForm = ({
           </Grid>
         </AccordionDetails>
       </Accordion>
+      
+      {/* API端点选择 - 单独放置 */}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>API Endpoint Selection</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel id="api-endpoint-label">API endpoint</InputLabel>
+              <Select
+                labelId="api-endpoint-label"
+                name="apiEndpointType"
+                value={formData.apiEndpointType}
+                onChange={handleFormChange}
+                label="API Endpoint"
+              >
+                <MenuItem value={API_ENDPOINTS.TEST_MOCK}>Test Controller Mock Endpoints (Randomized Class Scheduling)</MenuItem>
+                <MenuItem value={API_ENDPOINTS.MOCK}>Simulation Scheduling API</MenuItem>
+                <MenuItem value={API_ENDPOINTS.SCHEDULE_BASIC}>Basic Constraints (Level 1)</MenuItem>
+                <MenuItem value={API_ENDPOINTS.SCHEDULE_ADVANCED}> Advanced Constraints (Level 2)</MenuItem>
+                <MenuItem value={API_ENDPOINTS.SCHEDULE_ENHANCED}> Enhanced Constraints (Level 3)</MenuItem>
+              </Select>
+            </FormControl>
+            <Typography variant="caption" color="text.secondary">
+              Select the backend algorithm
+            </Typography>
+          </Grid>
+        </Grid>
+      </Paper>
       
       {/* Advanced Parameters */}
       <Accordion sx={{ mb: 2 }}>

@@ -64,88 +64,33 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [reportType, setReportType] = useState('');
 
-  // Load schedule history data
-  useEffect(() => {
-    // Reset schedules state each time schedulesFromResults changes
-    if (schedulesFromResults && schedulesFromResults.length > 0) {
-      console.log("ScheduleHistory: Resetting schedules state");
-      // Reset schedules state to ensure data is reprocessed
-      setSchedules([]);
-      
-      // Process data in next event loop to ensure state reset is applied
-      setTimeout(() => {
-        console.log("ScheduleHistory: Processing schedules after reset");
-        processSchedulesFromResults(schedulesFromResults);
-      }, 0);
-    } else {
-      fetchScheduleHistory();
-    }
-  }, [schedulesFromResults]);
-  
-  // Ensure status changes are reflected in real-time when the selected schedule is the one being viewed
-  useEffect(() => {
-    if (selectedScheduleHistory && schedulesFromResults && schedulesFromResults.length > 0) {
-      // Find the latest status of the selected schedule
-      const updatedSchedule = schedulesFromResults.find(s => s.id === selectedScheduleHistory.id);
-      
-      if (updatedSchedule) {
-        // If found and status has changed, update status history
-        if (updatedSchedule.status !== selectedScheduleHistory.status || 
-            updatedSchedule.statusHistory?.length !== selectedScheduleHistory.statusHistory?.length) {
-          setSelectedScheduleHistory(updatedSchedule);
-        }
-      }
-    }
-  }, [schedulesFromResults, selectedScheduleHistory]);
-
-  // Component loads data immediately
+  // Load schedule history data - 简化为单一useEffect
   useEffect(() => {
     console.log("ScheduleHistory component mounted/updated");
     
-    // Prioritize processing the provided schedule results
+    // 处理传入的排课结果数据
     if (schedulesFromResults && schedulesFromResults.length > 0) {
-      console.log("Processing schedules from results on mount:", schedulesFromResults.length);
-      // Reset schedules state before processing data
-      setSchedules([]);
-      // Force processing with new data
+      console.log("Processing schedules from results:", schedulesFromResults.length);
       processSchedulesFromResults([...schedulesFromResults]);
     } else {
-      // Fetch from API if no data is provided
+      // 没有传入数据则从API获取
       console.log("Fetching schedule history from API");
       fetchScheduleHistory();
     }
-  }, []); // Only execute once when component mounts
-  
-  // Dedicated useEffect to monitor schedulesFromResults changes
-  useEffect(() => {
-    if (schedulesFromResults && schedulesFromResults.length > 0) {
-      console.log("schedulesFromResults changed:", schedulesFromResults.length);
-      console.log("Schedule statuses:", schedulesFromResults.map(s => ({id: s.id, status: s.status})));
-      
-      // Reset schedules state
-      setSchedules([]);
-      
-      // Process new data after state reset
-      setTimeout(() => {
-        processSchedulesFromResults([...schedulesFromResults]);
-      }, 0);
-    }
-  }, [schedulesFromResults]);
+  }, [schedulesFromResults]); // 只在组件挂载和schedulesFromResults变化时执行
 
-  // Process data from ScheduleResults - simplified version, no longer attempting complex merging
+  // 简化处理函数，直接处理数据不做额外合并
   const processSchedulesFromResults = (resultsData) => {
-    console.log("Processing schedules from results", {
-      resultsCount: resultsData.length,
-      statuses: resultsData.map(s => ({id: s.id, status: s.status}))
-    });
+    console.log("处理排课数据:", resultsData.length);
     
-    // Simplified version: always rebuild grouped data
+    // 构建排课方案的分组
     const requestGroups = {};
     
     resultsData.forEach(schedule => {
-      // Use request date as grouping identifier
+      // 使用requestId或创建日期作为分组标识符
       const requestId = schedule.recordId || schedule.requestId || (new Date(schedule.createdAt).toISOString().split('T')[0]);
       
+      // 创建分组或使用现有分组
       if (!requestGroups[requestId]) {
         requestGroups[requestId] = {
           requestId: requestId,
@@ -156,13 +101,13 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
         };
       }
       
-      // Ensure schedule plan has correct status
+      // 处理排课方案数据
       const updatedSchedule = {
         ...schedule,
         status: schedule.status || 'Generated'
       };
       
-      // Ensure schedule plan has status history record
+      // 确保排课方案有状态历史记录
       if (!updatedSchedule.statusHistory || updatedSchedule.statusHistory.length === 0) {
         updatedSchedule.statusHistory = [{
           status: updatedSchedule.status,
@@ -171,34 +116,21 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
         }];
       }
       
-      // Add schedule plan to request group
+      // 添加排课方案到分组
       requestGroups[requestId].schedules.push(updatedSchedule);
       requestGroups[requestId].totalSolutions += 1;
     });
     
-    // Convert to array
+    // 转换为数组
     const groupedData = Object.values(requestGroups);
     
-    // Sort by generation time in descending order
+    // 按生成时间降序排序
     groupedData.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
     
-    console.log("Setting new schedules:", groupedData);
+    console.log("排课历史数据分组完成:", groupedData.length);
     
-    // Update state
+    // 直接设置新状态
     setSchedules(groupedData);
-    
-    // If a plan is selected, update its status history
-    if (selectedScheduleHistory) {
-      const updatedSchedule = resultsData.find(s => s.id === selectedScheduleHistory.id);
-      if (updatedSchedule) {
-        setSelectedScheduleHistory({
-          ...selectedScheduleHistory,
-          ...updatedSchedule,
-          status: updatedSchedule.status || 'Generated',
-          statusHistory: updatedSchedule.statusHistory || selectedScheduleHistory.statusHistory
-        });
-      }
-    }
   };
 
   const fetchScheduleHistory = async () => {
@@ -207,8 +139,49 @@ const ScheduleHistory = ({ onHistoryItemClick, schedulesFromResults = [] }) => {
     try {
       // Temporary use default semesterId=1
       const semesterId = 1;
-      const results = await getScheduleHistory(semesterId);
-      setSchedules(results);
+      const resultsFromApi = await getScheduleHistory(semesterId);
+      
+      // 合并API获取的模拟数据与当前状态中的排课数据
+      setSchedules(prevSchedules => {
+        // 如果之前没有数据，直接使用API结果
+        if (!prevSchedules || prevSchedules.length === 0) {
+          return resultsFromApi;
+        }
+        
+        // 合并数据：保留所有现有数据，并添加API结果中不重复的数据
+        const mergedSchedules = [...prevSchedules];
+        
+        // 检查API结果中每条记录，如果不存在于当前数据中则添加
+        resultsFromApi.forEach(apiRecord => {
+          // 检查是否存在相同requestId的记录
+          const existingIndex = mergedSchedules.findIndex(s => s.requestId === apiRecord.requestId);
+          
+          if (existingIndex === -1) {
+            // 如果不存在，添加这条记录
+            mergedSchedules.push(apiRecord);
+          } else {
+            // 如果存在相同requestId的记录，合并其中的schedules
+            const existingRecord = mergedSchedules[existingIndex];
+            
+            // 检查API返回的每个排课方案，如果不存在于现有记录中则添加
+            apiRecord.schedules.forEach(apiSchedule => {
+              // 检查排课方案ID是否已存在
+              const existingScheduleIndex = existingRecord.schedules.findIndex(s => s.id === apiSchedule.id);
+              
+              if (existingScheduleIndex === -1) {
+                // 如果不存在，添加这个排课方案
+                existingRecord.schedules.push(apiSchedule);
+                existingRecord.totalSolutions += 1;
+              }
+            });
+          }
+        });
+        
+        // 按生成时间降序排序
+        mergedSchedules.sort((a, b) => new Date(b.generatedAt) - new Date(a.generatedAt));
+        
+        return mergedSchedules;
+      });
     } catch (err) {
       console.error('Failed to retrieve schedule history:', err);
       setError(err.message);

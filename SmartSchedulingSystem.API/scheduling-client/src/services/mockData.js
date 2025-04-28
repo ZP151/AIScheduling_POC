@@ -98,16 +98,16 @@ export const mockCourses = [
   ];
   
   export const mockClassrooms = [
-    { id: 1, name: '101', building: 'Building A', capacity: 120, hasComputers: true, type: 'ComputerLab', campusId: 1 },
-    { id: 2, name: '102', building: 'Building A', capacity: 100, hasComputers: true, type: 'ComputerLab', campusId: 1 },
-    { id: 3, name: '201', building: 'Building A', capacity: 80, hasComputers: false, type: 'Lecture', campusId: 1 },
-    { id: 4, name: '202', building: 'Building A', capacity: 90, hasComputers: false, type: 'Lecture', campusId: 1 },
-    { id: 5, name: '301', building: 'Building B', capacity: 150, hasComputers: false, type: 'LargeHall', campusId: 2 },
-    { id: 6, name: '302', building: 'Building B', capacity: 140, hasComputers: false, type: 'LargeHall', campusId: 2 },
-    { id: 7, name: '401', building: 'Building B', capacity: 60, hasComputers: true, type: 'Laboratory', campusId: 2 },
-    { id: 8, name: '402', building: 'Building B', capacity: 65, hasComputers: true, type: 'Laboratory', campusId: 2 },
-    { id: 9, name: '501', building: 'Building C', capacity: 100, hasComputers: false, type: 'Lecture', campusId: 1 },
-    { id: 10, name: '601', building: 'Building C', capacity: 80, hasComputers: true, type: 'ComputerLab', campusId: 1 }
+    { id: 1, name: '101', building: 'Building A', capacity: 120, type: 'ComputerLab', features: ['Computers', 'Projector', 'Interactive Whiteboard'], campusId: 1 },
+    { id: 2, name: '102', building: 'Building A', capacity: 100, type: 'ComputerLab', features: ['Computers', 'Projector'], campusId: 1 },
+    { id: 3, name: '201', building: 'Building A', capacity: 80, type: 'Lecture', features: ['Projector', 'Whiteboard'], campusId: 1 },
+    { id: 4, name: '202', building: 'Building A', capacity: 90, type: 'Lecture', features: ['Projector', 'Whiteboard'], campusId: 1 },
+    { id: 5, name: '301', building: 'Building B', capacity: 150, type: 'LargeHall', features: ['Advanced Audio', 'Dual Projector'], campusId: 2 },
+    { id: 6, name: '302', building: 'Building B', capacity: 140, type: 'LargeHall', features: ['Advanced Audio', 'Dual Projector'], campusId: 2 },
+    { id: 7, name: '401', building: 'Building B', capacity: 60, type: 'Laboratory', features: ['Lab Equipment', 'Safety Facilities'], campusId: 2 },
+    { id: 8, name: '402', building: 'Building B', capacity: 65, type: 'Laboratory', features: ['Lab Equipment', 'Safety Facilities'], campusId: 2 },
+    { id: 9, name: '501', building: 'Building C', capacity: 100, type: 'Lecture', features: ['Projector', 'Whiteboard'], campusId: 1 },
+    { id: 10, name: '601', building: 'Building C', capacity: 80, type: 'ComputerLab', features: ['Computers', 'Projector'], campusId: 1 }
   ];
   
   export const mockConstraints = [
@@ -662,4 +662,298 @@ export const mockCourses = [
       }, 2000);
     });
   };
+
+// 添加课程类型与教室类型匹配关系
+export const mockCourseRoomTypeMatching = [
+  { courseType: 'Computer Science', preferredRoomTypes: ['ComputerLab', 'Lecture'], requiredFeatures: ['Computers', 'Projector'] },
+  { courseType: 'Mathematics', preferredRoomTypes: ['Lecture', 'LargeHall'], requiredFeatures: ['Whiteboard', 'Projector'] },
+  { courseType: 'Physics', preferredRoomTypes: ['Laboratory', 'Lecture'], requiredFeatures: ['Lab Equipment'] },
+  { courseType: 'Chemistry', preferredRoomTypes: ['Laboratory'], requiredFeatures: ['Lab Equipment', 'Safety Facilities'] },
+  { courseType: 'Business', preferredRoomTypes: ['LargeHall', 'Lecture'], requiredFeatures: ['Projector', 'Audio System'] },
+  { courseType: 'Language', preferredRoomTypes: ['Lecture'], requiredFeatures: ['Audio System'] },
+  { courseType: 'Art', preferredRoomTypes: ['Lecture', 'LargeHall'], requiredFeatures: ['Projector'] }
+];
+
+// 添加课程与教室类型匹配系数
+export const mockRoomTypeMatchScores = {
+  'Computer Science': {
+    'ComputerLab': 1.0,
+    'Lecture': 0.7,
+    'Laboratory': 0.5,
+    'LargeHall': 0.3
+  },
+  'Mathematics': {
+    'Lecture': 1.0,
+    'LargeHall': 0.8,
+    'ComputerLab': 0.5,
+    'Laboratory': 0.3
+  },
+  'Physics': {
+    'Laboratory': 1.0,
+    'Lecture': 0.6,
+    'ComputerLab': 0.5,
+    'LargeHall': 0.4
+  },
+  'Chemistry': {
+    'Laboratory': 1.0,
+    'Lecture': 0.4,
+    'ComputerLab': 0.3,
+    'LargeHall': 0.2
+  },
+  'Business': {
+    'LargeHall': 1.0,
+    'Lecture': 0.8,
+    'ComputerLab': 0.5,
+    'Laboratory': 0.2
+  },
+  'Language': {
+    'Lecture': 1.0,
+    'LargeHall': 0.8,
+    'ComputerLab': 0.6,
+    'Laboratory': 0.3
+  },
+  'Art': {
+    'Lecture': 1.0,
+    'LargeHall': 0.9,
+    'Laboratory': 0.5,
+    'ComputerLab': 0.4
+  }
+};
+
+// 添加课程与科目的关系，用于确定课程类型
+export const mockCourseSubjectTypes = [
+  { subjectId: 1, courseType: 'Computer Science' }, // Computer Science
+  { subjectId: 2, courseType: 'Mathematics' },      // Mathematics
+  { subjectId: 3, courseType: 'Physics' },          // Physics
+  { subjectId: 4, courseType: 'Business' },         // Finance
+  { subjectId: 5, courseType: 'Business' },         // Marketing
+  { subjectId: 8, courseType: 'Economics' },        // Economics (假设subjectId=8是Economics)
+  { subjectId: 9, courseType: 'Business' }          // Business (假设subjectId=9是Business)
+];
+
+// 添加findSuitableClassrooms函数实现
+export const findSuitableClassrooms = (courseId, preferredRoomType = null, requiredFeatures = []) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        // 获取课程信息
+        const course = mockCourses.find(c => c.id === courseId);
+        if (!course) {
+          reject(new Error('找不到指定的课程'));
+          return;
+        }
+        
+        // 获取课程类型
+        const courseSubject = mockCourseSubjectTypes.find(cs => cs.subjectId === course.subjectId);
+        const courseType = courseSubject?.courseType || '';
+        
+        // 获取该课程类型的推荐教室类型和设备
+        const courseTypeMatching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
+        const preferredTypes = preferredRoomType ? 
+          [preferredRoomType] : 
+          (courseTypeMatching?.preferredRoomTypes || []);
+        
+        const requiredEquipment = requiredFeatures.length > 0 ? 
+          requiredFeatures : 
+          (courseTypeMatching?.requiredFeatures || []);
+        
+        // 筛选符合条件的教室
+        let suitableRooms = [...mockClassrooms];
+        
+        // 检查容量是否满足课程需求
+        suitableRooms = suitableRooms.filter(room => room.capacity >= course.enrollment);
+        
+        // 按教室类型筛选
+        if (preferredTypes.length > 0 && !preferredTypes.includes('any')) {
+          suitableRooms = suitableRooms.filter(room => preferredTypes.includes(room.type));
+        }
+        
+        // 按必要设备筛选
+        if (requiredEquipment.length > 0) {
+          suitableRooms = suitableRooms.filter(room => {
+            // 检查教室是否拥有所有必要设备
+            return requiredEquipment.every(feature => 
+              room.features && room.features.includes(feature)
+            );
+          });
+        }
+        
+        // 计算匹配分数
+        suitableRooms = suitableRooms.map(room => {
+          // 基础分数
+          let score = 0.5;
+          
+          // 如果教室类型匹配首选类型，增加分数
+          if (preferredTypes.length > 0) {
+            const typeIndex = preferredTypes.indexOf(room.type);
+            if (typeIndex !== -1) {
+              // 首选类型得分高，后面的依次降低
+              score += 0.3 * (1 - (typeIndex * 0.2));
+            }
+          }
+          
+          // 计算设备匹配率
+          if (requiredEquipment.length > 0) {
+            const matchedFeatures = requiredEquipment.filter(f => 
+              room.features && room.features.includes(f)
+            ).length;
+            
+            const featureScore = matchedFeatures / requiredEquipment.length;
+            score += featureScore * 0.2;
+          }
+          
+          // 如果有充足的额外容量（不过多也不过少），增加分数
+          const capacityRatio = room.capacity / course.enrollment;
+          if (capacityRatio >= 1 && capacityRatio <= 1.5) {
+            score += 0.1;
+          } else if (capacityRatio > 1.5) {
+            // 容量过大，适当减分（避免大教室被小课程占用）
+            score -= Math.min(0.1, (capacityRatio - 1.5) * 0.05);
+          }
+          
+          // 确保分数在0-1之间
+          score = Math.max(0, Math.min(1, score));
+          
+          return {
+            ...room,
+            matchScore: score
+          };
+        });
+        
+        // 按匹配分数排序
+        suitableRooms.sort((a, b) => b.matchScore - a.matchScore);
+        
+        resolve(suitableRooms);
+      } catch (error) {
+        reject(error);
+      }
+    }, 1000);
+  });
+};
+
+// 添加assignClassroomsApi函数实现
+export const assignClassroomsApi = (courseIds, constraints = {}) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        if (!courseIds || courseIds.length === 0) {
+          reject(new Error('必须提供至少一个课程ID'));
+          return;
+        }
+        
+        const results = [];
+        
+        // 为每个课程分配教室
+        for (const courseId of courseIds) {
+          const course = mockCourses.find(c => c.id === courseId);
+          if (!course) {
+            results.push({
+              courseId,
+              roomId: null,
+              matchScore: 0,
+              roomName: '找不到课程信息',
+              conflict: true
+            });
+            continue;
+          }
+          
+          // 获取课程类型
+          const subject = mockCourseSubjectTypes.find(cs => cs.subjectId === course.subjectId);
+          const courseType = subject?.courseType || '';
+          
+          // 获取该课程类型的推荐教室类型和设备
+          const matching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
+          
+          // 查找合适的教室
+          let preferredRoomTypes = matching?.preferredRoomTypes || [];
+          const requiredFeatures = matching?.requiredFeatures || [];
+          
+          // 应用自定义约束
+          if (constraints.preferredRoomType) {
+            preferredRoomTypes = [constraints.preferredRoomType, ...preferredRoomTypes];
+          }
+          
+          // 筛选符合条件的教室
+          let suitableRooms = [...mockClassrooms];
+          
+          // 检查容量是否满足课程需求
+          suitableRooms = suitableRooms.filter(room => room.capacity >= course.enrollment);
+          
+          // 按教室类型筛选
+          if (preferredRoomTypes.length > 0 && !preferredRoomTypes.includes('any')) {
+            suitableRooms = suitableRooms.filter(room => preferredRoomTypes.includes(room.type));
+          }
+          
+          // 按必要设备筛选
+          if (requiredFeatures.length > 0) {
+            suitableRooms = suitableRooms.filter(room => {
+              return requiredFeatures.every(feature => 
+                room.features && room.features.includes(feature)
+              );
+            });
+          }
+          
+          // 应用自定义约束中的设备要求
+          if (constraints.requiredFeatures && constraints.requiredFeatures.length > 0) {
+            suitableRooms = suitableRooms.filter(room => {
+              return constraints.requiredFeatures.every(feature => 
+                room.features && room.features.includes(feature)
+              );
+            });
+          }
+          
+          // 计算匹配分数并排序
+          suitableRooms = suitableRooms.map(room => {
+            let score = 0.5;
+            
+            // 教室类型匹配
+            if (preferredRoomTypes.length > 0) {
+              const typeIndex = preferredRoomTypes.indexOf(room.type);
+              if (typeIndex !== -1) {
+                score += 0.3 * (1 - (typeIndex * 0.2));
+              }
+            }
+            
+            // 设备匹配
+            const allRequiredFeatures = [...new Set([
+              ...requiredFeatures,
+              ...(constraints.requiredFeatures || [])
+            ])];
+            
+            if (allRequiredFeatures.length > 0) {
+              const matchedFeatures = allRequiredFeatures.filter(f => 
+                room.features && room.features.includes(f)
+              ).length;
+              
+              score += (matchedFeatures / allRequiredFeatures.length) * 0.2;
+            }
+            
+            return {
+              ...room,
+              matchScore: Math.max(0, Math.min(1, score))
+            };
+          }).sort((a, b) => b.matchScore - a.matchScore);
+          
+          // 找到最佳匹配的教室
+          const bestMatch = suitableRooms.length > 0 ? suitableRooms[0] : null;
+          
+          results.push({
+            courseId,
+            roomId: bestMatch?.id || null,
+            matchScore: bestMatch?.matchScore || 0,
+            roomName: bestMatch ? 
+              `${bestMatch.building}-${bestMatch.name}` : 
+              '未找到合适教室',
+            features: bestMatch?.features || [],
+            conflict: !bestMatch
+          });
+        }
+        
+        resolve(results);
+      } catch (error) {
+        reject(error);
+      }
+    }, 1500);
+  });
+};
 

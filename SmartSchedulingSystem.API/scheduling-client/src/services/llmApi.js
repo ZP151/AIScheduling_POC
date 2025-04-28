@@ -1,9 +1,11 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8080/api';
-
+//const API_URL = 'http://192.168.68.167:8080/api';
+const API_PORT = 8080;
+const API_URL = `http://${window.location.hostname}:${API_PORT}/api`;
+    
 const llmApi = axios.create({
-  baseURL: API_URL,
+    baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
   }

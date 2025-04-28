@@ -4,6 +4,15 @@ import { mockScheduleResults, mockSemesters, mockCourses, mockTeachers, mockClas
 // API服务 - 负责与后端API的所有通信
 const API_BASE_URL = '/api'; // 使用相对路径，避免跨域问题
 
+// 定义可用的API端点类型
+export const API_ENDPOINTS = {
+  MOCK: 'mock',
+  TEST_MOCK: 'test_mock',
+  SCHEDULE_BASIC: 'schedule_basic',
+  SCHEDULE_ADVANCED: 'schedule_advanced',
+  SCHEDULE_ENHANCED: 'schedule_enhanced',
+};
+
 // 通用API请求函数
 const apiRequest = async (endpoint, method = 'GET', data = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -102,17 +111,19 @@ const mockApi = {
 // 生成排课方案API
 export const generateScheduleApi = async (formData) => {
   try {
-    // 从请求中获取调试参数
+    // 从请求中获取调试参数和API端点类型
     const debugOptions = formData._debug || {};
+    const apiEndpointType = formData.apiEndpointType || API_ENDPOINTS.TEST_MOCK;
     
     // 是否启用模拟模式（设置为false以禁用模拟回退）
     const enableMockFallback = !debugOptions.disableMockFallback;
     // 是否启用调试模式（打印更多日志）
     const verboseLogging = debugOptions.verboseLogging;
 
-    // 清理发送给后端的数据，移除调试参数
+    // 清理发送给后端的数据，移除调试参数和API端点类型
     const cleanFormData = { ...formData };
     delete cleanFormData._debug;
+    delete cleanFormData.apiEndpointType;
 
     // 从前端暂存的完整对象数据中获取课程、教师和教室的详细信息
     const allCourseSections = window.globalCourseData || [];
@@ -332,20 +343,46 @@ export const generateScheduleApi = async (formData) => {
 
     // 尝试调用后端API
     try {
-      // 使用模拟排课API而非真实排课API
-      // const response = await apiRequest('/Scheduling/generate', 'POST', scheduleRequest);
+      let response;
       
-      // // 使用测试控制器的mock-schedule端点，用随机算法排课，容易出现冲突，因此可以来测试llms的冲突分析
-      // console.log('Using test controller\'s mock-schedule endpoint...');
-      // const response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
-       
-      // 使用排课控制器的generate端点
-       console.log('Using Schedule controller\'s generate endpoint...');
-       // 使用level1级别的约束
-       // const response = await apiRequest('/Schedule/generate', 'POST', scheduleRequest);
-       // 使用level2级别的约束，加上了两种可用性约束
-       const response = await apiRequest('/Schedule/generate-advanced', 'POST', scheduleRequest);
-       
+      // 根据选择的API端点类型调用不同的API
+      switch (apiEndpointType) {
+        case API_ENDPOINTS.MOCK:
+          // 使用模拟排课API而非真实排课API
+          console.log('Using mock scheduling API...');
+          response = await apiRequest('/Scheduling/generate', 'POST', scheduleRequest);
+          break;
+          
+        case API_ENDPOINTS.TEST_MOCK:
+          // 使用测试控制器的mock-schedule端点，用随机算法排课，容易出现冲突，因此可以来测试llms的冲突分析
+          console.log('Using test controller\'s mock-schedule endpoint...');
+          response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
+          break;
+          
+        case API_ENDPOINTS.SCHEDULE_BASIC:
+          // 使用level1级别的约束
+          console.log('Using Schedule controller\'s generate endpoint with level 1 constraints...');
+          response = await apiRequest('/Schedule/generate', 'POST', scheduleRequest);
+          break;
+          
+        case API_ENDPOINTS.SCHEDULE_ADVANCED:
+          // 使用level2级别的约束，加上了两种可用性约束
+          console.log('Using Schedule controller\'s generate-advanced endpoint with level 2 constraints...');
+          response = await apiRequest('/Schedule/generate-advanced', 'POST', scheduleRequest);
+          break;
+          
+        case API_ENDPOINTS.SCHEDULE_ENHANCED:
+          // 使用level3级别的约束，加上了教室资源约束和（课程-教室）类型匹配约束
+          console.log('Using Schedule controller\'s generate-enhanced endpoint with level 3 constraints...');
+          response = await apiRequest('/Schedule/generate-enhanced', 'POST', scheduleRequest);
+          break;
+          
+        default:
+          // 默认使用测试控制器的mock-schedule端点
+          console.log('Using default (test controller\'s mock-schedule) endpoint...');
+          response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
+      }
+
       console.log('Schedule generation successful:', response);
       return response;
     } catch (apiError) {

@@ -42,7 +42,13 @@ import {
   mockCourses,
   mockSemesters,
   mockEquipmentTypes,
-  mockClassroomEquipment
+  mockClassroomEquipment,
+  mockCampuses,
+  mockCourseRoomTypeMatching,
+  mockRoomTypeEquipment,
+  mockCourseSubjectTypes,
+  findSuitableClassrooms,
+  assignClassroomsApi
 } from '../services/mockData';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -62,6 +68,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 // Import constraint components
 import TeacherAvailabilitySettings from './constraints/TeacherAvailabilitySettings';
@@ -83,9 +90,20 @@ const DataManagement = ({
   const [resourceSubTab, setResourceSubTab] = useState(0);
   const [timeSubTab, setTimeSubTab] = useState(0);
   const [templateSubTab, setTemplateSubTab] = useState(0);
+  const [equipmentSubTab, setEquipmentSubTab] = useState(0);
   
   // Parameter management state
   const [localParameters, setLocalParameters] = useState({...parameters});
+  
+  // 约束管理预览状态
+  const [constraintPreview, setConstraintPreview] = useState({
+    isLoading: false,
+    classroomAssignmentReady: false,
+    classroomAssignments: [],
+    conflicts: 0,
+    error: null
+  });
+  
   // 在现有状态变量后添加
   const [newPresetDialog, setNewPresetDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
@@ -95,7 +113,7 @@ const DataManagement = ({
 
   // 添加教室和设备管理相关状态
   const [selectedClassroom, setSelectedClassroom] = useState(null);
-  const [equipmentDialog, setEquipmentDialog] = useState(false);
+  const [classroomEditDialog, setClassroomEditDialog] = useState(false);
   const [classroomEquipmentList, setClassroomEquipmentList] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [editingEquipment, setEditingEquipment] = useState({
@@ -103,15 +121,19 @@ const DataManagement = ({
     status: 'Good'
   });
   
-  // 添加筛选状态
-  const [equipmentFilters, setEquipmentFilters] = useState({
-    classroom: '',
-    classroomType: '',
-    equipmentType: '',
-    status: ''
+  // 添加编辑教室状态 - 移除建筑和校区字段的编辑权限
+  const [editingClassroom, setEditingClassroom] = useState({
+    name: '',
+    capacity: 0,
+    type: '',
+    features: []
   });
-  const [equipmentSubTab, setEquipmentSubTab] = useState(0);
-  const [filteredEquipment, setFilteredEquipment] = useState(mockClassroomEquipment);
+  
+  // 添加课程教室类型匹配相关状态
+  const [selectedCourse, setSelectedCourse] = useState(mockCourses[0]?.id || '');
+  const [selectedRoomType, setSelectedRoomType] = useState('');
+  const [requiredFeatures, setRequiredFeatures] = useState([]);
+  const [matchingClassrooms, setMatchingClassrooms] = useState([]);
 
   // Update tab values when props change
   useEffect(() => {
@@ -121,6 +143,87 @@ const DataManagement = ({
   useEffect(() => {
     setConstraintSubTab(initialConstraintSubTab);
   }, [initialConstraintSubTab]);
+  
+  // 当选择课程时更新教室类型和设备要求
+  useEffect(() => {
+    if (selectedCourse && constraintSubTab === 2) {
+      // 获取课程信息
+      const course = mockCourses.find(c => c.id === selectedCourse);
+      if (course) {
+        // 获取课程类型
+        const courseSubject = mockCourseSubjectTypes.find(cs => cs.subjectId === course.subjectId);
+        const courseType = courseSubject?.courseType || '';
+        
+        // 在matchRoomTypeMatching中查找该课程类型的推荐教室类型和设备
+        const matching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
+        
+        if (matching) {
+          // 设置默认教室类型为推荐的第一个类型
+          setSelectedRoomType(matching.preferredRoomTypes[0] || '');
+          // 设置需要的设备
+          setRequiredFeatures(matching.requiredFeatures || []);
+          
+          // 查找匹配的教室
+          updateMatchingClassrooms(matching.preferredRoomTypes[0], matching.requiredFeatures);
+        } else {
+          setSelectedRoomType('');
+          setRequiredFeatures([]);
+          setMatchingClassrooms([]);
+        }
+      }
+    }
+  }, [selectedCourse, constraintSubTab]);
+  
+  // 当教室类型或设备需求改变时更新匹配的教室
+  const updateMatchingClassrooms = (roomType, features) => {
+    if (!roomType && !features) {
+      setMatchingClassrooms([]);
+      return;
+    }
+    
+    let filtered = [...mockClassrooms];
+    
+    // 按教室类型筛选
+    if (roomType && roomType !== 'any') {
+      filtered = filtered.filter(room => room.type === roomType);
+    }
+    
+    // 按必要设备筛选
+    if (features && features.length > 0) {
+      filtered = filtered.filter(room => {
+        // 检查教室是否拥有所有必要设备
+        return features.every(feature => 
+          room.features && room.features.includes(feature)
+        );
+      });
+    }
+    
+    // 计算匹配分数
+    filtered = filtered.map(room => {
+      // 如果教室类型完全匹配，分数更高
+      const typeScore = room.type === roomType ? 1.0 : 0.5;
+      
+      // 计算设备匹配率
+      let featureScore = 1.0;
+      if (features && features.length > 0) {
+        const matchedFeatures = features.filter(f => room.features.includes(f)).length;
+        featureScore = matchedFeatures / features.length;
+      }
+      
+      // 综合分数 (简单加权平均)
+      const totalScore = (typeScore * 0.6) + (featureScore * 0.4);
+      
+      return {
+        ...room,
+        matchScore: totalScore
+      };
+    });
+    
+    // 按匹配分数排序
+    filtered.sort((a, b) => b.matchScore - a.matchScore);
+    
+    setMatchingClassrooms(filtered);
+  };
   
   // Parameter presets
   const parameterPresets = [
@@ -135,6 +238,18 @@ const DataManagement = ({
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    
+    // 当切换到约束管理选项卡时，预加载教室分配测试数据
+    if (newValue === 1) {
+      // 重置约束管理预览状态
+      setConstraintPreview({
+        isLoading: false,
+        classroomAssignmentReady: false,
+        classroomAssignments: [],
+        conflicts: 0,
+        error: null
+      });
+    }
   };
   
   // Update saveParametersToSystem to use the parent's update function
@@ -182,72 +297,40 @@ const DataManagement = ({
     setNewPresetDesc('');
   };
 
-  // 添加设备管理相关处理函数
+  // 修改教室选择处理函数
   const handleClassroomSelect = (classroomId) => {
-    // 当从任何地方点击查看特定教室设备时，切换到Classroom Equipment选项卡
-    setTabValue(2); // Resource Management
-    setResourceSubTab(2); // Classroom Equipment
-    
-    // 设置过滤条件为选中的教室
-    setEquipmentFilters(prev => ({
-      ...prev,
-      classroom: classroomId
-    }));
-    applyEquipmentFilters({ ...equipmentFilters, classroom: classroomId });
-    
-    // 打开设备管理对话框
     const classroom = mockClassrooms.find(c => c.id === classroomId);
     setSelectedClassroom(classroom);
     
-    const equipment = mockClassroomEquipment.filter(
-      item => item.classroomId === classroomId
-    );
-    
-    setClassroomEquipmentList(equipment);
-    setEquipmentDialog(true);
-  };
-  
-  // 处理设备选项卡切换
-  const handleEquipmentSubTabChange = (event, newValue) => {
-    setEquipmentSubTab(newValue);
-  };
-  
-  // 处理筛选器变更
-  const handleFilterChange = (filterName, value) => {
-    setEquipmentFilters(prev => ({
-      ...prev,
-      [filterName]: value
-    }));
-  };
-  
-  // 应用筛选器
-  const applyEquipmentFilters = (filters = equipmentFilters) => {
-    let result = [...mockClassroomEquipment];
-    
-    // 应用教室筛选
-    if (filters.classroom) {
-      result = result.filter(item => item.classroomId === filters.classroom);
+    // 只在设备管理标签页加载设备列表
+    if (resourceSubTab === 2) {
+      const equipment = mockClassroomEquipment.filter(
+        item => item.classroomId === classroomId
+      );
+      setClassroomEquipmentList(equipment);
     }
-    
-    // 应用教室类型筛选
-    if (filters.classroomType) {
-      result = result.filter(item => {
-        const classroom = mockClassrooms.find(c => c.id === item.classroomId);
-        return classroom && classroom.type === filters.classroomType;
+  };
+  
+  // 添加教室编辑函数
+  const handleClassroomEdit = (classroomId) => {
+    const classroom = mockClassrooms.find(c => c.id === classroomId);
+    if (classroom) {
+      setEditingClassroom({
+        id: classroom.id,
+        name: classroom.name,
+        capacity: classroom.capacity,
+        type: classroom.type,
+        features: classroom.features || []
       });
+      setClassroomEditDialog(true);
     }
-    
-    // 应用设备类型筛选
-    if (filters.equipmentType) {
-      result = result.filter(item => item.equipmentTypeId === filters.equipmentType);
-    }
-    
-    // 应用状态筛选
-    if (filters.status) {
-      result = result.filter(item => item.status === filters.status);
-    }
-    
-    setFilteredEquipment(result);
+  };
+  
+  // 添加教室更新函数
+  const handleClassroomUpdate = () => {
+    // 更新教室信息逻辑
+    alert(`Classroom ${editingClassroom.name} information has been updated`);
+    setClassroomEditDialog(false);
   };
   
   const handleEquipmentSelect = (equipmentId) => {
@@ -262,9 +345,170 @@ const DataManagement = ({
   };
   
   const handleEquipmentUpdate = () => {
-    // 在实际应用中，这里会调用API进行更新
-    alert(`Equipment updated: Quantity=${editingEquipment.quantity}, Status=${editingEquipment.status}`);
+    // 更新设备信息逻辑
+    alert(`Equipment ${selectedEquipment.id} has been updated`);
     setSelectedEquipment(null);
+  };
+
+  // 教室分配测试函数
+  const handleClassroomAssignmentTest = () => {
+    // 使用模拟数据示例，后期可替换为真实API调用
+    setConstraintPreview({
+      ...constraintPreview,
+      isLoading: true,
+      classroomAssignmentReady: false,
+      error: null
+    });
+    
+    // 收集选定的课程进行测试
+    const coursesToTest = [selectedCourse].filter(Boolean);
+    
+    if (coursesToTest.length === 0) {
+      setConstraintPreview({
+        ...constraintPreview,
+        isLoading: false,
+        error: "请选择至少一个课程进行测试"
+      });
+      return;
+    }
+    
+    // 模拟API调用延迟
+    setTimeout(() => {
+      try {
+        // 这里应调用assignClassroomsApi函数，但由于它可能尚未实现，我们使用模拟数据
+        const testResults = coursesToTest.map(courseId => {
+          const course = mockCourses.find(c => c.id === courseId);
+          const subject = mockCourseSubjectTypes.find(cs => cs.subjectId === course?.subjectId);
+          const courseType = subject?.courseType || '';
+          
+          // 获取匹配的教室类型信息
+          const matching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
+          
+          // 找到合适的教室
+          const suitableRoom = matchingClassrooms.length > 0 ? 
+            matchingClassrooms[0] : 
+            mockClassrooms.find(r => r.type === (matching?.preferredRoomTypes[0] || ''));
+          
+          return {
+            courseId,
+            roomId: suitableRoom?.id || null,
+            matchScore: suitableRoom ? 
+              (suitableRoom.type === selectedRoomType ? 0.95 : 0.75) : 0,
+            roomName: suitableRoom ? 
+              `${suitableRoom.building}-${suitableRoom.name}` : '未找到合适教室',
+            conflict: !suitableRoom
+          };
+        });
+        
+        setConstraintPreview({
+          ...constraintPreview,
+          isLoading: false,
+          classroomAssignmentReady: true,
+          classroomAssignments: testResults,
+          conflicts: testResults.filter(a => a.conflict).length
+        });
+      } catch (error) {
+        setConstraintPreview({
+          ...constraintPreview,
+          isLoading: false,
+          error: error.message || "执行教室分配测试时发生错误"
+        });
+      }
+    }, 1500);
+  };
+
+  // 约束管理子选项卡切换函数
+  const handleConstraintSubTabChange = (event, newValue) => {
+    setConstraintSubTab(newValue);
+  };
+
+  // 渲染教室分配测试结果
+  const renderClassroomAssignmentPreview = () => {
+    if (constraintPreview.error) {
+      return (
+        <Alert severity="error" sx={{ mt: 2, mb: 2 }}>
+          {constraintPreview.error}
+        </Alert>
+      );
+    }
+    
+    if (!constraintPreview.classroomAssignmentReady) {
+      return (
+        <Box sx={{ textAlign: 'center', py: 3 }}>
+          <Button 
+            variant="contained" 
+            onClick={handleClassroomAssignmentTest}
+            disabled={constraintPreview.isLoading || !selectedCourse}
+          >
+            {constraintPreview.isLoading ? 'Processing...' : 'Test Classroom Assignment Algorithm'}
+          </Button>
+        </Box>
+      );
+    }
+    
+    return (
+      <Box>
+        <Typography variant="h6" gutterBottom>
+          Course-Classroom Assignment Results
+          {constraintPreview.conflicts > 0 && (
+            <Chip 
+              color="error" 
+              size="small" 
+              label={`${constraintPreview.conflicts} conflicts`} 
+              sx={{ ml: 2 }}
+            />
+          )}
+        </Typography>
+        
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Course</TableCell>
+                <TableCell>Assigned Room</TableCell>
+                <TableCell>Match Score</TableCell>
+                <TableCell>Room Features</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {constraintPreview.classroomAssignments.map((assignment, index) => {
+                const course = mockCourses.find(c => c.id === assignment.courseId);
+                const room = mockClassrooms.find(r => r.id === assignment.roomId);
+                
+                return (
+                  <TableRow key={index} hover selected={assignment.conflict}>
+                    <TableCell>{course ? `${course.code}: ${course.name}` : 'Unknown Course'}</TableCell>
+                    <TableCell>
+                      {assignment.conflict ? (
+                        <Typography color="error">{assignment.roomName}</Typography>
+                      ) : (
+                        <Typography>{assignment.roomName}</Typography>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {assignment.matchScore ? assignment.matchScore.toFixed(2) : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {room ? (room.features ? room.features.join(', ') : 'None') : 'N/A'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        
+        <Box sx={{ mt: 2 }}>
+          <Button 
+            variant="outlined" 
+            onClick={handleClassroomAssignmentTest}
+            startIcon={<RefreshIcon />}
+          >
+            Retest
+          </Button>
+        </Box>
+      </Box>
+    );
   };
 
   return (
@@ -704,7 +948,7 @@ const DataManagement = ({
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
             <Tabs 
               value={constraintSubTab} 
-              onChange={(e, newValue) => setConstraintSubTab(newValue)}
+              onChange={handleConstraintSubTabChange}
             >
               <Tab label="General Constraints" />
               <Tab label="Teacher Availability" />
@@ -811,12 +1055,209 @@ const DataManagement = ({
           
           {/* Classroom Assignment */}
           {constraintSubTab === 2 && (
+            <Box>
             <ClassroomAssignmentSettings 
               courses={mockCourses}
               classrooms={mockClassrooms}
               weight={0.7}
               onUpdate={() => {}}
             />
+              
+              {/* 课程-教室类型偏好与设备关系 */}
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" gutterBottom>Course-Classroom Type Preferences</Typography>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  Define which classroom types are preferred for specific course types and their required equipment. These preferences will be used during the scheduling process.
+                </Typography>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Select Course</InputLabel>
+                      <Select
+                        value={selectedCourse}
+                        label="Select Course"
+                        onChange={(e) => setSelectedCourse(e.target.value)}
+                      >
+                        {mockCourses.map(course => (
+                          <MenuItem key={course.id} value={course.id}>
+                            {course.code}: {course.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Preferred Room Type</InputLabel>
+                      <Select
+                        value={selectedRoomType}
+                        label="Preferred Room Type"
+                        onChange={(e) => {
+                          setSelectedRoomType(e.target.value);
+                          updateMatchingClassrooms(e.target.value, requiredFeatures);
+                        }}
+                      >
+                        <MenuItem value="ComputerLab">Computer Lab</MenuItem>
+                        <MenuItem value="Lecture">Lecture Room</MenuItem>
+                        <MenuItem value="LargeHall">Large Hall</MenuItem>
+                        <MenuItem value="Laboratory">Laboratory</MenuItem>
+                        <MenuItem value="any">Any Room Type</MenuItem>
+                      </Select>
+                    </FormControl>
+                    
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Required Features</InputLabel>
+                      <Select
+                        multiple
+                        value={requiredFeatures}
+                        label="Required Features"
+                        onChange={(e) => {
+                          setRequiredFeatures(e.target.value);
+                          updateMatchingClassrooms(selectedRoomType, e.target.value);
+                        }}
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((value) => (
+                              <Chip key={value} label={value} size="small" />
+                            ))}
+                          </Box>
+                        )}
+                      >
+                        <MenuItem value="Projector">Projector</MenuItem>
+                        <MenuItem value="Computers">Computers</MenuItem>
+                        <MenuItem value="Interactive Whiteboard">Interactive Whiteboard</MenuItem>
+                        <MenuItem value="Advanced Audio">Advanced Audio</MenuItem>
+                        <MenuItem value="Lab Equipment">Lab Equipment</MenuItem>
+                        <MenuItem value="Safety Facilities">Safety Facilities</MenuItem>
+                        <MenuItem value="Whiteboard">Whiteboard</MenuItem>
+                        <MenuItem value="Audio System">Audio System</MenuItem>
+                        <MenuItem value="Dual Projector">Dual Projector</MenuItem>
+                      </Select>
+                    </FormControl>
+                    
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      fullWidth
+                      onClick={handleClassroomAssignmentTest}
+                    >
+                      Test Classroom Assignment
+                    </Button>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={8}>
+                    <Typography variant="subtitle1" gutterBottom>Available Matching Classrooms</Typography>
+                    <TableContainer component={Paper} variant="outlined">
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Classroom</TableCell>
+                            <TableCell>Type</TableCell>
+                            <TableCell>Capacity</TableCell>
+                            <TableCell>Features</TableCell>
+                            <TableCell>Match Score</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {matchingClassrooms.length > 0 ? (
+                            matchingClassrooms.map((room) => (
+                              <TableRow key={room.id} hover>
+                                <TableCell>{room.building}-{room.name}</TableCell>
+                                <TableCell>{room.type}</TableCell>
+                                <TableCell>{room.capacity}</TableCell>
+                                <TableCell>
+                                  {room.features.map((feature, i) => (
+                                    <Chip 
+                                      key={i} 
+                                      label={feature} 
+                                      size="small" 
+                                      color={requiredFeatures.includes(feature) ? 'primary' : 'default'}
+                                      variant={requiredFeatures.includes(feature) ? 'filled' : 'outlined'}
+                                      sx={{ mr: 0.5, mb: 0.5 }}
+                                    />
+                                  ))}
+                                </TableCell>
+                                <TableCell>
+                                  <Chip 
+                                    label={
+                                      room.matchScore >= 0.9 ? "Excellent" : 
+                                      room.matchScore >= 0.7 ? "Good" : 
+                                      room.matchScore >= 0.5 ? "Fair" : "Poor"
+                                    }
+                                    color={
+                                      room.matchScore >= 0.9 ? "success" : 
+                                      room.matchScore >= 0.7 ? "primary" : 
+                                      room.matchScore >= 0.5 ? "warning" : "error"
+                                    }
+                                    size="small"
+                                  />
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} align="center">
+                                No matching classrooms found. Try adjusting your criteria.
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                    
+                    {constraintPreview.classroomAssignmentReady && renderClassroomAssignmentPreview()}
+                    
+                    <Box sx={{ mt: 2, textAlign: 'right' }}>
+                      <Button 
+                        variant="contained" 
+                        color="primary"
+                        onClick={() => {
+                          // 保存当前的课程-教室类型偏好设置
+                          alert('课程教室类型偏好已保存');
+                        }}
+                      >
+                        Save Preferences
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
+                
+                <Box sx={{ mt: 4 }}>
+                  <Typography variant="subtitle1" gutterBottom>Equipment Available by Classroom Type</Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Room Type</TableCell>
+                          <TableCell>Standard Equipment</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {mockRoomTypeEquipment.map((item, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{item.roomType}</TableCell>
+                            <TableCell>
+                              {item.equipmentTypeIds.map(id => {
+                                const equipment = mockEquipmentTypes.find(e => e.id === id);
+                                return equipment ? (
+                                  <Chip 
+                                    key={id}
+                                    label={equipment.name}
+                                    size="small"
+                                    sx={{ mr: 0.5, mb: 0.5 }}
+                                    color={requiredFeatures.includes(equipment.name) ? 'primary' : 'default'}
+                                  />
+                                ) : null;
+                              })}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              </Box>
+            </Box>
           )}
           
           {/* Classroom Availability */}
@@ -831,36 +1272,144 @@ const DataManagement = ({
         </Box>
       )}
       
-      {/* Resource Management Tab */}
-      {tabValue === 2 && (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="subtitle1">Resource Management</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+      {parametersModified && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          Parameters have been modified. Click "Save All Parameter Settings" to apply changes.
+        </Alert>
+      )}
+       {/* Add save button at the bottom */}
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
               <Button 
                 variant="contained" 
                 color="primary" 
-                startIcon={<AddIcon />}
+          onClick={saveParametersToSystem}
               >
-                Add Classroom
+          Save All Parameter Settings
               </Button>
-              <Button 
-                variant="outlined" 
-                startIcon={<AddIcon />}
-              >
-                Add Equipment
-              </Button>
+      </Box>
+
+      {/* 添加在最外层 </Box> 标签之前 */}
+      <Dialog open={newPresetDialog} onClose={() => setNewPresetDialog(false)}>
+        <DialogTitle>Save Current Parameters as Preset</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Preset Name"
+            fullWidth
+            value={newPresetName}
+            onChange={(e) => setNewPresetName(e.target.value)}
+          />
+          <TextField
+            margin="dense"
+            label="Description (Optional)"
+            fullWidth
+            value={newPresetDesc}
+            onChange={(e) => setNewPresetDesc(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNewPresetDialog(false)}>Cancel</Button>
+          <Button onClick={saveCurrentAsPreset} disabled={!newPresetName.trim()}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 添加教室设备状态管理对话框 */}
+      <Dialog 
+        open={classroomEditDialog} 
+        onClose={() => setClassroomEditDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Edit Classroom
+          {editingClassroom && (
+            <Typography variant="subtitle2" color="text.secondary">
+              Building: {selectedClassroom?.building} | Campus: {mockCampuses.find(c => c.id === selectedClassroom?.campusId)?.name || 'Unknown'}
+            </Typography>
+          )}
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Classroom Name"
+                fullWidth
+                value={editingClassroom.name}
+                onChange={(e) => setEditingClassroom({...editingClassroom, name: e.target.value})}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Capacity"
+                type="number"
+                fullWidth
+                value={editingClassroom.capacity}
+                onChange={(e) => setEditingClassroom({...editingClassroom, capacity: parseInt(e.target.value, 10)})}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Classroom Type</InputLabel>
+                <Select
+                  value={editingClassroom.type}
+                  label="Classroom Type"
+                  onChange={(e) => setEditingClassroom({...editingClassroom, type: e.target.value})}
+                >
+                  <MenuItem value="ComputerLab">Computer Lab</MenuItem>
+                  <MenuItem value="Lecture">Lecture Room</MenuItem>
+                  <MenuItem value="LargeHall">Large Hall</MenuItem>
+                  <MenuItem value="Laboratory">Laboratory</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Features</InputLabel>
+                <Select
+                  multiple
+                  value={editingClassroom.features || []}
+                  label="Features"
+                  onChange={(e) => setEditingClassroom({...editingClassroom, features: e.target.value})}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
             </Box>
-          </Box>
-          
-          {/* Add sub-tabs */}
+                  )}
+                >
+                  <MenuItem value="Projector">Projector</MenuItem>
+                  <MenuItem value="Computers">Computers</MenuItem>
+                  <MenuItem value="Interactive Whiteboard">Interactive Whiteboard</MenuItem>
+                  <MenuItem value="Advanced Audio">Advanced Audio</MenuItem>
+                  <MenuItem value="Lab Equipment">Lab Equipment</MenuItem>
+                  <MenuItem value="Safety Facilities">Safety Facilities</MenuItem>
+                  <MenuItem value="Whiteboard">Whiteboard</MenuItem>
+                  <MenuItem value="Audio System">Audio System</MenuItem>
+                  <MenuItem value="Dual Projector">Dual Projector</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setClassroomEditDialog(false)}>Cancel</Button>
+          <Button onClick={handleClassroomUpdate} variant="contained" color="primary">Save Changes</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Resource Management Tab */}
+      {tabValue === 2 && (
+        <Box>
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
             <Tabs 
               value={resourceSubTab} 
               onChange={(e, newValue) => setResourceSubTab(newValue)}
             >
               <Tab label="Classrooms" />
-              <Tab label="Equipment" />
+              <Tab label="Equipment Types" />
               <Tab label="Classroom Equipment" />
               <Tab label="Utilization Reports" />
             </Tabs>
@@ -870,66 +1419,79 @@ const DataManagement = ({
           {resourceSubTab === 0 && (
             <Box>
               <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>ID</TableCell>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Building</TableCell>
-                      <TableCell>Capacity</TableCell>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Building</TableCell>
+                    <TableCell>Capacity</TableCell>
                       <TableCell>Features</TableCell>
-                      <TableCell>Type</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {mockClassrooms.map((classroom) => (
-                      <TableRow key={classroom.id}>
-                        <TableCell>{classroom.id}</TableCell>
-                        <TableCell>{classroom.name}</TableCell>
-                        <TableCell>{classroom.building}</TableCell>
-                        <TableCell>{classroom.capacity}</TableCell>
+                    <TableCell>Type</TableCell>
+                      <TableCell>Campus</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {mockClassrooms.map((classroom) => (
+                      <TableRow 
+                        key={classroom.id} 
+                        hover 
+                        selected={selectedClassroom?.id === classroom.id}
+                        onClick={() => setSelectedClassroom(classroom)}
+                      >
+                      <TableCell>{classroom.id}</TableCell>
+                      <TableCell>{classroom.name}</TableCell>
+                      <TableCell>{classroom.building}</TableCell>
+                      <TableCell>{classroom.capacity}</TableCell>
                         <TableCell>
-                          {classroom.hasComputers && <Chip size="small" label="Computers" color="primary" sx={{ mr: 0.5 }} />}
-                          {classroom.type === 'Laboratory' && <Chip size="small" label="Lab Equipment" color="secondary" />}
-                          {classroom.type === 'LargeHall' && <Chip size="small" label="Advanced Audio" color="info" />}
-                        </TableCell>
-                        <TableCell>{classroom.type}</TableCell>
-                        <TableCell>
-                          <Tooltip title="Edit">
-                            <IconButton size="small">
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small">
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="View Equipment">
-                            <IconButton 
+                          {classroom.features && classroom.features.map((feature, index) => (
+                            <Chip 
+                              key={index} 
+                              label={feature} 
                               size="small" 
-                              onClick={() => handleClassroomSelect(classroom.id)}
-                            >
-                              <SettingsIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                              sx={{ mr: 0.5, mb: 0.5 }}
+                            />
+                          ))}
                         </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                      <TableCell>{classroom.type}</TableCell>
+                      <TableCell>
+                          {mockCampuses.find(c => c.id === classroom.campusId)?.name || 'Unknown'}
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip title="Edit Classroom">
+                            <IconButton size="small" onClick={(e) => {
+                              e.stopPropagation();
+                              handleClassroomEdit(classroom.id);
+                            }}>
+                              <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+              
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  variant="contained" 
+                  color="primary"
+                  startIcon={<AddIcon />}
+                >
+                  Add New Classroom
+                </Button>
+              </Box>
             </Box>
           )}
           
-          {/* Equipment */}
+          {/* Teachers */}
           {resourceSubTab === 1 && (
             <Box>
               <Alert severity="info" sx={{ mb: 2 }}>
-                Equipment management allows you to track and assign specific equipment needed for courses.
+                Equipment types define the physical resources available in classrooms.
               </Alert>
-              
               <TableContainer component={Paper} variant="outlined">
                 <Table>
                   <TableHead>
@@ -947,24 +1509,33 @@ const DataManagement = ({
                         <TableCell>{equipment.id}</TableCell>
                         <TableCell>{equipment.name}</TableCell>
                         <TableCell>{equipment.description}</TableCell>
-                        <TableCell>{equipment.movable ? 'Yes' : 'No'}</TableCell>
-                        <TableCell>
-                          <Tooltip title="Edit">
-                            <IconButton size="small">
-                              <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small">
-                              <DeleteIcon />
-                            </IconButton>
-                          </Tooltip>
+                      <TableCell>
+                          <Chip 
+                            size="small" 
+                            label={equipment.movable ? "Yes" : "No"} 
+                            color={equipment.movable ? "success" : "default"}
+                          />
                         </TableCell>
-                      </TableRow>
+                        <TableCell>
+                          <IconButton size="small">
+                            <EditIcon />
+                          </IconButton>
+                      </TableCell>
+                    </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </TableContainer>
+              
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  variant="contained" 
+                  color="primary"
+                  startIcon={<AddIcon />}
+                >
+                  Add New Equipment Type
+                </Button>
+              </Box>
             </Box>
           )}
           
@@ -975,16 +1546,16 @@ const DataManagement = ({
                 View and manage fixed equipment and facilities for each classroom.
               </Alert>
               
-              {/* 整合的筛选面板 */}
+              {/* Simplified filter panel - only keep classroom selection */}
               <Paper variant="outlined" sx={{ mb: 3, p: 2 }}>
                 <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} md={3}>
+                  <Grid item xs={12} md={6}>
                     <FormControl fullWidth size="small">
                       <InputLabel>Select Classroom</InputLabel>
                       <Select 
-                        value={equipmentFilters.classroom} 
+                        value={selectedClassroom?.id || ''}
+                        onChange={(e) => handleClassroomSelect(e.target.value)}
                         label="Select Classroom"
-                        onChange={(e) => handleFilterChange('classroom', e.target.value)}
                       >
                         <MenuItem value="">All Classrooms</MenuItem>
                         {mockClassrooms.map(classroom => (
@@ -995,370 +1566,292 @@ const DataManagement = ({
                       </Select>
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Classroom Type</InputLabel>
-                      <Select 
-                        value={equipmentFilters.classroomType} 
-                        label="Classroom Type"
-                        onChange={(e) => handleFilterChange('classroomType', e.target.value)}
+                  <Grid item xs={12} md={6} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    {selectedClassroom && (
+                      <Button 
+                        variant="outlined" 
+                        startIcon={<AddIcon />}
                       >
-                        <MenuItem value="">All Types</MenuItem>
-                        <MenuItem value="ComputerLab">Computer Lab</MenuItem>
-                        <MenuItem value="Lecture">Lecture Room</MenuItem>
-                        <MenuItem value="LargeHall">Large Hall</MenuItem>
-                        <MenuItem value="Laboratory">Laboratory</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Equipment Type</InputLabel>
-                      <Select 
-                        value={equipmentFilters.equipmentType} 
-                        label="Equipment Type"
-                        onChange={(e) => handleFilterChange('equipmentType', e.target.value)}
-                      >
-                        <MenuItem value="">All Equipment</MenuItem>
-                        {mockEquipmentTypes.map(type => (
-                          <MenuItem key={type.id} value={type.id}>{type.name}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FormControl fullWidth size="small">
-                      <InputLabel>Status</InputLabel>
-                      <Select 
-                        value={equipmentFilters.status} 
-                        label="Status"
-                        onChange={(e) => handleFilterChange('status', e.target.value)}
-                      >
-                        <MenuItem value="">All Statuses</MenuItem>
-                        <MenuItem value="Good">Good</MenuItem>
-                        <MenuItem value="Partially Damaged">Partially Damaged</MenuItem>
-                        <MenuItem value="Needs Repair">Needs Repair</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button 
-                      variant="contained" 
-                      color="primary"
-                      onClick={() => applyEquipmentFilters()}
-                    >
-                      Apply Filters
-                    </Button>
+                        Add New Equipment
+                      </Button>
+                    )}
                   </Grid>
                 </Grid>
               </Paper>
               
-              {/* 设备清单和设备标准两个选项卡 */}
+              {/* Equipment inventory and standard configs tabs */}
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
                 <Tabs 
                   value={equipmentSubTab} 
-                  onChange={handleEquipmentSubTabChange}
+                  onChange={(e, newValue) => setEquipmentSubTab(newValue)}
                 >
                   <Tab label="Equipment Inventory" />
                   <Tab label="Standard Configurations" />
                 </Tabs>
               </Box>
               
-              {/* 设备清单内容 */}
+              {/* Equipment management interface */}
               {equipmentSubTab === 0 && (
-                <>
-                  <Typography variant="subtitle1" gutterBottom>Classroom Equipment Inventory</Typography>
-                  <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Classroom</TableCell>
-                          <TableCell>Equipment Name</TableCell>
-                          <TableCell>Quantity</TableCell>
-                          <TableCell>Status</TableCell>
-                          <TableCell>Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {filteredEquipment.length > 0 ? filteredEquipment.map((item) => {
-                          const classroom = mockClassrooms.find(c => c.id === item.classroomId);
-                          const equipment = mockEquipmentTypes.find(e => e.id === item.equipmentTypeId);
-                          if (!classroom || !equipment) return null;
-                          
-                          return (
-                            <TableRow key={item.id}>
-                              <TableCell>{`${classroom.building}-${classroom.name}`}</TableCell>
-                              <TableCell>{equipment.name}</TableCell>
-                              <TableCell>{item.quantity}</TableCell>
-                              <TableCell>
-                                <Chip 
-                                  size="small" 
-                                  label={item.status} 
-                                  color={item.status === 'Good' ? 'success' : item.status === 'Partially Damaged' ? 'warning' : 'error'} 
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Tooltip title="Edit">
-                                  <IconButton size="small" onClick={() => handleClassroomSelect(classroom.id)}>
-                                    <EditIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        }) : (
-                          <TableRow>
-                            <TableCell colSpan={5} align="center">No equipment found matching the selected filters</TableCell>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={7}>
+                    {/* Classroom equipment inventory */}
+                    <Typography variant="subtitle1" gutterBottom>Classroom Equipment Inventory</Typography>
+                    <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+                      <Table>
+                        <TableHead>
+                    <TableRow>
+                            <TableCell>Classroom</TableCell>
+                            <TableCell>Equipment Name</TableCell>
+                            <TableCell>Quantity</TableCell>
+                            <TableCell>Status</TableCell>
+                            <TableCell>Actions</TableCell>
                           </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                          {selectedClassroom ? (
+                            classroomEquipmentList.map((item) => {
+                              const classroom = mockClassrooms.find(c => c.id === item.classroomId);
+                              const equipment = mockEquipmentTypes.find(e => e.id === item.equipmentTypeId);
+                              if (!classroom || !equipment) return null;
+                              
+                              return (
+                                <TableRow 
+                                  key={item.id}
+                                  selected={selectedEquipment && selectedEquipment.id === item.id}
+                                  onClick={() => handleEquipmentSelect(item.id)}
+                                >
+                                  <TableCell>{`${classroom.building}-${classroom.name}`}</TableCell>
+                                  <TableCell>{equipment.name}</TableCell>
+                                  <TableCell>{item.quantity}</TableCell>
+                                  <TableCell>
+                                    <Chip 
+                                      size="small" 
+                                      label={item.status} 
+                                      color={item.status === 'Good' ? 'success' : item.status === 'Partially Damaged' ? 'warning' : 'error'} 
+                                    />
+                                  </TableCell>
+                      <TableCell>
+                        <Tooltip title="Edit">
+                                      <IconButton size="small" onClick={() => handleEquipmentSelect(item.id)}>
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                              );
+                            })
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} align="center">Please select a classroom first</TableCell>
+                            </TableRow>
+                          )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+                  </Grid>
                   
-                  {/* 显示已选中教室的详情 */}
-                  {equipmentFilters.classroom && (
-                    <>
-                      <Typography variant="subtitle1" gutterBottom>Selected Classroom Details</Typography>
-                      <Grid container spacing={3}>
-                        {(() => {
-                          const classroom = mockClassrooms.find(c => c.id === equipmentFilters.classroom);
-                          if (!classroom) return null;
-                          
-                          const classroomEquipment = mockClassroomEquipment.filter(
-                            item => item.classroomId === classroom.id
-                          );
-                          
-                          return (
-                            <Grid item xs={12} md={6} key={classroom.id}>
-                              <Card variant="outlined">
-                                <CardContent>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography variant="h6">{classroom.building + '-' + classroom.name}</Typography>
-                                    <Chip 
-                                      label={classroom.type} 
-                                      color={
-                                        classroom.type === 'ComputerLab' ? 'primary' : 
-                                        classroom.type === 'Laboratory' ? 'secondary' :
-                                        classroom.type === 'LargeHall' ? 'error' : 'info'
-                                      } 
-                                      size="small" 
-                                    />
-                                  </Box>
-                                  
-                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                    <Chip size="small" icon={<ScheduleIcon />} label={`Capacity: ${classroom.capacity}`} />
-                                    <Chip 
-                                      size="small" 
-                                      icon={<EventIcon />} 
-                                      label={`Campus: ${classroom.campusId === 1 ? 'Main Campus' : classroom.campusId === 2 ? 'Downtown Campus' : 'Medical Campus'}`} 
-                                    />
-                                  </Box>
-                                  
-                                  <Divider sx={{ my: 1 }} />
-                                  
-                                  <Typography variant="subtitle2" gutterBottom>Equipment List</Typography>
-                                  <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 200, overflow: 'auto' }}>
-                                    <Table size="small">
-                                      <TableHead>
-                                        <TableRow>
-                                          <TableCell>Equipment</TableCell>
-                                          <TableCell>Quantity</TableCell>
-                                          <TableCell>Status</TableCell>
-                                        </TableRow>
-                                      </TableHead>
-                                      <TableBody>
-                                        {classroomEquipment.map((item) => {
-                                          const equipment = mockEquipmentTypes.find(e => e.id === item.equipmentTypeId);
-                                          if (!equipment) return null;
-                                          
-                                          return (
-                                            <TableRow key={item.id}>
-                                              <TableCell>{equipment.name}</TableCell>
-                                              <TableCell>{item.quantity}</TableCell>
-                                              <TableCell>
-                                                <Chip 
-                                                  size="small" 
-                                                  label={item.status} 
-                                                  color={item.status === 'Good' ? 'success' : item.status === 'Partially Damaged' ? 'warning' : 'error'} 
-                                                />
-                                              </TableCell>
-                                            </TableRow>
-                                          );
-                                        })}
-                                        {classroomEquipment.length === 0 && (
-                                          <TableRow>
-                                            <TableCell colSpan={3} align="center">No equipment data available</TableCell>
-                                          </TableRow>
-                                        )}
-                                      </TableBody>
-                                    </Table>
-                                  </TableContainer>
-                                  
-                                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                    <Button 
-                                      size="small" 
-                                      variant="contained" 
-                                      color="primary"
-                                      startIcon={<EditIcon />}
-                                      onClick={() => handleClassroomSelect(classroom.id)}
-                                    >
-                                      Manage Equipment
-                                    </Button>
-                                  </Box>
-                                </CardContent>
-                              </Card>
-                            </Grid>
-                          );
-                        })()}
-                      </Grid>
-                    </>
-                  )}
-                </>
+                  <Grid item xs={12} md={5}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="subtitle2" gutterBottom>
+                          {selectedEquipment ? 'Edit Equipment' : 'Equipment Details'}
+                        </Typography>
+                        
+                        {selectedEquipment ? (
+                          <Box>
+                            <TextField
+                              label="Quantity"
+                              type="number"
+                              fullWidth
+                              margin="normal"
+                              value={editingEquipment.quantity}
+                              onChange={(e) => setEditingEquipment(prev => ({
+                                ...prev,
+                                quantity: parseInt(e.target.value, 10)
+                              }))}
+                              InputProps={{ inputProps: { min: 0 } }}
+                            />
+                            
+                            <FormControl fullWidth margin="normal">
+                              <InputLabel>Status</InputLabel>
+                              <Select
+                                value={editingEquipment.status}
+                                label="Status"
+                                onChange={(e) => setEditingEquipment(prev => ({
+                                  ...prev,
+                                  status: e.target.value
+                                }))}
+                              >
+                                <MenuItem value="Good">Good</MenuItem>
+                                <MenuItem value="Partially Damaged">Partially Damaged</MenuItem>
+                                <MenuItem value="Needs Repair">Needs Repair</MenuItem>
+                              </Select>
+                            </FormControl>
+                            
+                            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                              <Button 
+                                variant="contained" 
+                                onClick={handleEquipmentUpdate}
+                                disabled={!selectedEquipment}
+                              >
+                                Update
+                              </Button>
+                              <Button 
+                                variant="outlined" 
+                                onClick={() => setSelectedEquipment(null)}
+                              >
+                                Cancel
+                              </Button>
+                            </Box>
+                          </Box>
+                        ) : (
+                          <Typography variant="body2" color="text.secondary">
+                            {selectedClassroom ? 'Select an equipment from the list to edit its details.' : 'Please select a classroom first to view equipment.'}
+                          </Typography>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                </Grid>
               )}
               
-              {/* 设备标准配置内容 */}
+              {/* Standard Configurations Tab */}
               {equipmentSubTab === 1 && (
-                <>
-                  <Typography variant="subtitle1" gutterBottom>Standard Configurations by Classroom Type</Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6} lg={3}>
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom>Equipment Standard Configurations</Typography>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
                       <Card variant="outlined">
                         <CardContent>
-                          <Typography variant="h6">Computer Lab</Typography>
-                          <Divider sx={{ my: 1 }} />
-                          <List dense>
-                            <ListItem>
-                              <ListItemText primary="Projector" secondary="1 unit" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Computers" secondary="25-30 units" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Interactive Whiteboard" secondary="1 unit" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Network Ports" secondary="1 per computer" />
-                            </ListItem>
-                          </List>
+                          <Typography variant="h6" gutterBottom>Room Type Equipment Standards</Typography>
+                          <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Room Type</TableCell>
+                                  <TableCell>Standard Equipment</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {mockRoomTypeEquipment.map((item, index) => (
+                                  <TableRow key={index}>
+                                    <TableCell>{item.roomType}</TableCell>
+                                    <TableCell>
+                                      {item.equipmentTypeIds.map(id => {
+                                        const equipment = mockEquipmentTypes.find(e => e.id === id);
+                                        return equipment ? (
+                                          <Chip 
+                                            key={id}
+                                            label={equipment.name}
+                                            size="small"
+                                            sx={{ mr: 0.5, mb: 0.5 }}
+                                          />
+                                        ) : null;
+                                      })}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button 
+                              variant="outlined" 
+                              startIcon={<EditIcon />} 
+                              size="small"
+                            >
+                              Edit Standards
+                            </Button>
+                          </Box>
                         </CardContent>
                       </Card>
                     </Grid>
-                    <Grid item xs={12} md={6} lg={3}>
+                    
+                    <Grid item xs={12} md={6}>
                       <Card variant="outlined">
                         <CardContent>
-                          <Typography variant="h6">Lecture Room</Typography>
-                          <Divider sx={{ my: 1 }} />
-                          <List dense>
-                            <ListItem>
-                              <ListItemText primary="Projector" secondary="1 unit" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Teaching Podium" secondary="1 unit" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Student Desks & Chairs" secondary="Based on capacity" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Audio System" secondary="1 set" />
-                            </ListItem>
-                          </List>
+                          <Typography variant="h6" gutterBottom>Equipment Maintenance Schedule</Typography>
+                          <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Equipment Type</TableCell>
+                                  <TableCell>Maintenance Frequency</TableCell>
+                                  <TableCell>Last Updated</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {mockEquipmentTypes.slice(0, 5).map((item) => (
+                                  <TableRow key={item.id}>
+                                    <TableCell>{item.name}</TableCell>
+                                    <TableCell>
+                                      {item.id % 3 === 0 ? 'Monthly' : item.id % 3 === 1 ? 'Quarterly' : 'Annually'}
+                                    </TableCell>
+                                    <TableCell>
+                                      {new Date(Date.now() - (Math.random() * 10000000000)).toLocaleDateString()}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            <Button 
+                              variant="outlined" 
+                              startIcon={<ScheduleIcon />} 
+                              size="small"
+                            >
+                              Manage Schedule
+                            </Button>
+                          </Box>
                         </CardContent>
                       </Card>
                     </Grid>
-                    <Grid item xs={12} md={6} lg={3}>
+                    
+                    <Grid item xs={12}>
                       <Card variant="outlined">
                         <CardContent>
-                          <Typography variant="h6">Large Hall</Typography>
-                          <Divider sx={{ my: 1 }} />
-                          <List dense>
-                            <ListItem>
-                              <ListItemText primary="Projector" secondary="2 units" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Audio System" secondary="Advanced sound system" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Seating" secondary="Tiered seating" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Air Conditioning" secondary="Multiple units" />
-                            </ListItem>
-                          </List>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} md={6} lg={3}>
-                      <Card variant="outlined">
-                        <CardContent>
-                          <Typography variant="h6">Laboratory</Typography>
-                          <Divider sx={{ my: 1 }} />
-                          <List dense>
-                            <ListItem>
-                              <ListItemText primary="Lab Benches" secondary="15 workstations" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Specialized Equipment" secondary="Subject-specific equipment" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Safety Facilities" secondary="Emergency shower, eyewash" />
-                            </ListItem>
-                            <ListItem>
-                              <ListItemText primary="Special Power" secondary="220V and 380V" />
-                            </ListItem>
-                          </List>
+                          <Typography variant="h6" gutterBottom>Equipment Supply Chain</Typography>
+                          <Alert severity="info" sx={{ mb: 2 }}>
+                            Configure equipment vendors, reordering thresholds, and maintenance service providers.
+                          </Alert>
+                          <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Equipment Category</TableCell>
+                                  <TableCell>Preferred Vendor</TableCell>
+                                  <TableCell>Lead Time</TableCell>
+                                  <TableCell>Reorder Level</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                <TableRow>
+                                  <TableCell>Computer Equipment</TableCell>
+                                  <TableCell>TechSupply Inc.</TableCell>
+                                  <TableCell>2-3 weeks</TableCell>
+                                  <TableCell>5 units</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>Audio Visual</TableCell>
+                                  <TableCell>AV Solutions Ltd.</TableCell>
+                                  <TableCell>1-2 weeks</TableCell>
+                                  <TableCell>3 units</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                  <TableCell>Lab Equipment</TableCell>
+                                  <TableCell>ScienceTools Co.</TableCell>
+                                  <TableCell>4-6 weeks</TableCell>
+                                  <TableCell>2 units</TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
                         </CardContent>
                       </Card>
                     </Grid>
                   </Grid>
-                  
-                  <Typography variant="subtitle1" sx={{ mt: 3 }} gutterBottom>Equipment Requirements by Course Type</Typography>
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Course Type</TableCell>
-                          <TableCell>Required Equipment</TableCell>
-                          <TableCell>Recommended Room Type</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        <TableRow>
-                          <TableCell>Computer Science</TableCell>
-                          <TableCell>
-                            <Chip size="small" label="Computers" sx={{ mr: 0.5 }} />
-                            <Chip size="small" label="Projector" sx={{ mr: 0.5 }} />
-                            <Chip size="small" label="Network" />
-                          </TableCell>
-                          <TableCell>Computer Lab</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>Mathematics</TableCell>
-                          <TableCell>
-                            <Chip size="small" label="Whiteboard" sx={{ mr: 0.5 }} />
-                            <Chip size="small" label="Projector" />
-                          </TableCell>
-                          <TableCell>Lecture Room</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>Physics</TableCell>
-                          <TableCell>
-                            <Chip size="small" label="Lab Equipment" sx={{ mr: 0.5 }} />
-                            <Chip size="small" label="Safety Facilities" />
-                          </TableCell>
-                          <TableCell>Laboratory</TableCell>
-                        </TableRow>
-                        <TableRow>
-                          <TableCell>Business</TableCell>
-                          <TableCell>
-                            <Chip size="small" label="Projector" sx={{ mr: 0.5 }} />
-                            <Chip size="small" label="Audio System" />
-                          </TableCell>
-                          <TableCell>Large Hall</TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </>
+                </Box>
               )}
             </Box>
           )}
@@ -1487,167 +1980,179 @@ const DataManagement = ({
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="subtitle1">Time Management</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
               <Button 
-                variant="outlined" 
-                startIcon={<AddIcon />}
-              >
-                Add Academic Calendar
+              variant="contained" 
+              color="primary" 
+              startIcon={<EventIcon />}
+            >
+              Add New Time Slot
               </Button>
-              <Button 
-                variant="outlined" 
-                startIcon={<AddIcon />}
-              >
-                Add Special Period
-              </Button>
-            </Box>
           </Box>
           
-          {/* Add sub-tabs */}
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
             <Tabs 
               value={timeSubTab} 
               onChange={(e, newValue) => setTimeSubTab(newValue)}
             >
-              <Tab label="Academic Calendars" />
-              <Tab label="Special Periods" />
-              <Tab label="Standard Time Slots" />
+              <Tab label="Academic Calendar" />
+              <Tab label="Class Time Slots" />
+              <Tab label="Exam Periods" />
+              <Tab label="Holidays & Breaks" />
             </Tabs>
           </Box>
           
-          {/* Academic Calendars */}
+          {/* Academic Calendar Tab */}
           {timeSubTab === 0 && (
+            <Box>
+              <Card variant="outlined" sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="subtitle1" gutterBottom>Academic Year Configuration</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
             <TableContainer component={Paper} variant="outlined">
-              <Table>
+                        <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
+                              <TableCell>Semester</TableCell>
                     <TableCell>Start Date</TableCell>
                     <TableCell>End Date</TableCell>
-                    <TableCell>Total Weeks</TableCell>
                     <TableCell>Status</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Spring 2025</TableCell>
-                    <TableCell>January 15, 2025</TableCell>
-                    <TableCell>May 10, 2025</TableCell>
-                    <TableCell>16</TableCell>
+                            {mockSemesters.map((semester) => (
+                              <TableRow key={semester.id} hover>
+                                <TableCell>{semester.name}</TableCell>
+                                <TableCell>{new Date(semester.startDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(semester.endDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Chip 
-                        label="Active" 
-                        color="primary" 
                         size="small" 
+                                    label={semester.isActive ? "Active" : "Inactive"} 
+                                    color={semester.isActive ? "success" : "default"} 
                       />
                     </TableCell>
                     <TableCell>
                       <Tooltip title="Edit">
                         <IconButton size="small">
-                          <EditIcon />
+                                      <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell>Summer 2025</TableCell>
-                    <TableCell>June 5, 2025</TableCell>
-                    <TableCell>August 15, 2025</TableCell>
-                    <TableCell>10</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label="Upcoming" 
-                        color="info" 
-                        size="small" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton size="small">
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Fall 2025</TableCell>
-                    <TableCell>September 1, 2025</TableCell>
-                    <TableCell>December 20, 2025</TableCell>
-                    <TableCell>16</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label="Upcoming" 
-                        color="info" 
-                        size="small" 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton size="small">
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+                            ))}
                 </TableBody>
               </Table>
             </TableContainer>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Card>
+                        <CardContent>
+                          <Typography variant="subtitle2" gutterBottom>Academic Year Timeline</Typography>
+                          <Box sx={{ height: 200, bgcolor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                              Academic Calendar Timeline (placeholder)
+                            </Typography>
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+              
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <Button 
+                  variant="outlined" 
+                  startIcon={<FileDownloadIcon />}
+                  sx={{ mr: 1 }}
+                >
+                  Export Calendar
+                </Button>
+                <Button 
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                >
+                  Save Changes
+                </Button>
+              </Box>
+            </Box>
           )}
           
-          {/* Special Periods */}
+          {/* Class Time Slots Tab */}
           {timeSubTab === 1 && (
+            <Box>
+              <Card variant="outlined" sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="subtitle1" gutterBottom>Class Time Slot Configuration</Typography>
+                  
             <TableContainer component={Paper} variant="outlined">
-              <Table>
+                    <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Start Date</TableCell>
-                    <TableCell>End Date</TableCell>
-                    <TableCell>Affects Scheduling</TableCell>
+                          <TableCell>Slot ID</TableCell>
+                          <TableCell>Start Time</TableCell>
+                          <TableCell>End Time</TableCell>
+                          <TableCell>Days</TableCell>
+                          <TableCell>Campus</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>Spring Break 2025</TableCell>
-                    <TableCell>Holiday</TableCell>
-                    <TableCell>March 15, 2025</TableCell>
-                    <TableCell>March 22, 2025</TableCell>
-                    <TableCell>Yes</TableCell>
+                        <TableRow hover>
+                          <TableCell>TS001</TableCell>
+                          <TableCell>08:00 AM</TableCell>
+                          <TableCell>09:30 AM</TableCell>
+                          <TableCell>Mon, Wed</TableCell>
+                          <TableCell>Main Campus</TableCell>
                     <TableCell>
                       <Tooltip title="Edit">
                         <IconButton size="small">
-                          <EditIcon />
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small">
+                                <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell>Ramadan 2025</TableCell>
-                    <TableCell>Special Schedule</TableCell>
-                    <TableCell>March 1, 2025</TableCell>
-                    <TableCell>March 30, 2025</TableCell>
-                    <TableCell>Yes</TableCell>
+                        <TableRow hover>
+                          <TableCell>TS002</TableCell>
+                          <TableCell>10:00 AM</TableCell>
+                          <TableCell>11:30 AM</TableCell>
+                          <TableCell>Mon, Wed, Fri</TableCell>
+                          <TableCell>Main Campus</TableCell>
                     <TableCell>
                       <Tooltip title="Edit">
                         <IconButton size="small">
-                          <EditIcon />
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small">
+                                <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell>Final Exams</TableCell>
-                    <TableCell>Exam Period</TableCell>
-                    <TableCell>May 1, 2025</TableCell>
-                    <TableCell>May 10, 2025</TableCell>
-                    <TableCell>Yes</TableCell>
+                        <TableRow hover>
+                          <TableCell>TS003</TableCell>
+                          <TableCell>01:00 PM</TableCell>
+                          <TableCell>02:30 PM</TableCell>
+                          <TableCell>Tue, Thu</TableCell>
+                          <TableCell>All Campuses</TableCell>
                     <TableCell>
                       <Tooltip title="Edit">
                         <IconButton size="small">
-                          <EditIcon />
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete">
+                              <IconButton size="small">
+                                <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                     </TableCell>
@@ -1655,170 +2160,29 @@ const DataManagement = ({
                 </TableBody>
               </Table>
             </TableContainer>
-          )}
-          
-          {/* Standard Time Slots */}
-          {timeSubTab === 2 && (
-            <Box>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Regular Time Slots
-                      </Typography>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>ID</TableCell>
-                              <TableCell>Start Time</TableCell>
-                              <TableCell>End Time</TableCell>
-                              <TableCell>Duration</TableCell>
-                              <TableCell>Actions</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>1</TableCell>
-                              <TableCell>08:00</TableCell>
-                              <TableCell>09:30</TableCell>
-                              <TableCell>1h 30m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>2</TableCell>
-                              <TableCell>10:00</TableCell>
-                              <TableCell>11:30</TableCell>
-                              <TableCell>1h 30m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>3</TableCell>
-                              <TableCell>12:00</TableCell>
-                              <TableCell>13:30</TableCell>
-                              <TableCell>1h 30m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>4</TableCell>
-                              <TableCell>14:00</TableCell>
-                              <TableCell>15:30</TableCell>
-                              <TableCell>1h 30m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>5</TableCell>
-                              <TableCell>16:00</TableCell>
-                              <TableCell>17:30</TableCell>
-                              <TableCell>1h 30m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Ramadan Time Slots
-                      </Typography>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell>ID</TableCell>
-                              <TableCell>Start Time</TableCell>
-                              <TableCell>End Time</TableCell>
-                              <TableCell>Duration</TableCell>
-                              <TableCell>Actions</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow>
-                              <TableCell>R1</TableCell>
-                              <TableCell>09:00</TableCell>
-                              <TableCell>10:15</TableCell>
-                              <TableCell>1h 15m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>R2</TableCell>
-                              <TableCell>10:30</TableCell>
-                              <TableCell>11:45</TableCell>
-                              <TableCell>1h 15m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>R3</TableCell>
-                              <TableCell>12:00</TableCell>
-                              <TableCell>13:15</TableCell>
-                              <TableCell>1h 15m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                            <TableRow>
-                              <TableCell>R4</TableCell>
-                              <TableCell>13:30</TableCell>
-                              <TableCell>14:45</TableCell>
-                              <TableCell>1h 15m</TableCell>
-                              <TableCell>
-                                <IconButton size="small">
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
+                </CardContent>
+              </Card>
               
-              <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button 
-                  variant="outlined" 
+                  variant="contained"
                   startIcon={<AddIcon />}
                 >
-                  Add Time Slot Type
+                  Add Time Slot
                 </Button>
               </Box>
+            </Box>
+          )}
+          
+          {/* Other time sub tabs */}
+          {timeSubTab > 1 && (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary">
+                {timeSubTab === 2 ? 'Exam Periods' : 'Holidays & Breaks'} Configuration
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                This section is under development.
+              </Typography>
             </Box>
           )}
         </Box>
@@ -1826,112 +2190,202 @@ const DataManagement = ({
       
       {/* Developer Options Tab */}
       {tabValue === 4 && (
-        <Box>
+            <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="subtitle1">Developer Options</Typography>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              startIcon={<SettingsIcon />}
+            >
+              System Diagnostics
+            </Button>
           </Box>
           
-          <Card variant="outlined" sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="subtitle2" gutterBottom>
-                API Configuration
-              </Typography>
-              <Typography variant="caption" color="text.secondary" paragraph sx={{ mb: 2 }}>
-                These options are for development and testing purposes only, and can help with debugging frontend-backend communication issues.
-              </Typography>
+          <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Card variant="outlined">
+                    <CardContent>
+                  <Typography variant="h6" gutterBottom>API Configuration</Typography>
+                  <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                          <TableCell>Setting</TableCell>
+                          <TableCell>Value</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                          <TableCell>API Base URL</TableCell>
+                              <TableCell>
+                            <TextField 
+                              size="small" 
+                              fullWidth 
+                              defaultValue="https://api.smartscheduling.edu/v1"
+                            />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                          <TableCell>API Timeout (ms)</TableCell>
+                              <TableCell>
+                            <TextField 
+                              size="small" 
+                              type="number" 
+                              defaultValue="30000"
+                            />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                          <TableCell>Enable Caching</TableCell>
+                              <TableCell>
+                            <FormControlLabel 
+                              control={<Switch defaultChecked />} 
+                              label="Enabled" 
+                            />
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                  
+                  <Typography variant="h6" gutterBottom>Algorithm Settings</Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                          <TableCell>Setting</TableCell>
+                          <TableCell>Value</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            <TableRow>
+                          <TableCell>Max Iterations</TableCell>
+                              <TableCell>
+                            <TextField 
+                              size="small" 
+                              type="number" 
+                              defaultValue="1000"
+                            />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                          <TableCell>Convergence Threshold</TableCell>
+                              <TableCell>
+                            <TextField 
+                              size="small" 
+                              type="number" 
+                              defaultValue="0.001"
+                            />
+                              </TableCell>
+                            </TableRow>
+                            <TableRow>
+                          <TableCell>Enable Advanced Heuristics</TableCell>
+                              <TableCell>
+                            <FormControlLabel 
+                              control={<Switch defaultChecked />} 
+                              label="Enabled" 
+                            />
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </CardContent>
+                  </Card>
+              </Grid>
               
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch 
-                        checked={true}
-                        onChange={(e) => handleParameterChange('disableMockFallback', e.target.checked)}
-                        color="warning"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">
-                        Disable Mock API Fallback
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Enabling this option will force using the real backend API without automatic switching to mock data
-                        </Typography>
-                      </Typography>
-                    }
-                  />
+            <Grid item xs={12} md={6}>
+              <Card variant="outlined" sx={{ mb: 3 }}>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>System Logs</Typography>
+                  <Box sx={{ bgcolor: '#000', color: '#0f0', p: 2, borderRadius: 1, height: 200, overflow: 'auto', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                    [INFO] 2023-10-15 08:00:15 - System initialized<br/>
+                    [INFO] 2023-10-15 08:01:23 - User authentication successful<br/>
+                    [INFO] 2023-10-15 08:05:45 - Schedule optimization started<br/>
+                    [WARNING] 2023-10-15 08:06:12 - Performance bottleneck detected<br/>
+                    [INFO] 2023-10-15 08:10:33 - Schedule optimization completed<br/>
+                    [INFO] 2023-10-15 08:15:21 - Data synchronization started<br/>
+                    [ERROR] 2023-10-15 08:16:05 - Failed to connect to remote database<br/>
+                    [INFO] 2023-10-15 08:20:45 - System recovery successful<br/>
+              </Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                    <Button size="small" variant="outlined">Clear Logs</Button>
+                    <Button size="small" variant="outlined" sx={{ ml: 1 }}>Download Logs</Button>
+            </Box>
+                </CardContent>
+              </Card>
+              
+              <Card variant="outlined">
+            <CardContent>
+                  <Typography variant="h6" gutterBottom>System Performance</Typography>
+                  <Box sx={{ height: 200, bgcolor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Performance Metrics Chart (placeholder)
+              </Typography>
+                  </Box>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    System is currently operating at optimal performance levels.
+                  </Alert>
+                </CardContent>
+              </Card>
                 </Grid>
                 
                 <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Switch 
-                        checked={true}
-                        onChange={(e) => handleParameterChange('verboseLogging', e.target.checked)}
-                        color="warning"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">
-                        Enable Verbose Logging
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          Display more debugging information in the console, including full request and response data
-                        </Typography>
-                      </Typography>
-                    }
-                  />
-                </Grid>
-              </Grid>
-              
-              <Box sx={{ mt: 2, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Current state: Using real API | Log level: Verbose
-                </Typography>
+              <Card variant="outlined">
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>Data Management</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2">Database Backup</Typography>
+                          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Button variant="outlined" startIcon={<FileDownloadIcon />}>
+                              Backup Database
+                            </Button>
+                            <Button variant="outlined" startIcon={<FileUploadIcon />}>
+                              Restore from Backup
+                            </Button>
               </Box>
             </CardContent>
           </Card>
-          
+                    </Grid>
+                    <Grid item xs={12} md={4}>
           <Card variant="outlined">
             <CardContent>
-              <Typography variant="subtitle2" gutterBottom>
-                System Diagnostics
-              </Typography>
-              <Box sx={{ mb: 2 }}>
-                <Button variant="outlined" size="small" sx={{ mr: 1 }}>
-                  Check API Connection
+                          <Typography variant="subtitle2">Data Import/Export</Typography>
+                          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Button variant="outlined" startIcon={<FileUploadIcon />}>
+                              Import Data
                 </Button>
-                <Button variant="outlined" size="small" sx={{ mr: 1 }}>
-                  Clear Local Cache
+                            <Button variant="outlined" startIcon={<FileDownloadIcon />}>
+                              Export Data
                 </Button>
-                <Button variant="outlined" size="small" color="warning">
-                  Reset to Defaults
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="subtitle2">System Maintenance</Typography>
+                          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            <Button variant="outlined" color="warning">
+                              Clear Cache
+                            </Button>
+                            <Button variant="outlined" color="error">
+                              Reset System
                 </Button>
               </Box>
-              
-              <Divider sx={{ my: 2 }} />
-              
-              <Typography variant="subtitle2" gutterBottom>
-                Performance Metrics
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2">
-                    <strong>Average API Response Time:</strong> 235ms
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Frontend Rendering Time:</strong> 124ms
-                  </Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2">
-                    <strong>Local Storage Usage:</strong> 1.4MB
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Session Duration:</strong> 32min
-                  </Typography>
+                        </CardContent>
+                      </Card>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
+            </Grid>
+          </Grid>
         </Box>
       )}
       
@@ -1940,375 +2394,100 @@ const DataManagement = ({
         <Box>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
             <Typography variant="subtitle1">Templates & Presets</Typography>
+            <Box sx={{ display: 'flex', gap: 1 }}>
             <Button 
-              variant="contained" 
-              color="primary" 
+                variant="outlined" 
               startIcon={<AddIcon />}
-            >
-              Save Current Schedule as Template
+                onClick={() => setNewPresetDialog(true)}
+              >
+                Create New Template
+              </Button>
+              <Button 
+                variant="outlined" 
+                startIcon={<FileUploadIcon />}
+              >
+                Import Templates
             </Button>
+            </Box>
           </Box>
           
-          {/* Add sub-tabs */}
           <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
             <Tabs 
               value={templateSubTab} 
               onChange={(e, newValue) => setTemplateSubTab(newValue)}
             >
               <Tab label="Schedule Templates" />
+              <Tab label="Report Templates" />
               <Tab label="Parameter Presets" />
-              <Tab label="Constraint Presets" />
             </Tabs>
           </Box>
           
-          {/* Schedule Templates */}
+          {/* Schedule Templates Tab */}
           {templateSubTab === 0 && (
-            <Grid container spacing={2}>
-              {[1, 2, 3, 4].map((template) => (
-                <Grid item xs={12} md={6} key={template}>
+            <Grid container spacing={3}>
+              {[1, 2, 3, 4].map((item) => (
+                <Grid item xs={12} md={4} key={item}>
                   <Card variant="outlined">
                     <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Template {template}: Standard {template === 1 ? 'Engineering' : template === 2 ? 'Business' : template === 3 ? 'Arts' : 'Medical'} Schedule
+                      <Typography variant="h6" gutterBottom>{`Template ${item}`}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        {item === 1 
+                          ? "Standard Semester Schedule" 
+                          : item === 2 
+                            ? "Engineering Department Layout" 
+                            : item === 3 
+                              ? "Summer Session Plan" 
+                              : "Final Exam Week"}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        {template === 1 ? 'Optimized for engineering courses with lab components.' : 
-                         template === 2 ? 'Business courses with emphasis on case study sessions.' : 
-                         template === 3 ? 'Arts courses with flexible studio time.' : 
-                         'Medical curriculum with clinical rotations.'}
+                      <Box sx={{ height: 120, bgcolor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Schedule Preview
                       </Typography>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button size="small" variant="outlined">Apply</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
-                        <Button size="small" variant="outlined" color="error">Delete</Button>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Button size="small" variant="outlined" startIcon={<EditIcon />}>
+                          Edit
+                        </Button>
+                        <Button size="small" variant="contained">
+                          Apply
+                        </Button>
                       </Box>
                     </CardContent>
                   </Card>
                 </Grid>
               ))}
-            </Grid>
-          )}
-          
-          {/* Parameter Presets */}
-          {templateSubTab === 1 && (
-            <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Parameter presets allow you to save and quickly apply different parameter configurations for different scheduling scenarios.
-              </Alert>
               
-              <TableContainer component={Paper} variant="outlined">
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Name</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell>Created Date</TableCell>
-                      <TableCell>Last Used</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {parameterPresets.map((preset) => (
-                      <TableRow key={preset.id}>
-                        <TableCell>{preset.name}</TableCell>
-                        <TableCell>{preset.description}</TableCell>
-                        <TableCell>Jan 15, 2025</TableCell>
-                        <TableCell>Mar 10, 2025</TableCell>
-                        <TableCell>
+              <Grid item xs={12} md={4}>
+                <Card variant="outlined" sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f9f9f9' }}>
+                  <CardContent sx={{ textAlign: 'center' }}>
+                    <AddIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                    <Typography variant="body1">Create New Template</Typography>
                           <Button 
-                            size="small" 
                             variant="outlined"
-                            onClick={() => loadParameters(preset.id)}
+                      sx={{ mt: 2 }}
+                      startIcon={<AddIcon />}
                           >
-                            Load
+                      Add Template
                           </Button>
-                          <IconButton size="small">
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton size="small">
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                </Grid>
           )}
           
-          {/* Constraint Presets */}
-          {templateSubTab === 2 && (
-            <Box>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                Constraint presets allow you to save and apply different sets of constraints for different scheduling scenarios.
-              </Alert>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Standard Scheduling Constraints
+          {/* Other template sub tabs */}
+          {templateSubTab > 0 && (
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Typography variant="h6" color="text.secondary">
+                {templateSubTab === 1 ? 'Report Templates' : 'Parameter Presets'} 
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        Basic set of constraints suitable for most general scheduling scenarios.
+              <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
+                This section is under development.
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Includes:</strong> Basic classroom capacity, teacher availability, and time preferences.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Button size="small" variant="outlined">Apply</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
-                        <Button size="small" variant="outlined" color="error">Delete</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Strict Space Utilization Constraints
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        Optimized for maximizing classroom usage efficiency.
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Includes:</strong> Tight classroom matching, minimize empty periods, maximize building utilization.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Button size="small" variant="outlined">Apply</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
-                        <Button size="small" variant="outlined" color="error">Delete</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Student-Focused Constraints
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        Prioritizes student convenience and learning experience.
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Includes:</strong> Minimize gaps in student schedules, balance course load across week, limit consecutive classes.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Button size="small" variant="outlined">Apply</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
-                        <Button size="small" variant="outlined" color="error">Delete</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Card variant="outlined">
-                    <CardContent>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Faculty-Focused Constraints
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" paragraph>
-                        Prioritizes faculty preferences and workload balance.
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Includes:</strong> Respect faculty time preferences, minimize teaching days, balance workload.
-                      </Typography>
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Button size="small" variant="outlined">Apply</Button>
-                        <Button size="small" variant="outlined">Edit</Button>
-                        <Button size="small" variant="outlined" color="error">Delete</Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
             </Box>
           )}
         </Box>
       )}
-      {parametersModified && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Parameters have been modified. Click "Save All Parameter Settings" to apply changes.
-        </Alert>
-      )}
-       {/* Add save button at the bottom */}
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={saveParametersToSystem}
-        >
-          Save All Parameter Settings
-        </Button>
-      </Box>
-
-      {/* 添加在最外层 </Box> 标签之前 */}
-      <Dialog open={newPresetDialog} onClose={() => setNewPresetDialog(false)}>
-        <DialogTitle>Save Current Parameters as Preset</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Preset Name"
-            fullWidth
-            value={newPresetName}
-            onChange={(e) => setNewPresetName(e.target.value)}
-          />
-          <TextField
-            margin="dense"
-            label="Description (Optional)"
-            fullWidth
-            value={newPresetDesc}
-            onChange={(e) => setNewPresetDesc(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setNewPresetDialog(false)}>Cancel</Button>
-          <Button onClick={saveCurrentAsPreset} disabled={!newPresetName.trim()}>Save</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* 添加教室设备状态管理对话框 */}
-      <Dialog 
-        open={equipmentDialog} 
-        onClose={() => setEquipmentDialog(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          Classroom Equipment Management
-          {selectedClassroom && (
-            <Typography variant="subtitle2" color="text.secondary">
-              {selectedClassroom.building}-{selectedClassroom.name} ({selectedClassroom.type})
-            </Typography>
-          )}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={7}>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Equipment</TableCell>
-                      <TableCell>Quantity</TableCell>
-                      <TableCell>Status</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {classroomEquipmentList.map((item) => {
-                      const equipment = mockEquipmentTypes.find(e => e.id === item.equipmentTypeId);
-                      if (!equipment) return null;
-                      
-                      return (
-                        <TableRow 
-                          key={item.id}
-                          selected={selectedEquipment && selectedEquipment.id === item.id}
-                          onClick={() => handleEquipmentSelect(item.id)}
-                          sx={{ cursor: 'pointer' }}
-                        >
-                          <TableCell>{equipment.name}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>
-                            <Chip 
-                              size="small" 
-                              label={item.status} 
-                              color={item.status === 'Good' ? 'success' : item.status === 'Partially Damaged' ? 'warning' : 'error'} 
-                            />
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Grid>
-            
-            <Grid item xs={12} md={5}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="subtitle2" gutterBottom>
-                    {selectedEquipment ? 'Edit Equipment' : 'Equipment Details'}
-                  </Typography>
-                  
-                  {selectedEquipment ? (
-                    <Box>
-                      <TextField
-                        label="Quantity"
-                        type="number"
-                        fullWidth
-                        margin="normal"
-                        value={editingEquipment.quantity}
-                        onChange={(e) => setEditingEquipment(prev => ({
-                          ...prev,
-                          quantity: parseInt(e.target.value, 10)
-                        }))}
-                        InputProps={{ inputProps: { min: 0 } }}
-                      />
-                      
-                      <FormControl fullWidth margin="normal">
-                        <InputLabel>Status</InputLabel>
-                        <Select
-                          value={editingEquipment.status}
-                          label="Status"
-                          onChange={(e) => setEditingEquipment(prev => ({
-                            ...prev,
-                            status: e.target.value
-                          }))}
-                        >
-                          <MenuItem value="Good">Good</MenuItem>
-                          <MenuItem value="Partially Damaged">Partially Damaged</MenuItem>
-                          <MenuItem value="Needs Repair">Needs Repair</MenuItem>
-                        </Select>
-                      </FormControl>
-                      
-                      <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                        <Button 
-                          variant="contained" 
-                          onClick={handleEquipmentUpdate}
-                          disabled={!selectedEquipment}
-                        >
-                          Update
-                        </Button>
-                        <Button 
-                          variant="outlined" 
-                          onClick={() => setSelectedEquipment(null)}
-                        >
-                          Cancel
-                        </Button>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      Select an equipment from the list to edit its details.
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-              
-              <Box sx={{ mt: 2 }}>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<AddIcon />}
-                  fullWidth
-                >
-                  Add New Equipment
-                </Button>
-              </Box>
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEquipmentDialog(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };

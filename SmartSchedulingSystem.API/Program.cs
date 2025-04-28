@@ -1,5 +1,6 @@
 using Microsoft.OpenApi.Models;
 using SmartSchedulingSystem.Core.Mapping;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +17,25 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000")
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                // 允许请求来源的 Host == 当前主机名或 IP
+                var uri = new Uri(origin);
+                return uri.Host == Dns.GetHostName() || uri.Host == GetLocalIPAddress();
+            })
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
+
+string GetLocalIPAddress()
+{
+    return Dns.GetHostEntry(Dns.GetHostName())
+        .AddressList
+        .FirstOrDefault(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        ?.ToString() ?? "127.0.0.1";
+}
 
 // 添加SchedulingEngine相关服务
 builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Engine.ConstraintManager>();
@@ -46,6 +61,7 @@ builder.Services.AddScoped<SmartSchedulingSystem.Scheduling.Engine.SchedulingEng
 // 添加调度参数
 builder.Services.AddSingleton<SmartSchedulingSystem.Scheduling.Utils.SchedulingParameters>();
 
+
 // 构建应用
 var app = builder.Build();
 
@@ -57,8 +73,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("ReactApp");
+
+app.UseStaticFiles(); // ✅ 允许使用 wwwroot 静态文件
+
 app.UseAuthorization();
 app.MapControllers();
+
+// ✅ 添加 fallback 映射到 React 的 index.html
+app.MapFallbackToFile("index.html");
 
 // 健康检查端点
 app.MapGet("/health", () => "Healthy");

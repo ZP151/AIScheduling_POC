@@ -5,21 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
-    <Exec Command="npm install" WorkingDirectory="ClientApp" />
-    <Exec Command="npm run build" WorkingDirectory="ClientApp" />
-  </Target>
-  <ItemGroup>
-    <Compile Remove="clientapp-new\**" />
-    <Compile Remove="ClientApp\**" />
-    <Content Remove="clientapp-new\**" />
-    <Content Remove="ClientApp\**" />
-    <EmbeddedResource Remove="clientapp-new\**" />
-    <EmbeddedResource Remove="ClientApp\**" />
-    <None Remove="clientapp-new\**" />
-    <None Remove="ClientApp\**" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <Folder Include="Extensions\" />
     <Folder Include="Filters\" />
