@@ -5,42 +5,52 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
 {
     /// <summary>
-    /// 表示更改课程教室的移动
+    /// Move that changes the classroom of a course assignment
     /// </summary>
     public class RoomMove : IMove
     {
         private readonly int _assignmentId;
-        private readonly int _newClassroomId;
+        private readonly int _newRoomId;
 
-        public RoomMove(int assignmentId, int newClassroomId)
+        public RoomMove(int assignmentId, int newRoomId)
         {
             _assignmentId = assignmentId;
-            _newClassroomId = newClassroomId;
+            _newRoomId = newRoomId;
         }
-        public int NewClassroomId => _newClassroomId;
+        public int NewClassroomId => _newRoomId;
         public int AssignmentId => _assignmentId;
 
+        /// <summary>
+        /// Apply the move to a solution
+        /// </summary>
         public SchedulingSolution Apply(SchedulingSolution solution)
         {
-            // 创建解决方案的深拷贝
+            // Create deep copy of solution
             var newSolution = solution.Clone();
 
-            // 查找要修改的分配
+            // Find assignment to modify
             var assignment = newSolution.Assignments.FirstOrDefault(a => a.Id == _assignmentId);
-            if (assignment == null)
+            if (assignment != null)
             {
-                return newSolution; // 未找到分配，返回未修改的解
+                // Update classroom information
+                var classroom = newSolution.Problem.Classrooms.FirstOrDefault(r => r.Id == _newRoomId);
+                if (classroom != null)
+                {
+                    assignment.ClassroomId = _newRoomId;
+                    assignment.Building = classroom.Building;
+                    assignment.ClassroomName = classroom.Name;
+                }
             }
-
-            // 更新教室
-            assignment.ClassroomId = _newClassroomId;
 
             return newSolution;
         }
 
+        /// <summary>
+        /// Get move description
+        /// </summary>
         public string GetDescription()
         {
-            return $"将课程分配 #{_assignmentId} 移动到教室 #{_newClassroomId}";
+            return $"Move assignment {_assignmentId} to classroom {_newRoomId}";
         }
 
         public int[] GetAffectedAssignmentIds()

@@ -66,8 +66,8 @@ namespace SmartSchedulingSystem.Core.Services
 
         public async Task<List<TimeSlotDto>> GetAvailableTimeSlotsAsync(int semesterId)
         {
-            // 获取特定学期的可用时间段
-            // 可以根据需要实现更复杂的逻辑，如排除已被占用的时间段
+            // Get the available time slots for a specific semester
+            // Can implement more complex logic, such as excluding already occupied time slots
             var timeSlots = await _dbContext.TimeSlots.ToListAsync();
             return _mapper.Map<List<TimeSlotDto>>(timeSlots);
         }

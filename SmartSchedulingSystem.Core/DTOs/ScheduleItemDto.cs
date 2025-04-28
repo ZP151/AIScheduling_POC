@@ -25,17 +25,17 @@ namespace SmartSchedulingSystem.Core.DTOs
         public string EndTime { get; set; }
         public double AssignmentScore { get; set; }
 
-        // 添加字段
-        public int EnrollmentCount { get; set; } // 课程注册人数
-        public int ClassroomCapacity { get; set; } // 教室容量
-        public string CourseType { get; set; } // 课程类型（讲座、实验室等）
-        public string RoomType { get; set; } // 教室类型
-        public int? CampusId { get; set; } // 校区ID
-        public string CampusName { get; set; } // 校区名称
-        public int? DepartmentId { get; set; } // 系ID
-        public string DepartmentName { get; set; } // 系名称
+        // Add fields
+        public int EnrollmentCount { get; set; } // Enrollment count
+        public int ClassroomCapacity { get; set; } // Classroom capacity
+        public string CourseType { get; set; } // Course type (lecture, laboratory, etc.)
+        public string RoomType { get; set; } // Room type
+        public int? CampusId { get; set; } // Campus ID
+        public string CampusName { get; set; } // Campus name
+        public int? DepartmentId { get; set; } // Department ID
+        public string DepartmentName { get; set; } // Department name
         
-        // 冲突信息
+        // Conflict information
         public bool HasConflict { get; set; } = false;
         public string ConflictDescription { get; set; }
     }

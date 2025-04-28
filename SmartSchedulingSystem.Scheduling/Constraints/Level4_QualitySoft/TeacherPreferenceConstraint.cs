@@ -18,7 +18,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
         public ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level4_QualitySoft;
         public string Category => "Preference";
         
-        // 添加缺少的属性
+        // Add missing properties
         public string DefinitionId => "TeacherPreferenceConstraint";
         public string BasicRule => "TeacherPreference";
         
@@ -49,11 +49,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
                 {
                     evaluated++;
 
-                    // 偏好级别范围为1-5，5为最高
-                    // 将1-5映射为0.2-1.0
+                    // Preference levels range from 1-5, 5 being highest
+                    // Map 1-5 to 0.2-1.0
                     double preferenceScore = preference / 5.0;
 
-                    // 如果偏好级别低于3，添加冲突
+                    // If preference level is below 3, add conflict
                     if (preference < 3)
                     {
                         conflicts.Add(new SchedulingConflict
@@ -75,13 +75,13 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level4_QualitySoft
                 }
                 else
                 {
-                    // 如果没有偏好记录，假设是中性偏好（0.6分）
+                    // If no preference record exists, assume neutral preference (0.6 points)
                     evaluated++;
                     totalScore += 0.6;
                 }
             }
 
-            // 计算平均分
+            // Calculate average score
             double averageScore = evaluated > 0 ? totalScore / evaluated : 1.0;
 
             return (averageScore, conflicts);

@@ -1,10 +1,10 @@
-// 导入模拟数据，用于在API失败时回退
+// Import mock data for fallback when API fails
 import { mockScheduleResults, mockSemesters, mockCourses, mockTeachers, mockClassrooms } from './mockData';
 
-// API服务 - 负责与后端API的所有通信
-const API_BASE_URL = '/api'; // 使用相对路径，避免跨域问题
+// API service - responsible for all communication with backend API
+const API_BASE_URL = '/api'; // Use relative path to avoid CORS issues
 
-// 定义可用的API端点类型
+// Define available API endpoint types
 export const API_ENDPOINTS = {
   MOCK: 'mock',
   TEST_MOCK: 'test_mock',
@@ -13,7 +13,7 @@ export const API_ENDPOINTS = {
   SCHEDULE_ENHANCED: 'schedule_enhanced',
 };
 
-// 通用API请求函数
+// Generic API request function
 const apiRequest = async (endpoint, method = 'GET', data = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const headers = {
@@ -37,7 +37,7 @@ const apiRequest = async (endpoint, method = 'GET', data = null) => {
     console.log(`Response received: ${response.status}`, response);
     
     if (!response.ok) {
-      // 尝试获取API返回的错误信息
+      // Try to get error message from API response
       let errorMessage;
       try {
         const errorData = await response.json();
@@ -59,20 +59,20 @@ const apiRequest = async (endpoint, method = 'GET', data = null) => {
   }
 };
 
-// 模拟API服务
+// Mock API service
 const mockApi = {
-  // 模拟生成排课方案API
+  // Mock generate schedule API
   mockGenerateScheduleApi: async (formData) => {
     console.log('Using mock API to generate schedule', formData);
     
-    // 模拟处理延迟
+    // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // 使用mockData中的数据生成响应
+    // Generate response using mockData
     const semester = mockSemesters.find(s => s.id === formData.semester) || mockSemesters[0];
     const scheduleResult = mockScheduleResults[0];
     
-    // 创建3个方案变体（如果请求了多个方案）
+    // Create 3 schedule variants (if multiple solutions requested)
     const schedules = [];
     const solutionCount = formData.generateMultipleSolutions ? (formData.solutionCount || 3) : 1;
     
@@ -83,10 +83,10 @@ const mockApi = {
         name: `${semester.name} Plan ${i}`,
         createdAt: new Date().toISOString(),
         status: 'Draft',
-        score: 0.8 - (i - 1) * 0.1, // 让每个后续方案的评分略低
+        score: 0.8 - (i - 1) * 0.1, // Make each subsequent plan slightly lower score
         details: scheduleResult.details.map(detail => ({
           ...detail,
-          // 略微修改每个方案，使其不同
+          // Slightly modify each plan to make them different
           startTime: i === 1 ? detail.startTime : 
                     i === 2 ? (parseInt(detail.startTime.split(':')[0]) + 1).toString().padStart(2, '0') + ':00' :
                     (parseInt(detail.startTime.split(':')[0]) - 1).toString().padStart(2, '0') + ':00',
@@ -108,35 +108,35 @@ const mockApi = {
   }
 };
 
-// 生成排课方案API
+// Generate schedule API
 export const generateScheduleApi = async (formData) => {
   try {
-    // 从请求中获取调试参数和API端点类型
+    // Get debug parameters and API endpoint type from request
     const debugOptions = formData._debug || {};
     const apiEndpointType = formData.apiEndpointType || API_ENDPOINTS.TEST_MOCK;
     
-    // 是否启用模拟模式（设置为false以禁用模拟回退）
+    // Whether to enable mock mode (set to false to disable mock fallback)
     const enableMockFallback = !debugOptions.disableMockFallback;
-    // 是否启用调试模式（打印更多日志）
+    // Whether to enable debug mode (print more logs)
     const verboseLogging = debugOptions.verboseLogging;
 
-    // 清理发送给后端的数据，移除调试参数和API端点类型
+    // Clean data sent to backend, remove debug parameters and API endpoint type
     const cleanFormData = { ...formData };
     delete cleanFormData._debug;
     delete cleanFormData.apiEndpointType;
 
-    // 从前端暂存的完整对象数据中获取课程、教师和教室的详细信息
+    // Get complete object data from frontend cached data
     const allCourseSections = window.globalCourseData || [];
     const allTeachers = window.globalTeacherData || [];
     const allClassrooms = window.globalClassroomData || [];
     const allTimeSlots = window.globalTimeSlotData || [];
     
-    // 根据ID查找完整对象
+    // Find complete objects by ID
     const selectedCourseSectionObjects = (cleanFormData.courses || []).map(id => {
-      // 先从全局数据查找
+      // First look in global data
       let courseObj = allCourseSections.find(c => c.id === id);
       
-      // 如果没找到，从mock数据查找
+      // If not found, look in mock data
       if (!courseObj) {
         const mockCourse = mockCourses.find(c => c.id === id);
         if (mockCourse) {
@@ -154,7 +154,7 @@ export const generateScheduleApi = async (formData) => {
             departmentId: mockCourse.departmentId || 1
           };
         } else {
-          // 如果在两处都找不到，使用默认值
+          // If not found in both places, use default values
           courseObj = {
             id: id,
             courseId: id,
@@ -174,10 +174,10 @@ export const generateScheduleApi = async (formData) => {
     });
     
     const selectedTeacherObjects = (cleanFormData.teachers || []).map(id => {
-      // 先从全局数据查找
+      // First look in global data
       let teacherObj = allTeachers.find(t => t.id === id);
       
-      // 如果没找到，从mock数据查找
+      // If not found, look in mock data
       if (!teacherObj) {
         const mockTeacher = mockTeachers.find(t => t.id === id);
         if (mockTeacher) {
@@ -193,7 +193,7 @@ export const generateScheduleApi = async (formData) => {
             maxConsecutiveHours: 4
           };
         } else {
-          // 如果在两处都找不到，使用默认值
+          // If not found in both places, use default values
           teacherObj = {
             id: id,
             name: `Prof. Faculty ${id}`,
@@ -210,10 +210,10 @@ export const generateScheduleApi = async (formData) => {
     });
     
     const selectedClassroomObjects = (cleanFormData.classrooms || []).map(id => {
-      // 先从全局数据查找
+      // First look in global data
       let classroomObj = allClassrooms.find(c => c.id === id);
       
-      // 如果没找到，从mock数据查找
+      // If not found, look in mock data
       if (!classroomObj) {
         const mockClassroom = mockClassrooms.find(c => c.id === id);
         if (mockClassroom) {
@@ -229,7 +229,7 @@ export const generateScheduleApi = async (formData) => {
             hasProjector: true
           };
         } else {
-          // 如果在两处都找不到，使用默认值
+          // If not found in both places, use default values
           classroomObj = {
             id: id,
             name: `Room ${id.toString().padStart(3, '0')}`,
@@ -246,10 +246,10 @@ export const generateScheduleApi = async (formData) => {
       return classroomObj;
     });
 
-    // 添加默认时间槽数据
+    // Add default time slot data
     const timeSlotObjects = [];
     if (allTimeSlots && allTimeSlots.length > 0) {
-      // 使用全局时间槽数据
+      // Use global time slot data
       timeSlotObjects.push(...allTimeSlots);
     } else {
       // Generate default time slot data
@@ -276,42 +276,42 @@ export const generateScheduleApi = async (formData) => {
       }
     }
 
-    // 将前端formData转换为后端ScheduleRequestDto格式
+    // Convert frontend formData to backend ScheduleRequestDto format
     const scheduleRequest = {
-      // 保留原始字段名称，同时映射到后端期望的字段名
+      // Keep original field names while mapping to backend expected field names
       semesterId: cleanFormData.semester,
-      // 同时提供ID和完整对象，增加兼容性
+      // Provide both IDs and complete objects for compatibility
       courseSectionIds: cleanFormData.courses || [],
       teacherIds: cleanFormData.teachers || [],
       classroomIds: cleanFormData.classrooms || [],
-      // 为了兼容性，同时保留原始字段名
+      // Keep original field names for compatibility
       courses: cleanFormData.courses || [],
       teachers: cleanFormData.teachers || [],
       classrooms: cleanFormData.classrooms || [],
-      // 添加可能的时间槽ID列表
+      // Add possible time slot ID list
       timeSlotIds: cleanFormData.timeSlots || [],
-      timeSlots: cleanFormData.timeSlots || [], // 添加这个字段确保兼容性
+      timeSlots: cleanFormData.timeSlots || [], // Add this field for compatibility
       
-      // 添加完整的对象数据（这是新添加的）
+      // Add complete object data (newly added)
       courseSectionObjects: selectedCourseSectionObjects,
       teacherObjects: selectedTeacherObjects,
       classroomObjects: selectedClassroomObjects,
       timeSlotObjects: timeSlotObjects,
       
-      // 添加组织范围参数
+      // Add organizational scope parameters
       schedulingScope: cleanFormData.schedulingScope || 'programme',
       campusId: cleanFormData.campus || null,
       schoolId: cleanFormData.school || null,
       departmentId: cleanFormData.department || null,
       programmeId: cleanFormData.programme || null,
-      // 同时保留原始字段名
+      // Keep original field names
       campus: cleanFormData.campus || null,
       school: cleanFormData.school || null,
       department: cleanFormData.department || null,
       subject: cleanFormData.subject || null,
       programme: cleanFormData.programme || null,
       
-      // 添加调度参数
+      // Add scheduling parameters
       facultyWorkloadBalance: cleanFormData.facultyWorkloadBalance || 0.8,
       studentScheduleCompactness: cleanFormData.studentScheduleCompactness || 0.7,
       classroomTypeMatchingWeight: cleanFormData.classroomTypeMatchingWeight || 0.7,
@@ -320,7 +320,7 @@ export const generateScheduleApi = async (formData) => {
       campusTravelTimeWeight: cleanFormData.campusTravelTimeWeight || 0.6,
       preferredClassroomProximity: cleanFormData.preferredClassroomProximity || 0.5,
       
-      // 其他参数
+      // Other parameters
       useAIAssistance: cleanFormData.useAI || false,
       constraintSettings: cleanFormData.constraintSettings || [],
       generateMultipleSolutions: cleanFormData.generateMultipleSolutions || true,
@@ -341,44 +341,44 @@ export const generateScheduleApi = async (formData) => {
       });
     }
 
-    // 尝试调用后端API
+    // Try to call backend API
     try {
       let response;
       
-      // 根据选择的API端点类型调用不同的API
+      // Call different API based on selected endpoint type
       switch (apiEndpointType) {
         case API_ENDPOINTS.MOCK:
-          // 使用模拟排课API而非真实排课API
+          // Use mock scheduling API instead of real scheduling API
           console.log('Using mock scheduling API...');
           response = await apiRequest('/Scheduling/generate', 'POST', scheduleRequest);
           break;
           
         case API_ENDPOINTS.TEST_MOCK:
-          // 使用测试控制器的mock-schedule端点，用随机算法排课，容易出现冲突，因此可以来测试llms的冲突分析
+          // Use test controller's mock-schedule endpoint, uses random algorithm for scheduling, prone to conflicts, good for testing LLM conflict analysis
           console.log('Using test controller\'s mock-schedule endpoint...');
           response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
           break;
           
         case API_ENDPOINTS.SCHEDULE_BASIC:
-          // 使用level1级别的约束
+          // Use level 1 constraints
           console.log('Using Schedule controller\'s generate endpoint with level 1 constraints...');
           response = await apiRequest('/Schedule/generate', 'POST', scheduleRequest);
           break;
           
         case API_ENDPOINTS.SCHEDULE_ADVANCED:
-          // 使用level2级别的约束，加上了两种可用性约束
+          // Use level 2 constraints, adds two types of availability constraints
           console.log('Using Schedule controller\'s generate-advanced endpoint with level 2 constraints...');
           response = await apiRequest('/Schedule/generate-advanced', 'POST', scheduleRequest);
           break;
           
         case API_ENDPOINTS.SCHEDULE_ENHANCED:
-          // 使用level3级别的约束，加上了教室资源约束和（课程-教室）类型匹配约束
+          // Use level 3 constraints, adds classroom resource constraints and (course-classroom) type matching constraints
           console.log('Using Schedule controller\'s generate-enhanced endpoint with level 3 constraints...');
           response = await apiRequest('/Schedule/generate-enhanced', 'POST', scheduleRequest);
           break;
           
         default:
-          // 默认使用测试控制器的mock-schedule端点
+          // Default to test controller's mock-schedule endpoint
           console.log('Using default (test controller\'s mock-schedule) endpoint...');
           response = await apiRequest('/Test/mock-schedule', 'POST', scheduleRequest);
       }
@@ -388,12 +388,12 @@ export const generateScheduleApi = async (formData) => {
     } catch (apiError) {
       console.error('Schedule API call failed:', apiError);
       
-      // 如果启用了模拟回退，在真实API失败时使用模拟数据
+      // If mock fallback is enabled, use mock data when real API fails
       if (enableMockFallback) {
         console.warn('Fallback to mock data...');
         return await mockApi.mockGenerateScheduleApi(cleanFormData);
       } else {
-        // 否则，将错误向上抛出
+        // Otherwise, throw the error up
         throw apiError;
       }
     }
@@ -440,27 +440,27 @@ export const getScheduleHistory = async (semesterId, limit = 10) => {
     }));
   } catch (error) {
     console.error('Failed to get schedule history:', error);
-    // 如果API失败，返回模拟数据作为后备方案
+    // If the API fails, return simulated data as a fallback scenario
     return generateMockScheduleHistory(semesterId, limit);
   }
 };
 
-// 生成模拟的排课历史记录
+// Generate mock schedule history
 const generateMockScheduleHistory = (semesterId, limit = 10) => {
   const mockHistory = [];
   
-  // 生成最近的10个排课记录
+  // Generate the latest 10 schedule records
   for (let i = 0; i < limit; i++) {
     const requestId = 1000 - i;
     const date = new Date();
-    date.setDate(date.getDate() - i * 2); // 每两天一个记录
+    date.setDate(date.getDate() - i * 2); // Every two days a record
     
-    // 每个请求生成1-3个排课方案
+    // Generate 1-3 schedule solutions for each request
     const solutionCount = Math.floor(Math.random() * 3) + 1;
     const schedules = [];
     
     for (let j = 0; j < solutionCount; j++) {
-      // 生成随机状态，较新的记录更可能是Draft状态
+      // Generate random status, newer records are more likely to be Draft status
       let status = 'Draft';
       if (i > 2) {
         const statuses = ['Draft', 'Published', 'Canceled', 'Archived'];
@@ -468,7 +468,7 @@ const generateMockScheduleHistory = (semesterId, limit = 10) => {
         status = statuses[statusIndex];
       }
       
-      // 生成状态历史
+      // Generate status history
       const statusHistory = [];
       statusHistory.push({
         status: 'Draft',
@@ -509,7 +509,7 @@ const generateMockScheduleHistory = (semesterId, limit = 10) => {
   return mockHistory;
 };
 
-// 生成模拟的排课详情
+  // Generate mock schedule details
 const generateMockScheduleDetails = (courseCount) => {
   const details = [];
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -523,7 +523,7 @@ const generateMockScheduleDetails = (courseCount) => {
   const buildings = ['A', 'B', 'C'];
   
   for (let i = 0; i < courseCount; i++) {
-    const dayIndex = Math.floor(Math.random() * 5) + 1; // 星期一到星期五
+    const dayIndex = Math.floor(Math.random() * 5) + 1; // Monday to Friday
     const timeSlotIndex = Math.floor(Math.random() * timeSlots.length);
     const teacherIndex = Math.floor(Math.random() * teachers.length);
     const buildingIndex = Math.floor(Math.random() * buildings.length);
@@ -544,12 +544,12 @@ const generateMockScheduleDetails = (courseCount) => {
   return details;
 };
 
-// 根据ID获取排课方案
+// Get scheduling plan based on ID
 export const getScheduleById = async (scheduleId) => {
   try {
     const result = await apiRequest(`/Scheduling/${scheduleId}`, 'GET');
     
-    // 将后端返回的结果转换为前端期望的格式
+    // Convert the backend result to the frontend expected format
     return {
       id: result.scheduleId,
       name: `Schedule ${result.scheduleId}`,
@@ -572,7 +572,7 @@ export const getScheduleById = async (scheduleId) => {
   }
 };
 
-// 发布排课方案
+// Publish schedule
 export const publishSchedule = async (scheduleId) => {
   try {
     return await apiRequest(`/Scheduling/publish/${scheduleId}`, 'PUT');
@@ -582,7 +582,7 @@ export const publishSchedule = async (scheduleId) => {
   }
 };
 
-// 取消排课方案
+// Cancel schedule
 export const cancelSchedule = async (scheduleId) => {
   try {
     return await apiRequest(`/Scheduling/cancel/${scheduleId}`, 'PUT');
@@ -592,7 +592,7 @@ export const cancelSchedule = async (scheduleId) => {
   }
 };
 
-// 获取时间槽数据
+// Get time slot data
 export const getTimeSlotsApi = async () => {
   try {
     const timeSlots = await apiRequest('/TimeSlot', 'GET');

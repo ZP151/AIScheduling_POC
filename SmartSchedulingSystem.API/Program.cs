@@ -22,7 +22,9 @@ builder.Services.AddCors(options =>
             {
                 // 允许请求来源的 Host == 当前主机名或 IP
                 var uri = new Uri(origin);
-                return uri.Host == Dns.GetHostName() || uri.Host == GetLocalIPAddress();
+                return uri.Host == Dns.GetHostName() || 
+                       uri.Host == GetLocalIPAddress() || 
+                       uri.Port == 3001; // 允许3001端口
             })
             .AllowAnyHeader()
             .AllowAnyMethod();

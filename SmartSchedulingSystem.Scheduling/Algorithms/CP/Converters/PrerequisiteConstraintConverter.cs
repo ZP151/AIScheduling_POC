@@ -7,17 +7,17 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
 {
     /// <summary>
-    /// 将先修课程约束转换为CP模型约束
+    /// Converting prerequisite constraints to CP model constraints
     /// </summary>
     public class PrerequisiteConstraintConverter : ICPConstraintConverter
     {
         /// <summary>
-        /// 获取约束转换器的约束级别
+        /// Get the constraint level of the constraint converter
         /// </summary>
         public Engine.ConstraintApplicationLevel ConstraintLevel => Engine.ConstraintApplicationLevel.Basic;
 
-        private readonly Dictionary<int, List<int>> _prerequisites; // 课程ID -> 先修课程ID列表
-        private readonly Dictionary<int, int> _courseSectionMap; // 班级ID -> 课程ID
+        private readonly Dictionary<int, List<int>> _prerequisites; // course ID -> prerequisite course ID list
+        private readonly Dictionary<int, int> _courseSectionMap; // section ID -> course ID
 
         public PrerequisiteConstraintConverter(
             Dictionary<int, List<int>> prerequisites,
@@ -33,7 +33,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
             if (variables == null) throw new ArgumentNullException(nameof(variables));
             if (problem == null) throw new ArgumentNullException(nameof(problem));
 
-            // 获取每个课程对应的班级
+            // Get the sections for each course
             var courseToSections = new Dictionary<int, List<int>>();
 
             foreach (var kvp in _courseSectionMap)
@@ -49,36 +49,36 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
                 courseToSections[courseId].Add(sectionId);
             }
 
-            // 处理每个时间槽
+            // Process each time slot
             foreach (var timeSlot in problem.TimeSlots)
             {
-                // 处理每个先修关系
+                // Process each prerequisite relationship
                 foreach (var prereqEntry in _prerequisites)
                 {
                     int courseId = prereqEntry.Key;
                     var prereqCourseIds = prereqEntry.Value;
 
-                    // 跳过没有先修课程的课程
+                    // Skip courses with no prerequisites
                     if (prereqCourseIds == null || prereqCourseIds.Count == 0)
                         continue;
 
-                    // 检查这个课程是否有班级在课表中
+                    // Check if this course has sections in the schedule
                     if (!courseToSections.TryGetValue(courseId, out var sectionIds) || sectionIds.Count == 0)
                         continue;
 
-                    // 对于每个先修课程
+                    // For each prerequisite course
                     foreach (var prereqCourseId in prereqCourseIds)
                     {
-                        // 检查先修课程是否有班级在课表中
+                        // Check if the prerequisite course has sections in the schedule
                         if (!courseToSections.TryGetValue(prereqCourseId, out var prereqSectionIds) || prereqSectionIds.Count == 0)
                             continue;
 
-                        // 添加约束：当前课程和其先修课程不能在同一时间槽
+                        // Add constraint: The current course and its prerequisite course cannot be in the same time slot
                         foreach (var sectionId in sectionIds)
                         {
                             foreach (var prereqSectionId in prereqSectionIds)
                             {
-                                // 找出涉及这两个班级在此时间槽的所有变量
+                                // Find all variables that involve these two sections in this time slot
                                 var courseVars = variables
                                     .Where(kv => kv.Key.StartsWith($"c{sectionId}_t{timeSlot.Id}_"))
                                     .Select(kv => kv.Value)
@@ -89,14 +89,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
                                     .Select(kv => kv.Value)
                                     .ToList();
 
-                                // 如果两者都有变量，添加它们不能同时为1的约束
+                                // If both have variables, add a constraint that they cannot both be 1
                                 if (courseVars.Count > 0 && prereqVars.Count > 0)
                                 {
                                     foreach (var courseVar in courseVars)
                                     {
                                         foreach (var prereqVar in prereqVars)
                                         {
-                                            // 添加约束：courseVar + prereqVar <= 1
+                                            // Add constraint: courseVar + prereqVar <= 1
                                             model.Add(courseVar + prereqVar <= 1);
                                         }
                                     }

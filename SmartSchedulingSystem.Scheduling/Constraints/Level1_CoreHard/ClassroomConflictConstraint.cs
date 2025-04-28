@@ -7,8 +7,8 @@ using SmartSchedulingSystem.Scheduling.Constraints;
 namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
 {
     /// <summary>
-    /// 教室冲突约束：确保同一时间段一个教室只能安排一门课程
-    /// 核心硬约束 - Level1_CoreHard
+    /// Classroom conflict constraint: Ensures a classroom can only host one course at a time
+    /// Core hard constraint - Level1_CoreHard
     /// </summary>
     public class ClassroomConflictConstraint : BaseConstraint
     {
@@ -34,7 +34,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
 
             var conflicts = new List<SchedulingConflict>();
             
-            // 检测教室冲突
+            // Detect classroom conflicts
             var roomTimeSlots = new Dictionary<(int roomId, int timeSlotId), List<SchedulingAssignment>>();
             
             foreach (var assignment in solution.Assignments)
@@ -49,7 +49,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
                 roomTimeSlots[key].Add(assignment);
             }
             
-            // 添加所有冲突
+            // Add all conflicts
             foreach (var item in roomTimeSlots)
             {
                 if (item.Value.Count > 1)
@@ -73,7 +73,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
                 }
             }
             
-            // 如果没有冲突，得分为1，否则为0（硬约束）
+            // Score is 1 if no conflicts, 0 otherwise (hard constraint)
             double score = conflicts.Count == 0 ? 1.0 : 0.0;
             
             return (score, conflicts);

@@ -10,7 +10,7 @@ using SmartSchedulingSystem.Scheduling.Utils;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
-    /// 负责在局部搜索阶段生成有效的优化移动
+    /// Responsible for generating valid optimization moves during local search phase
     /// </summary>
     public class MoveGenerator
     {
@@ -30,12 +30,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 生成有效的移动操作
+        /// Generate valid moves
         /// </summary>
-        /// <param name="solution">当前解决方案</param>
-        /// <param name="assignment">要优化的课程分配</param>
-        /// <param name="maxMoves">最多生成的移动数量</param>
-        /// <returns>有效移动列表</returns>
+        /// <param name="solution">Current solution</param>
+        /// <param name="assignment">Course assignment to optimize</param>
+        /// <param name="maxMoves">Maximum number of moves to generate</param>
+        /// <returns>List of valid moves</returns>
         public List<IMove> GenerateValidMoves(
             SchedulingSolution solution,
             SchedulingAssignment assignment,
@@ -46,25 +46,25 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             try
             {
-                _logger.LogDebug($"为分配 #{assignment.Id} 生成移动操作，最大数量: {maxMoves}");
+                _logger.LogDebug($"Generating moves for assignment #{assignment.Id}, maximum count: {maxMoves}");
 
                 var validMoves = new List<IMove>();
 
-                // 添加时间移动
+                // Add time moves
                 AddTimeSlotMoves(solution, assignment, validMoves);
 
-                // 添加教室移动
+                // Add room moves
                 AddRoomMoves(solution, assignment, validMoves);
 
-                // 添加教师移动
+                // Add teacher moves
                 AddTeacherMoves(solution, assignment, validMoves);
 
-                // 添加交换移动
+                // Add swap moves
                 AddSwapMoves(solution, assignment, validMoves);
 
-                _logger.LogDebug($"生成了 {validMoves.Count} 个有效移动操作");
+                _logger.LogDebug($"Generated {validMoves.Count} valid moves");
 
-                // 如果生成的移动太多，随机选择maxMoves个
+                // If too many moves generated, randomly select maxMoves
                 if (validMoves.Count > maxMoves)
                 {
                     validMoves = validMoves
@@ -72,18 +72,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         .Take(maxMoves)
                         .ToList();
 
-                    _logger.LogDebug($"随机选择了 {maxMoves} 个移动操作");
+                    _logger.LogDebug($"Randomly selected {maxMoves} moves");
                 }
 
                 return validMoves;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"生成移动操作时出错: {ex.Message}");
+                _logger.LogError(ex, $"Error generating moves: {ex.Message}");
                 return new List<IMove>();
             }
         }
-        // 在MoveGenerator.cs中添加针对特定约束类型的移动生成方法
+
+        // Add move generation methods for specific constraint types in MoveGenerator.cs
         public List<IMove> GenerateMovesForConstraintType(
             SchedulingSolution solution,
             SchedulingConflict conflict,
@@ -112,7 +113,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     moves.AddRange(GenerateMovesForPrerequisiteConflict(solution, assignment));
                     break;
                 default:
-                    // 对于其他类型的冲突，生成通用移动
+                    // For other conflict types, generate generic moves
                     moves.AddRange(GenerateGenericMoves(solution, assignment));
                     break;
             }
@@ -124,14 +125,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 1. 尝试移动到其他时间槽
+            // 1. Try moving to other time slots
             var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
             foreach (var timeSlot in availableTimeSlots)
             {
                 moves.Add(new TimeMove(assignment.Id, timeSlot));
             }
 
-            // 2. 尝试更换教师
+            // 2. Try changing teacher
             var qualifiedTeachers = GetQualifiedTeachers(solution, assignment);
             foreach (var teacher in qualifiedTeachers)
             {
@@ -141,19 +142,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             return moves;
         }
 
-        // 实现其他冲突类型的移动生成方法...
+        // Implement move generation methods for other conflict types...
         private List<IMove> GenerateMovesForClassroomConflict(SchedulingSolution solution, SchedulingAssignment assignment)
         {
             var moves = new List<IMove>();
 
-            // 1. 尝试更换教室
+            // 1. Try changing classroom
             var suitableRooms = GetSuitableRooms(solution, assignment);
             foreach (var roomId in suitableRooms)
             {
                 moves.Add(new RoomMove(assignment.Id, roomId));
             }
 
-            // 2. 尝试更换时间槽
+            // 2. Try changing time slot
             var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
             foreach (var timeSlotId in availableTimeSlots)
             {
@@ -167,7 +168,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 查找容量更大的教室
+            // Find classrooms with larger capacity
             var largerRooms = GetLargerRooms(solution, assignment);
             foreach (var roomId in largerRooms)
             {
@@ -181,14 +182,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 1. 尝试移动到教师可用的时间槽
+            // 1. Try moving to time slots where teacher is available
             var teacherAvailableTimeSlots = GetTeacherAvailableTimeSlots(solution, assignment);
             foreach (var timeSlotId in teacherAvailableTimeSlots)
             {
                 moves.Add(new TimeMove(assignment.Id, timeSlotId));
             }
 
-            // 2. 尝试更换为可用的教师
+            // 2. Try changing to available teacher
             var availableTeachers = GetAvailableTeachers(solution, assignment);
             foreach (var teacherId in availableTeachers)
             {
@@ -202,14 +203,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 1. 尝试移动到更合适的时间槽(增加旅行时间)
+            // 1. Try moving to more suitable time slots (increase travel time)
             var betterTimeSlots = GetTimeSlotWithSufficientTravelTime(solution, assignment);
             foreach (var timeSlotId in betterTimeSlots)
             {
                 moves.Add(new TimeMove(assignment.Id, timeSlotId));
             }
 
-            // 2. 尝试更换更近的教室
+            // 2. Try changing to closer classroom
             var nearbyRooms = GetNearbyRooms(solution, assignment);
             foreach (var roomId in nearbyRooms)
             {
@@ -223,7 +224,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于先修课程冲突，主要是调整时间槽
+            // For prerequisite conflicts, mainly adjust time slots
             var nonConflictingTimeSlots = GetNonPrerequisiteConflictingTimeSlots(solution, assignment);
             foreach (var timeSlotId in nonConflictingTimeSlots)
             {
@@ -232,32 +233,33 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             return moves;
         }
+
         private List<IMove> GenerateGenericMoves(SchedulingSolution solution, SchedulingAssignment assignment)
         {
             var moves = new List<IMove>();
 
-            // 1. 时间移动
+            // 1. Time moves
             var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
-            foreach (var timeSlotId in availableTimeSlots.Take(3)) // 限制生成的移动数量
+            foreach (var timeSlotId in availableTimeSlots.Take(3)) // Limit number of moves generated
             {
                 moves.Add(new TimeMove(assignment.Id, timeSlotId));
             }
 
-            // 2. 教室移动
+            // 2. Room moves
             var suitableRooms = GetSuitableRooms(solution, assignment);
             foreach (var roomId in suitableRooms.Take(3))
             {
                 moves.Add(new RoomMove(assignment.Id, roomId));
             }
 
-            // 3. 教师移动
+            // 3. Teacher moves
             var qualifiedTeachers = GetQualifiedTeachers(solution, assignment);
             foreach (var teacherId in qualifiedTeachers.Take(2))
             {
                 moves.Add(new TeacherMove(assignment.Id, teacherId));
             }
 
-            // 4. 随机选择一些课程进行交换
+            // 4. Randomly select some courses for swapping
             var swapCandidates = solution.Assignments
                 .Where(a => a.Id != assignment.Id)
                 .OrderBy(x => Guid.NewGuid())
@@ -265,15 +267,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             foreach (var candidate in swapCandidates)
             {
-                moves.Add(new SwapMove(assignment.Id, candidate.Id, true, false, false)); // 交换时间
-                moves.Add(new SwapMove(assignment.Id, candidate.Id, false, true, false)); // 交换教室
+                moves.Add(new SwapMove(assignment.Id, candidate.Id, true, false, false)); // Swap time
+                moves.Add(new SwapMove(assignment.Id, candidate.Id, false, true, false)); // Swap classroom
             }
 
             return moves;
         }
 
         /// <summary>
-        /// 添加时间移动
+        /// Add time moves
         /// </summary>
         private void AddTimeSlotMoves(
             SchedulingSolution solution,
@@ -282,37 +284,38 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             try
             {
-                // 获取可用的时间段
-            var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
+                // Get available time slots
+                var availableTimeSlots = GetAvailableTimeSlots(solution, assignment);
 
                 if (availableTimeSlots.Count == 0)
                 {
-                    _logger.LogDebug("没有找到可用的时间段");
+                    _logger.LogDebug("No available time slots found");
                     return;
                 }
 
-                _logger.LogDebug($"找到 {availableTimeSlots.Count} 个可用的时间段");
+                _logger.LogDebug($"Found {availableTimeSlots.Count} available time slots");
 
-                // 随机选择一些时间段添加为移动
+                // Randomly select some time slots to add as moves
                 var selectedTimeSlots = availableTimeSlots
-                    .OrderBy(x => _random.Next()) // 随机打乱
+                    .OrderBy(x => _random.Next()) // Randomize
                     .Take(Math.Min(3, availableTimeSlots.Count))
                     .ToList();
 
                 foreach (var timeSlotId in selectedTimeSlots)
-            {
-                    // 创建时间段移动
+                {
+                    // Create time slot move
                     var move = new TimeSlotMove(assignment.Id, timeSlotId);
                     moves.Add(move);
-                    _logger.LogDebug($"添加时间段移动: 分配 {assignment.Id} 移至时间段 {timeSlotId}");
+                    _logger.LogDebug($"Added time slot move: Assign {assignment.Id} to time slot {timeSlotId}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "添加时间段移动时发生错误");
+                _logger.LogError(ex, "Error adding time slot moves");
             }
         }
-        // 在MoveGenerator.cs中添加必要的辅助方法
+
+        // Add necessary helper methods in MoveGenerator.cs
         private List<int> GetLargerRooms(SchedulingSolution solution, SchedulingAssignment assignment)
         {
             var largerRooms = new List<int>();
@@ -334,26 +337,26 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             foreach (var room in solution.Problem.Classrooms)
             {
-                // 排除当前教室
+                // Exclude current classroom
                 if (room.Id == assignment.ClassroomId)
                     continue;
 
-                // 检查容量是否更大且足够
+                // Check if capacity is larger and sufficient
                 if (room.Capacity <= currentRoom.Capacity || room.Capacity < courseSection.Enrollment)
                     continue;
 
-                // 检查教室在此时间段是否已有其他课程
+                // Check if classroom is already scheduled in this time slot
                 if (solution.HasClassroomConflict(room.Id, assignment.TimeSlotId, assignment.SectionId))
                     continue;
 
-                // 检查教室在此时间段是否可用
+                // Check if classroom is available in this time slot
                 var roomAvailability = solution.Problem.ClassroomAvailabilities
                     .FirstOrDefault(ra => ra.ClassroomId == room.Id && ra.TimeSlotId == assignment.TimeSlotId);
 
                 if (roomAvailability != null && !roomAvailability.IsAvailable)
                     continue;
 
-                // 教室合适
+                // Classroom suitable
                 largerRooms.Add(room.Id);
             }
 
@@ -369,26 +372,26 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             foreach (var timeSlot in solution.Problem.TimeSlots)
             {
-                // 排除当前时间槽
+                // Exclude current time slot
                 if (timeSlot.Id == assignment.TimeSlotId)
                     continue;
 
-                // 检查教师在此时间段是否可用
+                // Check if teacher is available in this time slot
                 var teacherAvailability = solution.Problem.TeacherAvailabilities
                     .FirstOrDefault(ta => ta.TeacherId == assignment.TeacherId && ta.TimeSlotId == timeSlot.Id);
 
                 if (teacherAvailability != null && !teacherAvailability.IsAvailable)
                     continue;
 
-                // 检查教师在此时间段是否已有其他课程
+                // Check if teacher is already scheduled in this time slot
                 if (solution.HasTeacherConflict(assignment.TeacherId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 检查教室在此时间段是否已有其他课程
+                // Check if classroom is already scheduled in this time slot
                 if (solution.HasClassroomConflict(assignment.ClassroomId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 时间槽可用
+                // Time slot available
                 availableSlots.Add(timeSlot.Id);
             }
 
@@ -410,11 +413,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             foreach (var teacher in solution.Problem.Teachers)
             {
-                // 排除当前教师
+                // Exclude current teacher
                 if (teacher.Id == assignment.TeacherId)
                     continue;
 
-                // 检查教师是否有资格教授此课程
+                // Check if teacher is qualified to teach this course
                 var preference = solution.Problem.TeacherCoursePreferences
                     .FirstOrDefault(p => p.TeacherId == teacher.Id &&
                                        p.CourseId == courseSection.CourseId);
@@ -422,18 +425,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 if (preference == null || preference.ProficiencyLevel < 3)
                     continue;
 
-                // 检查教师在此时间段是否已有其他课程
+                // Check if teacher is already scheduled in this time slot
                 if (solution.HasTeacherConflict(teacher.Id, assignment.TimeSlotId, assignment.SectionId))
                     continue;
 
-                // 检查教师在此时间段是否可用
+                // Check if teacher is available in this time slot
                 var teacherAvailability = solution.Problem.TeacherAvailabilities
                     .FirstOrDefault(ta => ta.TeacherId == teacher.Id && ta.TimeSlotId == assignment.TimeSlotId);
 
                 if (teacherAvailability != null && !teacherAvailability.IsAvailable)
                     continue;
 
-                // 教师可用
+                // Teacher available
                 availableTeachers.Add(teacher.Id);
             }
 
@@ -447,18 +450,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (solution.Problem == null)
                 return suitableTimeSlots;
 
-            // 获取当前教师的所有其他分配
+            // Get all other assignments of the current teacher
             var teacherAssignments = solution.Assignments
                 .Where(a => a.TeacherId == assignment.TeacherId && a.Id != assignment.Id)
                 .ToList();
 
-            // 如果教师没有其他课程，任何时间槽都可以
+            // If teacher has no other courses, any time slot can be used
             if (!teacherAssignments.Any())
             {
                 return GetAvailableTimeSlots(solution, assignment);
             }
 
-            // 获取当前教室的校区信息
+            // Get current classroom's campus information
             var currentClassroom = solution.Problem.Classrooms
                 .FirstOrDefault(c => c.Id == assignment.ClassroomId);
 
@@ -467,36 +470,36 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             int currentCampusId = currentClassroom.CampusId;
 
-            // 检查每个时间槽
+            // Check each time slot
             foreach (var timeSlot in solution.Problem.TimeSlots)
             {
-                // 排除当前时间槽
+                // Exclude current time slot
                 if (timeSlot.Id == assignment.TimeSlotId)
                     continue;
 
-                // 检查教师在此时间段是否可用
+                // Check if teacher is available in this time slot
                 var teacherAvailability = solution.Problem.TeacherAvailabilities
                     .FirstOrDefault(ta => ta.TeacherId == assignment.TeacherId && ta.TimeSlotId == timeSlot.Id);
 
                 if (teacherAvailability != null && !teacherAvailability.IsAvailable)
                     continue;
 
-                // 检查教室在此时间段是否可用
+                // Check if classroom is available in this time slot
                 var roomAvailability = solution.Problem.ClassroomAvailabilities
                     .FirstOrDefault(ra => ra.ClassroomId == assignment.ClassroomId && ra.TimeSlotId == timeSlot.Id);
 
                 if (roomAvailability != null && !roomAvailability.IsAvailable)
                     continue;
 
-                // 检查教师在此时间段是否已有其他课程
+                // Check if teacher is already scheduled in this time slot
                 if (solution.HasTeacherConflict(assignment.TeacherId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 检查教室在此时间段是否已有其他课程
+                // Check if classroom is already scheduled in this time slot
                 if (solution.HasClassroomConflict(assignment.ClassroomId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 检查与教师其他课程的旅行时间是否足够
+                // Check if travel time to other teacher's courses is sufficient
                 bool hasSufficientTravelTime = true;
 
                 foreach (var otherAssignment in teacherAssignments)
@@ -507,10 +510,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     if (otherTimeSlot == null)
                         continue;
 
-                    // 如果是同一天
+                    // If on the same day
                     if (timeSlot.DayOfWeek == otherTimeSlot.DayOfWeek)
                     {
-                        // 计算时间差(分钟)
+                        // Calculate time difference (minutes)
                         double timeDifference;
                         if (timeSlot.StartTime > otherTimeSlot.EndTime)
                         {
@@ -522,12 +525,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         }
                         else
                         {
-                            // 时间重叠
+                            // Time overlap
                             hasSufficientTravelTime = false;
                             break;
                         }
 
-                        // 获取其他分配的教室的校区信息
+                        // Get other assigned classroom's campus information
                         var otherClassroom = solution.Problem.Classrooms
                             .FirstOrDefault(c => c.Id == otherAssignment.ClassroomId);
 
@@ -536,10 +539,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
                         int otherCampusId = otherClassroom.CampusId;
 
-                        // 如果在不同校区，需要更多旅行时间
+                        // If in different campus, more travel time is needed
                         if (currentCampusId != otherCampusId)
                         {
-                            // 获取校区间旅行时间(假设至少需要30分钟)
+                            // Get campus travel time (assume at least 30 minutes)
                             int travelTime = 30;
 
                             if (timeDifference < travelTime)
@@ -548,7 +551,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                                 break;
                             }
                         }
-                        else if (timeDifference < 15) // 同一校区至少需要15分钟
+                        else if (timeDifference < 15) // Same campus at least needs 15 minutes
                         {
                             hasSufficientTravelTime = false;
                             break;
@@ -564,7 +567,8 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             return suitableTimeSlots;
         }
-        // 在MoveGenerator.cs中添加必要的辅助方法（续）
+
+        // Add necessary helper methods (continued) in MoveGenerator.cs
         private List<int> GetNearbyRooms(SchedulingSolution solution, SchedulingAssignment assignment)
         {
             var nearbyRooms = new List<int>();
@@ -572,7 +576,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (solution.Problem == null)
                 return nearbyRooms;
 
-            // 获取当前教室信息
+            // Get current classroom information
             var currentClassroom = solution.Problem.Classrooms
                 .FirstOrDefault(c => c.Id == assignment.ClassroomId);
 
@@ -582,51 +586,51 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             int currentCampusId = currentClassroom.CampusId;
             string currentBuilding = currentClassroom.Building;
 
-            // 获取当前教师的所有其他分配
+            // Get all other assignments of the current teacher
             var teacherAssignments = solution.Assignments
                 .Where(a => a.TeacherId == assignment.TeacherId && a.Id != assignment.Id)
                 .ToList();
 
-            // 检查每个教室
+            // Check each classroom
             foreach (var room in solution.Problem.Classrooms)
             {
-                // 排除当前教室
+                // Exclude current classroom
                 if (room.Id == assignment.ClassroomId)
                     continue;
 
-                // 检查容量是否足够
+                // Check if capacity is sufficient
                 var courseSection = solution.Problem.CourseSections
                     .FirstOrDefault(s => s.Id == assignment.SectionId);
 
                 if (courseSection != null && room.Capacity < courseSection.Enrollment)
                     continue;
 
-                // 检查教室在此时间段是否已有其他课程
+                // Check if classroom is already scheduled in this time slot
                 if (solution.HasClassroomConflict(room.Id, assignment.TimeSlotId, assignment.SectionId))
                     continue;
 
-                // 检查教室在此时间段是否可用
+                // Check if classroom is available in this time slot
                 var roomAvailability = solution.Problem.ClassroomAvailabilities
                     .FirstOrDefault(ra => ra.ClassroomId == room.Id && ra.TimeSlotId == assignment.TimeSlotId);
 
                 if (roomAvailability != null && !roomAvailability.IsAvailable)
                     continue;
 
-                // 优先选择同一建筑物的教室
+                // Prefer classrooms in the same building
                 if (room.Building == currentBuilding)
                 {
                     nearbyRooms.Add(room.Id);
                     continue;
                 }
 
-                // 如果没有其他分配，同一校区的教室也可以
+                // If no other assignments, same campus classrooms can also be used
                 if (!teacherAssignments.Any() && room.CampusId == currentCampusId)
                 {
                     nearbyRooms.Add(room.Id);
                     continue;
                 }
 
-                // 对于有其他分配的教师，需要考虑与其他课程的距离
+                // For teachers with other assignments, need to consider distance to other courses
                 bool isSuitable = true;
                 foreach (var otherAssignment in teacherAssignments)
                 {
@@ -636,10 +640,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     if (otherTimeSlot == null)
                         continue;
 
-                    // 如果是同一天
+                    // If on the same day
                     if (assignment.DayOfWeek == otherTimeSlot.DayOfWeek)
                     {
-                        // 计算时间差(分钟)
+                        // Calculate time difference (minutes)
                         double timeDifference;
                         if (assignment.StartTime > otherTimeSlot.EndTime)
                         {
@@ -651,23 +655,23 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         }
                         else
                         {
-                            // 时间重叠，不考虑
+                            // Time overlap, not considered
                             continue;
                         }
 
-                        // 获取其他分配的教室
+                        // Get other assigned classroom
                         var otherClassroom = solution.Problem.Classrooms
                             .FirstOrDefault(c => c.Id == otherAssignment.ClassroomId);
 
                         if (otherClassroom == null)
                             continue;
 
-                        // 如果时间差足够大，或者教室在同一校区/建筑物，则适合
+                        // If time difference is large enough or in the same campus/building, suitable
                         if (timeDifference >= 30 ||
                             (room.CampusId == otherClassroom.CampusId && timeDifference >= 15) ||
                             (room.Building == otherClassroom.Building && timeDifference >= 10))
                         {
-                            // 适合
+                            // Suitable
                         }
                         else
                         {
@@ -693,7 +697,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (solution.Problem == null)
                 return suitableTimeSlots;
 
-            // 获取当前课程
+            // Get current course
             var courseSection = solution.Problem.CourseSections
                 .FirstOrDefault(s => s.Id == assignment.SectionId);
 
@@ -702,72 +706,72 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             int courseId = courseSection.CourseId;
 
-            // 获取与当前课程有先修关系的课程
+            // Get courses with prerequisite relationships
             var prerequisites = solution.Problem.Prerequisites
                 .Where(p => p.CourseId == courseId || p.PrerequisiteCourseId == courseId)
                 .ToList();
 
-            // 如果没有先修关系，所有可用时间槽都可以
+            // If no prerequisite relationships, all available time slots can be used
             if (!prerequisites.Any())
             {
                 return GetAvailableTimeSlots(solution, assignment);
             }
 
-            // 获取涉及先修关系的课程ID
+            // Get involved course IDs
             var relatedCourseIds = new HashSet<int>();
             foreach (var prereq in prerequisites)
             {
                 if (prereq.CourseId == courseId)
                 {
-                    relatedCourseIds.Add(prereq.PrerequisiteCourseId); // 当前课程的先修课程
+                    relatedCourseIds.Add(prereq.PrerequisiteCourseId); // Prerequisite course of current course
                 }
                 else if (prereq.PrerequisiteCourseId == courseId)
                 {
-                    relatedCourseIds.Add(prereq.CourseId); // 以当前课程为先修的课程
+                    relatedCourseIds.Add(prereq.CourseId); // Course with current course as prerequisite
                 }
             }
 
-            // 获取这些课程的所有班级
+            // Get all classes of these courses
             var relatedSectionIds = solution.Problem.CourseSections
                 .Where(s => relatedCourseIds.Contains(s.CourseId))
                 .Select(s => s.Id)
                 .ToList();
 
-            // 获取这些班级的安排
+            // Get these classes' arrangements
             var relatedAssignments = solution.Assignments
                 .Where(a => relatedSectionIds.Contains(a.SectionId))
                 .ToList();
 
-            // 检查每个时间槽
+            // Check each time slot
             foreach (var timeSlot in solution.Problem.TimeSlots)
             {
-                // 排除当前时间槽
+                // Exclude current time slot
                 if (timeSlot.Id == assignment.TimeSlotId)
                     continue;
 
-                // 检查教师在此时间段是否可用
+                // Check if teacher is available in this time slot
                 var teacherAvailability = solution.Problem.TeacherAvailabilities
                     .FirstOrDefault(ta => ta.TeacherId == assignment.TeacherId && ta.TimeSlotId == timeSlot.Id);
 
                 if (teacherAvailability != null && !teacherAvailability.IsAvailable)
                     continue;
 
-                // 检查教室在此时间段是否可用
+                // Check if classroom is available in this time slot
                 var roomAvailability = solution.Problem.ClassroomAvailabilities
                     .FirstOrDefault(ra => ra.ClassroomId == assignment.ClassroomId && ra.TimeSlotId == timeSlot.Id);
 
                 if (roomAvailability != null && !roomAvailability.IsAvailable)
                     continue;
 
-                // 检查教师在此时间段是否已有其他课程
+                // Check if teacher is already scheduled in this time slot
                 if (solution.HasTeacherConflict(assignment.TeacherId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 检查教室在此时间段是否已有其他课程
+                // Check if classroom is already scheduled in this time slot
                 if (solution.HasClassroomConflict(assignment.ClassroomId, timeSlot.Id, assignment.SectionId))
                     continue;
 
-                // 检查是否与有先修关系的课程在同一时间段
+                // Check if in the same time slot as courses with prerequisite relationships
                 bool hasPrerequisiteConflict = false;
                 foreach (var relatedAssignment in relatedAssignments)
                 {
@@ -786,24 +790,25 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
             return suitableTimeSlots;
         }
+
         /// <summary>
-        /// 添加教室移动
+        /// Add room moves
         /// </summary>
         private void AddRoomMoves(
             SchedulingSolution solution,
             SchedulingAssignment assignment,
             List<IMove> moves)
         {
-            // 获取所有合适的教室
+            // Get all suitable classrooms
             var suitableRooms = GetSuitableRooms(solution, assignment);
 
-            _logger.LogDebug($"找到 {suitableRooms.Count} 个合适的教室供移动");
+            _logger.LogDebug($"Found {suitableRooms.Count} suitable classrooms for moves");
 
             foreach (var roomId in suitableRooms)
             {
                 var move = new RoomMove(assignment.Id, roomId);
 
-                // 验证移动是否满足所有硬约束
+                // Verify if move satisfies all hard constraints
                 if (IsValidMove(solution, move))
                 {
                     moves.Add(move);
@@ -812,23 +817,23 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 添加教师移动
+        /// Add teacher moves
         /// </summary>
         private void AddTeacherMoves(
             SchedulingSolution solution,
             SchedulingAssignment assignment,
             List<IMove> moves)
         {
-            // 获取所有有资格的教师
+            // Get all qualified teachers
             var qualifiedTeachers = GetQualifiedTeachers(solution, assignment);
 
-            _logger.LogDebug($"找到 {qualifiedTeachers.Count} 个有资格的教师供移动");
+            _logger.LogDebug($"Found {qualifiedTeachers.Count} qualified teachers for moves");
 
             foreach (var teacherId in qualifiedTeachers)
             {
                 var move = new TeacherMove(assignment.Id, teacherId);
 
-                // 验证移动是否满足所有硬约束
+                // Verify if move satisfies all hard constraints
                 if (IsValidMove(solution, move))
                 {
                     moves.Add(move);
@@ -837,54 +842,54 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 添加交换移动
+        /// Add swap moves
         /// </summary>
         private void AddSwapMoves(
             SchedulingSolution solution,
             SchedulingAssignment assignment,
             List<IMove> moves)
         {
-            // 找出可能的交换对象
+            // Find possible swap partners
             var potentialSwapPartners = FindPotentialSwapPartners(solution, assignment);
 
-            _logger.LogDebug($"找到 {potentialSwapPartners.Count} 个潜在交换伙伴");
+            _logger.LogDebug($"Found {potentialSwapPartners.Count} potential swap partners");
 
             foreach (var partnerId in potentialSwapPartners)
             {
-                // 时间交换
+                // Time swap
                 var timeSwap = new SwapMove(assignment.Id, partnerId, true, false, false);
                 if (IsValidMove(solution, timeSwap))
                 {
                     moves.Add(timeSwap);
                 }
 
-                // 教室交换
+                // Classroom swap
                 var roomSwap = new SwapMove(assignment.Id, partnerId, false, true, false);
                 if (IsValidMove(solution, roomSwap))
                 {
                     moves.Add(roomSwap);
                 }
 
-                // 交换教师
+                // Swap teacher
                 var teacherSwap = new SwapMove(assignment.Id, partnerId, false, false, true);
                 if (IsValidMove(solution, teacherSwap))
                 {
                     moves.Add(teacherSwap);
                 }
-                // 时间和教室都交换
+                // Time and classroom swap
                 var timeRoomSwap = new SwapMove(assignment.Id, partnerId, true, true, false);
                 if (IsValidMove(solution, timeRoomSwap))
                 {
                     moves.Add(timeRoomSwap);
                 }
-                // 时间和教师交换
+                // Time and teacher swap
                 var timeTeacherSwap = new SwapMove(assignment.Id, partnerId, true, false, true);
                 if (IsValidMove(solution, timeTeacherSwap))
                 {
                     moves.Add(timeTeacherSwap);
                 }
 
-                // 教室和教师交换
+                // Classroom and teacher swap
                 var roomTeacherSwap = new SwapMove(assignment.Id, partnerId, false, true, true);
                 if (IsValidMove(solution, roomTeacherSwap))
                 {
@@ -892,7 +897,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 }
 
 
-                // 全部交换（时间、教室、教师）
+                // Complete swap (time, classroom, teacher)
                 var completeSwap = new SwapMove(assignment.Id, partnerId, true, true, true);
                 if (IsValidMove(solution, completeSwap))
                 {
@@ -907,46 +912,46 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (solution.Problem == null)
                 return new List<int>();
 
-            // 创建教师和教室不可用时间的缓存
+            // Create teacher and classroom unavailable time caches
             var teacherUnavailableTimes = new HashSet<int>();
             var classroomUnavailableTimes = new HashSet<int>();
 
-            // 添加教师已经被安排的时间
+            // Add teacher already scheduled time
             foreach (var assign in solution.Assignments.Where(a => a.TeacherId == assignment.TeacherId && a.Id != assignment.Id))
             {
                 teacherUnavailableTimes.Add(assign.TimeSlotId);
             }
 
-            // 添加教室已经被安排的时间
+            // Add classroom already scheduled time
             foreach (var assign in solution.Assignments.Where(a => a.ClassroomId == assignment.ClassroomId && a.Id != assignment.Id))
             {
                 classroomUnavailableTimes.Add(assign.TimeSlotId);
             }
 
-            // 添加教师不可用的时间
+            // Add teacher unavailable time
             foreach (var avail in solution.Problem.TeacherAvailabilities.Where(ta =>
                          ta.TeacherId == assignment.TeacherId && !ta.IsAvailable))
             {
                 teacherUnavailableTimes.Add(avail.TimeSlotId);
             }
 
-            // 添加教室不可用的时间
+            // Add classroom unavailable time
             foreach (var avail in solution.Problem.ClassroomAvailabilities.Where(ca =>
                          ca.ClassroomId == assignment.ClassroomId && !ca.IsAvailable))
             {
                 classroomUnavailableTimes.Add(avail.TimeSlotId);
             }
 
-            // 返回教师和教室都可用的时间槽
+            // Return teacher and classroom available time slots
             return solution.Problem.TimeSlots
                 .Select(ts => ts.Id)
-                .Where(tsId => tsId != assignment.TimeSlotId && // 排除当前时间槽
-                       !teacherUnavailableTimes.Contains(tsId) && // 教师可用
-                       !classroomUnavailableTimes.Contains(tsId)) // 教室可用
+                .Where(tsId => tsId != assignment.TimeSlotId && // Exclude current time slot
+                       !teacherUnavailableTimes.Contains(tsId) && // Teacher available
+                       !classroomUnavailableTimes.Contains(tsId)) // Classroom available
                 .ToList();
         }
 
-        // 添加类成员变量用于缓存
+        // Add class member variable for caching
         private Dictionary<(int sectionId, int classroomId), bool> _roomSuitabilityCache;
 
         private List<int> GetSuitableRooms(SchedulingSolution solution, SchedulingAssignment assignment)
@@ -960,25 +965,25 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (courseSection == null)
                 return new List<int>();
 
-            // 初始化或更新教室适合度缓存
+            // Initialize or update classroom suitability cache
             if (_roomSuitabilityCache == null)
             {
                 InitializeRoomSuitabilityCache(solution.Problem);
             }
 
-            // 使用缓存快速筛选合适的教室
+            // Use cache to quickly filter suitable classrooms
             return solution.Problem.Classrooms
                 .Where(classroom =>
-                    // 1. 使用缓存检查教室是否适合
+                    // 1. Use cache to check if classroom is suitable
                     _roomSuitabilityCache.TryGetValue((courseSection.Id, classroom.Id), out bool isSuitable) &&
                     isSuitable &&
-                    // 2. 检查教室在此时间段是否已有其他课程
+                    // 2. Check if classroom is already scheduled in this time slot
                     !solution.HasClassroomConflict(classroom.Id, assignment.TimeSlotId, assignment.SectionId))
                 .Select(c => c.Id)
                 .ToList();
         }
 
-        // 初始化教室适合度缓存
+        // Initialize classroom suitability cache
         private void InitializeRoomSuitabilityCache(SchedulingProblem problem)
         {
             _roomSuitabilityCache = new Dictionary<(int sectionId, int classroomId), bool>();
@@ -989,7 +994,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 {
                     bool isSuitable = classroom.Capacity >= section.Enrollment;
 
-                    // 如果需要考虑教室类型匹配，可以添加更多条件
+                    // If need to consider classroom type matching, can add more conditions
                     if (!string.IsNullOrEmpty(section.RequiredRoomType) &&
                         !string.IsNullOrEmpty(classroom.Type))
                     {
@@ -1001,28 +1006,29 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             }
         }
 
-        // 判断两种教室类型是否兼容
+        // Check if two classroom types are compatible
         private bool IsCompatibleRoomType(string requiredType, string actualType)
         {
-            // 相同类型，完全兼容
+            // Same type, completely compatible
             if (requiredType.Equals(actualType, StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // 实验课必须在实验室
+            // Lab course must be in lab
             if (requiredType.Contains("Lab", StringComparison.OrdinalIgnoreCase))
                 return actualType.Contains("Lab", StringComparison.OrdinalIgnoreCase);
 
-            // 计算机课必须在计算机房
+            // Computer course must be in computer room
             if (requiredType.Contains("Computer", StringComparison.OrdinalIgnoreCase))
                 return actualType.Contains("Computer", StringComparison.OrdinalIgnoreCase);
 
-            // 普通课程可以在多种类型教室
+            // Regular course can be in multiple type classrooms
             if (requiredType.Contains("Regular", StringComparison.OrdinalIgnoreCase))
                 return true;
 
-            // 默认不兼容
+            // Default not compatible
             return false;
         }
+
         private Dictionary<(int teacherId, int courseId), bool> _teacherQualificationCache;
 
         private List<int> GetQualifiedTeachers(SchedulingSolution solution, SchedulingAssignment assignment)
@@ -1036,25 +1042,25 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (courseSection == null)
                 return new List<int>();
 
-            // 初始化或更新资格缓存
+            // Initialize or update qualification cache
             if (_teacherQualificationCache == null)
             {
                 InitializeQualificationCache(solution.Problem);
             }
 
-            // 使用缓存快速筛选有资格的教师
+            // Use cache to quickly filter qualified teachers
             return solution.Problem.Teachers
                 .Where(teacher =>
-                    // 1. 使用缓存检查教师是否有资格
+                    // 1. Use cache to check if teacher is qualified
                     _teacherQualificationCache.TryGetValue((teacher.Id, courseSection.CourseId), out bool isQualified) &&
                     isQualified &&
-                    // 2. 检查教师在此时间段是否已有其他课程
+                    // 2. Check if teacher is already scheduled in this time slot
                     !solution.HasTeacherConflict(teacher.Id, assignment.TimeSlotId, assignment.SectionId))
                 .Select(t => t.Id)
                 .ToList();
         }
 
-        // 初始化教师资格缓存
+        // Initialize teacher qualification cache
         private void InitializeQualificationCache(SchedulingProblem problem)
         {
             _teacherQualificationCache = new Dictionary<(int teacherId, int courseId), bool>();
@@ -1064,7 +1070,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 _teacherQualificationCache[(pref.TeacherId, pref.CourseId)] = pref.ProficiencyLevel >= 3;
             }
 
-            // 确保所有教师-课程组合都在缓存中
+            // Ensure all teacher-course combinations are in cache
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var section in problem.CourseSections)
@@ -1072,18 +1078,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     var key = (teacher.Id, section.CourseId);
                     if (!_teacherQualificationCache.ContainsKey(key))
                     {
-                        _teacherQualificationCache[key] = false; // 默认不合格
+                        _teacherQualificationCache[key] = false; // Default not qualified
                     }
                 }
             }
         }
 
         /// <summary>
-        /// 查找潜在的交换伙伴ID列表
+        /// Find potential swap partner ID list
         /// </summary>
         private List<int> FindPotentialSwapPartners(SchedulingSolution solution, SchedulingAssignment assignment)
         {
-            // 简单实现：随机选择几个其他分配作为潜在交换伙伴
+            // Simple implementation: randomly select several other assignments as potential swap partners
             return solution.Assignments
                 .Where(a => a.Id != assignment.Id)
                 .OrderBy(x => _random.Next())
@@ -1093,14 +1099,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 验证移动是否满足所有硬约束
+        /// Verify if move satisfies all hard constraints
         /// </summary>
         private bool IsValidMove(SchedulingSolution solution, IMove move)
         {
-            // 应用移动到临时解
+            // Apply move to temporary solution
             var tempSolution = move.Apply(solution);
 
-            // 验证所有硬约束
+            // Verify all hard constraints
             foreach (var constraint in _constraintManager.GetHardConstraints())
             {
                 if (!constraint.IsSatisfied(tempSolution))

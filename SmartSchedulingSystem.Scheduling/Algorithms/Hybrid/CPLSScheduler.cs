@@ -14,7 +14,7 @@ using Google.OrTools.Sat;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
-    /// 结合约束规划(CP)和局部搜索(LS)的混合排课引擎
+    /// Hybrid scheduling engine combining Constraint Programming (CP) and Local Search (LS)
     /// </summary>
     public class CPLSScheduler
     {
@@ -47,40 +47,40 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 生成排课方案
+        /// Generate scheduling solution
         /// </summary>
         public SchedulingResult GenerateSchedule(SchedulingProblem problem)
         {
             try
             {
-                _logger.LogInformation("开始生成排课方案...");
+                _logger.LogInformation("Starting to generate scheduling solution...");
                 var sw = Stopwatch.StartNew();
 
-                // 1. 调整算法参数
+                // 1. Adjust algorithm parameters
                 AdjustParameters(problem);
 
-                // 2. 检查问题可行性
+                // 2. Check problem feasibility
                 if (!CheckFeasibility(problem))
                 {
-                    _logger.LogWarning("排课问题不可行，无法生成满足所有硬约束的解");
+                    _logger.LogWarning("Scheduling problem is infeasible, cannot generate solution satisfying all hard constraints");
 
                     return new SchedulingResult
                     {
                         Status = SchedulingStatus.Failure,
-                        Message = "无法找到满足所有硬约束的排课方案",
+                        Message = "Cannot find scheduling solution satisfying all hard constraints",
                         Solutions = new List<SchedulingSolution>(),
                         ExecutionTimeMs = sw.ElapsedMilliseconds
                     };
                 }
 
-                // 3. CP阶段：采用渐进式约束应用，使用最小级别约束生成初始解
-                _logger.LogInformation("CP阶段：使用基本级别约束(Basic)生成初始解...");
+                // 3. CP phase: Use progressive constraint application, generate initial solution with minimum level constraints
+                _logger.LogInformation("CP phase: Generating initial solution using basic level constraints (Basic)...");
                 
-                // 先设置约束管理器为最小级别
+                // First set constraint manager to minimum level
                 var originalLevel = GlobalConstraintManager.Current?.GetCurrentApplicationLevel() ?? ConstraintApplicationLevel.Basic;
                 try
                 {
-                    // 设置约束管理器为基本级别
+                    // Set constraint manager to basic level
                     GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
                     
                     List<SchedulingSolution> initialSolutions = _cpScheduler.GenerateInitialSolutions(
@@ -88,107 +88,136 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                     if (initialSolutions.Count == 0)
                     {
-                        _logger.LogWarning("CP阶段未能生成任何初始解");
+                        _logger.LogWarning("CP phase failed to generate any initial solutions");
                         return new SchedulingResult
                         {
                             Status = SchedulingStatus.Failure,
-                            Message = "未能生成满足基本硬约束的初始解",
+                            Message = "Failed to generate initial solutions satisfying basic hard constraints",
                             Solutions = new List<SchedulingSolution>(),
                             ExecutionTimeMs = sw.ElapsedMilliseconds
                         };
                     }
 
-                    _logger.LogInformation($"CP阶段完成，使用Basic级别约束生成了 {initialSolutions.Count} 个初始解");
+                    _logger.LogInformation($"CP phase completed, generated {initialSolutions.Count} initial solutions using Basic level constraints");
 
-                    // 4. 初步评估初始解
+                    // 4. Preliminary evaluation of initial solutions
                     foreach (var solution in initialSolutions)
                     {
                         double score = _evaluator.Evaluate(solution).Score;
-                        _logger.LogDebug($"初始解评分: {score:F4}");
+                        _logger.LogDebug($"Initial solution score: {score:F4}");
                     }
 
-                    // 5. 使用局部搜索优化每个初始解，并逐步应用更高级别的约束
-                    _logger.LogInformation("LS阶段：逐步应用更高级别约束优化解...");
+                    // 5. Use local search to optimize each initial solution, gradually applying higher level constraints
+                    _logger.LogInformation("LS phase: Gradually applying higher level constraints to optimize solutions...");
                     
                     List<SchedulingSolution> optimizedSolutions = new List<SchedulingSolution>();
                     
-                    // 渐进式约束应用在优化阶段
-                    // 先用Level1的核心硬约束优化
-                    _logger.LogInformation("阶段1: 使用Basic级别约束进行局部搜索优化...");
-                    GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
-                    var basicOptimizedSolutions = _localSearchOptimizer.OptimizeSolutions(initialSolutions);
+                    // Save current constraint parameters for analysis
+                    bool useBasic = _parameters.UseBasicConstraints;
+                    bool useStandard = _parameters.UseStandardConstraints;
+                    bool useEnhanced = _parameters.UseEnhancedConstraints;
                     
-                    if (basicOptimizedSolutions.Any())
+                    // Create optimization phase queue based on parameters
+                    var optimizationPhases = new List<(string phaseName, ConstraintApplicationLevel level)>();
+                    
+                    // Always include Basic level
+                    optimizationPhases.Add(("Optimize using Basic level constraints (Level1)", ConstraintApplicationLevel.Basic));
+                    
+                    // Add Standard level (if not using Basic level only)
+                    if (!useBasic || useStandard)
                     {
-                        // 再用Level1+Level2约束优化
-                        _logger.LogInformation("阶段2: 使用Standard级别约束进行进一步优化...");
-                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Standard);
-                        var standardOptimizedSolutions = _localSearchOptimizer.OptimizeSolutions(basicOptimizedSolutions);
+                        optimizationPhases.Add(("Optimize using Standard level constraints (Level1+Level2)", ConstraintApplicationLevel.Standard));
+                    }
+                    
+                    // Add Enhanced level (if enabled)
+                    if (useEnhanced)
+                    {
+                        optimizationPhases.Add(("Optimize using Enhanced level constraints (Level1+Level2+Level3)", ConstraintApplicationLevel.Enhanced));
+                    }
+                    
+                    _logger.LogInformation($"Optimization will proceed in {optimizationPhases.Count} phases, gradually increasing constraint application level");
+                    
+                    // Start from initial solutions
+                    var currentSolutions = initialSolutions;
+                    
+                    // Optimize phase by phase, using best solutions from previous phase as input
+                    for (int phase = 0; phase < optimizationPhases.Count; phase++)
+                    {
+                        var (phaseName, level) = optimizationPhases[phase];
+                        _logger.LogInformation($"Phase {phase+1}: {phaseName}...");
                         
-                        if (standardOptimizedSolutions.Any())
+                        // Set current constraint level
+                        GlobalConstraintManager.Current?.SetConstraintApplicationLevel(level);
+                        
+                        // Optimize solutions for current phase
+                        var phaseSolutions = _localSearchOptimizer.OptimizeSolutions(currentSolutions);
+                        
+                        // If solutions found, use them for next phase optimization
+                        if (phaseSolutions.Any())
                         {
-                            optimizedSolutions = standardOptimizedSolutions;
+                            _logger.LogInformation($"Phase {phase+1} completed, successfully optimized {phaseSolutions.Count} solutions");
+                            currentSolutions = phaseSolutions;
                         }
                         else
                         {
-                            optimizedSolutions = basicOptimizedSolutions;
+                            _logger.LogWarning($"Phase {phase+1} failed to generate valid solutions, keeping solutions from previous phase");
+                            // Keep using current solutions
                         }
                     }
-                    else
-                    {
-                        optimizedSolutions = initialSolutions;
-                    }
+                    
+                    // Final solutions are from last phase
+                    optimizedSolutions = currentSolutions;
 
-                    _logger.LogInformation($"LS阶段完成，优化了 {optimizedSolutions.Count} 个解");
+                    _logger.LogInformation($"LS phase completed, optimized {optimizedSolutions.Count} solutions");
 
-                    // 6. 评估和排序优化后的解
+                    // 6. Evaluate and sort optimized solutions
                     optimizedSolutions = optimizedSolutions
                         .OrderByDescending(s => _evaluator.Evaluate(s))
                         .ToList();
 
-                    // 记录最终解的评分
+                    // Record final solution scores
                     if (optimizedSolutions.Any())
                     {
                         double bestScore = _evaluator.Evaluate(optimizedSolutions.First()).Score;
-                        _logger.LogInformation($"最优解评分: {bestScore:F4}");
+                        _logger.LogInformation($"Best solution score: {bestScore:F4}");
                     }
 
-                    // 7. 准备返回结果
+                    // 7. Prepare return result
                     sw.Stop();
                     var result = new SchedulingResult
                     {
                         Status = optimizedSolutions.Any() ? SchedulingStatus.Success : SchedulingStatus.PartialSuccess,
                         Message = optimizedSolutions.Any()
-                            ? "成功生成排课方案"
-                            : "生成了部分满足约束的排课方案",
+                            ? "Successfully generated scheduling solution"
+                            : "Generated partially constraint-satisfying scheduling solution",
                         Solutions = optimizedSolutions,
                         ExecutionTimeMs = sw.ElapsedMilliseconds,
                         Statistics = ComputeStatistics(optimizedSolutions, problem)
                     };
 
-                    _logger.LogInformation($"排课完成，耗时: {sw.ElapsedMilliseconds}ms，" +
-                                         $"状态: {result.Status}，解数量: {result.Solutions.Count}");
+                    _logger.LogInformation($"Scheduling completed, time taken: {sw.ElapsedMilliseconds}ms, " +
+                                         $"status: {result.Status}, solution count: {result.Solutions.Count}");
 
                     return result;
                 }
                 finally
                 {
-                    // 恢复约束管理器原始级别
+                    // Restore original constraint manager level
                     if (GlobalConstraintManager.Current != null)
                     {
                         GlobalConstraintManager.Current.SetConstraintApplicationLevel(originalLevel);
-                        _logger.LogInformation($"已恢复约束应用级别为: {originalLevel}");
+                        _logger.LogInformation($"Restored constraint application level to: {originalLevel}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "生成排课方案时发生异常");
+                _logger.LogError(ex, "Exception occurred while generating scheduling solution");
 
                 return new SchedulingResult
                 {
                     Status = SchedulingStatus.Error,
-                    Message = $"排课过程中发生异常: {ex.Message}",
+                    Message = $"Exception occurred during scheduling: {ex.Message}",
                     Solutions = new List<SchedulingSolution>(),
                     ExecutionTimeMs = -1
                 };
@@ -196,19 +225,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算排课统计信息
+        /// Calculate scheduling statistics
         /// </summary>
         private SchedulingStatistics ComputeStatistics(List<SchedulingSolution> solutions, SchedulingProblem problem)
         {
             if (solutions == null || !solutions.Any())
                 return new SchedulingStatistics();
 
-            // 使用最优解计算统计信息
+            // Use best solution to calculate statistics
             var bestSolution = solutions.First();
 
             try
             {
-                _logger.LogDebug("计算排课统计信息...");
+                _logger.LogDebug("Calculating scheduling statistics...");
 
                 var stats = new SchedulingStatistics
                 {
@@ -220,48 +249,48 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     UsedClassrooms = bestSolution.Assignments.Select(a => a.ClassroomId).Distinct().Count()
                 };
 
-                // 计算未排课的班级数
+                // Calculate unscheduled sections
                 stats.UnscheduledSections = stats.TotalSections - stats.ScheduledSections;
 
-                // 计算教室利用率信息
+                // Calculate classroom utilization information
                 ComputeClassroomUtilization(bestSolution, problem, stats);
 
-                // 计算教师工作量信息
+                // Calculate teacher workload information
                 ComputeTeacherWorkloads(bestSolution, problem, stats);
 
-                // 计算时间槽利用率信息
+                // Calculate time slot utilization information
                 ComputeTimeSlotUtilization(bestSolution, problem, stats);
 
-                _logger.LogDebug("统计信息计算完成");
+                _logger.LogDebug("Statistics calculation completed");
 
                 return stats;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "计算统计信息时出错");
+                _logger.LogError(ex, "Error calculating scheduling statistics");
                 return new SchedulingStatistics();
             }
         }
 
         /// <summary>
-        /// 计算教室利用率信息
+        /// Calculate classroom utilization information
         /// </summary>
         private void ComputeClassroomUtilization(
             SchedulingSolution solution,
             SchedulingProblem problem,
             SchedulingStatistics stats)
         {
-            // 计算每个教室的利用情况
+            // Calculate utilization for each classroom
             foreach (var classroom in problem.Classrooms)
             {
                 var assignments = solution.Assignments.Where(a => a.ClassroomId == classroom.Id).ToList();
 
                 if (assignments.Any())
                 {
-                    // 假设每周有5天，每天10小时可用时间
+                    // Assume 5 days a week, 10 hours available per day
                     double totalAvailableHours = 5 * 10.0;
 
-                    // 计算已用课时（假设每个时间槽是1.5小时）
+                    // Calculate used hours (assuming each time slot is 1.5 hours)
                     double usedHours = assignments.Count * 1.5;
 
                     double utilizationRate = usedHours / totalAvailableHours;
@@ -277,7 +306,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 }
             }
 
-            // 计算平均教室利用率
+            // Calculate average classroom utilization
             if (stats.ClassroomUtilization.Count > 0)
             {
                 stats.AverageClassroomUtilization = stats.ClassroomUtilization.Values
@@ -286,36 +315,36 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算教师工作量信息
+        /// Calculate teacher workload information
         /// </summary>
         private void ComputeTeacherWorkloads(
             SchedulingSolution solution,
             SchedulingProblem problem,
             SchedulingStatistics stats)
         {
-            // 计算每个教师的工作量
+            // Calculate workload for each teacher
             foreach (var teacher in problem.Teachers)
             {
                 var assignments = solution.Assignments.Where(a => a.TeacherId == teacher.Id).ToList();
 
                 if (assignments.Any())
                 {
-                    // 计算总课时（假设每个时间槽是1.5小时）
+                    // Calculate total hours (assuming each time slot is 1.5 hours)
                     int totalHours = (int)(assignments.Count * 1.5);
 
-                    // 按日统计课时
+                    // Daily workload by day
                     var dailyWorkload = assignments
                         .GroupBy(a => a.DayOfWeek)
                         .ToDictionary(
                             g => g.Key,
                             g => (int)(g.Count() * 1.5));
 
-                    // 计算最大日课时
+                    // Calculate maximum daily hours
                     int maxDailyHours = dailyWorkload.Any()
                         ? dailyWorkload.Values.Max()
                         : 0;
 
-                    // 计算最大连续课时（这需要详细的时间槽信息）
+                    // Calculate maximum consecutive hours (this requires detailed time slot information)
                     int maxConsecutiveHours = CalculateMaxConsecutiveHours(assignments);
 
                     stats.TeacherWorkloads[teacher.Id] = new TeacherWorkloadInfo
@@ -331,7 +360,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 }
             }
 
-            // 计算教师工作量标准差
+            // Calculate teacher workload standard deviation
             if (stats.TeacherWorkloads.Count > 0)
             {
                 var workloads = stats.TeacherWorkloads.Values.Select(info => info.TotalHours).ToList();
@@ -342,18 +371,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算最大连续课时
+        /// Calculate maximum consecutive hours
         /// </summary>
         private int CalculateMaxConsecutiveHours(List<SchedulingAssignment> assignments)
         {
-            // 按天分组
+            // Group by day
             var assignmentsByDay = assignments.GroupBy(a => a.DayOfWeek).ToDictionary(g => g.Key, g => g.ToList());
 
             int maxConsecutive = 0;
 
             foreach (var dayAssignments in assignmentsByDay.Values)
             {
-                // 按开始时间排序
+                // Sort by start time
                 var sortedAssignments = dayAssignments.OrderBy(a => a.StartTime).ToList();
 
                 int currentConsecutive = 1;
@@ -363,15 +392,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     var prev = sortedAssignments[i - 1];
                     var curr = sortedAssignments[i];
 
-                    // 如果两节课间隔小于或等于30分钟，视为连续
-                    // 假设结束时间和开始时间格式为 TimeSpan
+                    // If two classes are within 30 minutes of each other, consider them consecutive
+                    // Assuming end time and start time format is TimeSpan
                     if ((curr.StartTime - prev.EndTime).TotalMinutes <= 30)
                     {
                         currentConsecutive++;
                     }
                     else
                     {
-                        // 重置计数器
+                        // Reset counter
                         currentConsecutive = 1;
                     }
 
@@ -383,19 +412,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算时间槽利用率信息
+        /// Calculate time slot utilization information
         /// </summary>
         private void ComputeTimeSlotUtilization(
             SchedulingSolution solution,
             SchedulingProblem problem,
             SchedulingStatistics stats)
         {
-            // 计算每个时间槽的利用情况
+            // Calculate utilization for each time slot
             foreach (var timeSlot in problem.TimeSlots)
             {
                 var assignments = solution.Assignments.Where(a => a.TimeSlotId == timeSlot.Id).ToList();
 
-                // 假设总教室数作为基准
+                // Assume total classroom count as baseline
                 int totalRooms = problem.Classrooms.Count;
                 double utilizationRate = totalRooms > 0 ? (double)assignments.Count / totalRooms : 0;
 
@@ -410,13 +439,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 };
             }
 
-            // 计算平均时间槽利用率
+            // Calculate average time slot utilization
             if (stats.TimeSlotUtilization.Count > 0)
             {
                 stats.AverageTimeSlotUtilization = stats.TimeSlotUtilization.Values
                     .Average(info => info.UtilizationRate);
 
-                // 找出峰值和谷值时段
+                // Find peak and valley periods
                 var peakSlot = stats.TimeSlotUtilization.Values
                     .OrderByDescending(info => info.UtilizationRate)
                     .First();
@@ -434,7 +463,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 检查问题可行性
+        /// Check problem feasibility
         /// </summary>
         private bool CheckFeasibility(SchedulingProblem problem)
         {
@@ -442,36 +471,36 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
             try
             {
-                _logger.LogInformation("检查排课问题可行性...");
+                _logger.LogInformation("Checking scheduling problem feasibility...");
 
-                // 增加求解时间以提高找到可行解的概率
+                // Increase solving time to improve probability of finding feasible solution
                 var tempParams = new Utils.SchedulingParameters
                 {
-                    CpTimeLimit = 120, // 给予更多时间
-                    InitialSolutionCount = 1 // 只需要一个解即可证明可行性
+                    CpTimeLimit = 120, // Give more time
+                    InitialSolutionCount = 1 // Only need one solution to prove feasibility
                 };
                 
-                // 修改方法调用匹配CPScheduler类中的CheckFeasibility方法签名
+                // Modify method call to match CPScheduler class's CheckFeasibility method signature
                 bool isFeasible = _cpScheduler.CheckFeasibility(null, problem);
 
                 if (isFeasible)
                 {
-                    _logger.LogInformation("排课问题有可行解");
+                    _logger.LogInformation("Scheduling problem has feasible solution");
                 }
                 else
                 {
                     switch (status)
                     {
                         case CpSolverStatus.Infeasible:
-                            _logger.LogWarning("排课问题无可行解，约束冲突");
+                            _logger.LogWarning("Scheduling problem has no feasible solution, constraint conflicts");
                             DiagnoseConstraintConflicts(problem);
                             break;
                         case CpSolverStatus.Unknown:
-                            _logger.LogWarning("排课问题不确定是否有解，求解时间不足");
-                            // 不确定时，尝试继续，可能仍能找到解
+                            _logger.LogWarning("Scheduling problem uncertain whether feasible, solving time insufficient");
+                            // Uncertain, try continuing, may still find solution
                             return true;
                         default:
-                            _logger.LogWarning($"检查可行性返回未预期状态: {status}");
+                            _logger.LogWarning($"Check feasibility returned unexpected status: {status}");
                             break;
                     }
                 }
@@ -480,17 +509,17 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "检查问题可行性时出错");
-                // 出错时保守处理，假设问题有解
+                _logger.LogError(ex, "Error checking problem feasibility");
+                // Conservative handling on error, assume problem feasible
                 return true;
             }
         }
-        // 诊断约束冲突
+        // Diagnose constraint conflicts
         private void DiagnoseConstraintConflicts(SchedulingProblem problem)
         {
-            _logger.LogInformation("正在诊断可能导致问题不可行的约束冲突...");
+            _logger.LogInformation("Diagnosing potential constraint conflicts that may make problem infeasible...");
 
-            // 检查教室容量
+            // Check classroom capacity
             foreach (var section in problem.CourseSections)
             {
                 var suitableRooms = problem.Classrooms
@@ -499,11 +528,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                 if (suitableRooms.Count == 0)
                 {
-                    _logger.LogError($"课程 {section.CourseCode} (需容量: {section.Enrollment}) 无法找到容量足够的教室!");
+                    _logger.LogError($"Course {section.CourseCode} (required capacity: {section.Enrollment}) cannot find suitable classroom!");
                 }
             }
 
-            // 检查教师资格
+            // Check teacher qualification
             foreach (var section in problem.CourseSections)
             {
                 var qualifiedTeachers = problem.TeacherCoursePreferences
@@ -513,11 +542,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                 if (qualifiedTeachers.Count == 0)
                 {
-                    _logger.LogError($"课程 {section.CourseCode} 找不到合格的教师!");
+                    _logger.LogError($"Course {section.CourseCode} cannot find qualified teacher!");
                 }
                 else
                 {
-                    // 检查这些教师是否有足够的可用时间
+                    // Check if these teachers have enough available time
                     foreach (var teacherId in qualifiedTeachers)
                     {
                         var unavailableTimes = problem.TeacherAvailabilities
@@ -527,13 +556,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                         if (unavailableTimes.Count >= problem.TimeSlots.Count)
                         {
-                            _logger.LogError($"教师 ID:{teacherId} 没有任何可用时间段!");
+                            _logger.LogError($"Teacher ID:{teacherId} has no available time slots!");
                         }
                     }
                 }
             }
 
-            // 检查教室可用性
+            // Check classroom availability
             foreach (var classroom in problem.Classrooms)
             {
                 var unavailableTimeSlots = problem.ClassroomAvailabilities
@@ -543,11 +572,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                 if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
                 {
-                    _logger.LogError($"教室 {classroom.Name} 没有可用的时间段!");
+                    _logger.LogError($"Classroom {classroom.Name} has no available time slots!");
                 }
             }
 
-            // 检查教师可用性
+            // Check teacher availability
             foreach (var teacher in problem.Teachers)
             {
                 var unavailableTimeSlots = problem.TeacherAvailabilities
@@ -557,29 +586,29 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
                 if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
                 {
-                    _logger.LogError($"教师 {teacher.Name} 没有可用的时间段!");
+                    _logger.LogError($"Teacher {teacher.Name} has no available time slots!");
                 }
             }
-            // 检查资源总量是否足够
+            // Check if resource total is sufficient
             if (problem.TimeSlots.Count < problem.CourseSections.Count)
             {
-                _logger.LogError($"时间槽总数({problem.TimeSlots.Count})少于课程数({problem.CourseSections.Count})，无法完成排课!");
+                _logger.LogError($"Total time slot count ({problem.TimeSlots.Count}) less than course count ({problem.CourseSections.Count}), cannot complete scheduling!");
             }
         }
         /// <summary>
-        /// 调整算法参数
+        /// Adjust algorithm parameters
         /// </summary>
         private void AdjustParameters(SchedulingProblem problem)
         {
             try
             {
-                _logger.LogDebug("根据问题特性调整算法参数...");
+                _logger.LogDebug("Adjusting algorithm parameters based on problem characteristics...");
 
-                // 基于问题规模调整参数
+                // Adjust parameters based on problem size
                 if (problem.CourseSections.Count > 200)
                 {
                     _parameters.InitialSolutionCount = 3;
-                    _parameters.CpTimeLimit = 300; // 大规模问题给CP更多时间
+                    _parameters.CpTimeLimit = 300; // Large problem give CP more time
                 }
                 else if (problem.CourseSections.Count > 100)
                 {
@@ -592,43 +621,43 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     _parameters.CpTimeLimit = 120;
                 }
 
-                // 根据问题约束数量调整约束级别
+                // Adjust constraint levels based on problem constraint count
                 if (problem.Constraints != null)
                 {
                     int hardConstraintCount = problem.Constraints.Count(c => c.IsHard);
                     
-                    // 根据硬约束数量来决定初始约束应用级别
+                    // Decide initial constraint application level based on hard constraint count
                     if (hardConstraintCount > 10)
                     {
-                        // 复杂问题从基本约束开始
+                        // Complex problem start from basic constraints
                         GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
-                        _logger.LogInformation("约束较多，设置初始约束级别为Basic");
+                        _logger.LogInformation("Many constraints, set initial constraint level to Basic");
                     }
                     else if (hardConstraintCount > 5)
                     {
-                        // 中等复杂度从Basic开始
+                        // Medium complexity start from Basic
                         GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
-                        _logger.LogInformation("约束适中，设置初始约束级别为Basic");
+                        _logger.LogInformation("Medium constraints, set initial constraint level to Basic");
                     }
                     else
                     {
-                        // 简单问题从Standard开始
+                        // Simple problem start from Standard
                         GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Standard);
-                        _logger.LogInformation("约束较少，设置初始约束级别为Standard");
+                        _logger.LogInformation("Few constraints, set initial constraint level to Standard");
                     }
                 }
                 else
                 {
-                    // 默认从基本约束开始，确保能找到初始解
+                    // Default start from basic constraints, ensure initial solution can be found
                     GlobalConstraintManager.Current?.SetConstraintApplicationLevel(ConstraintApplicationLevel.Basic);
-                    _logger.LogInformation("未提供约束信息，默认设置初始约束级别为Basic");
+                    _logger.LogInformation("No constraint information provided, default set initial constraint level to Basic");
                 }
 
-                _logger.LogDebug($"参数调整完成：初始解数量={_parameters.InitialSolutionCount}, CP时间限制={_parameters.CpTimeLimit}秒");
+                _logger.LogDebug($"Parameter adjustment completed: initial solution count={_parameters.InitialSolutionCount}, CP time limit={_parameters.CpTimeLimit} seconds");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "调整参数时出错");
+                _logger.LogError(ex, "Error adjusting parameters");
             }
         }
 

@@ -12,7 +12,7 @@ using SmartSchedulingSystem.Scheduling.Utils;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
-    /// 局部搜索优化器，用于优化一个已经满足硬约束的解的软约束满足度
+    /// Local search optimizer, used to optimize soft constraint satisfaction of solutions that already satisfy hard constraints
     /// </summary>
     public class LocalSearchOptimizer
     {
@@ -41,26 +41,26 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             _random = new Random();
         }
         /// <summary>
-        /// 优化多个初始解
+        /// Optimize multiple initial solutions
         /// </summary>
-        /// <param name="initialSolutions">初始解列表</param>
-        /// <returns>优化后的解列表</returns>
+        /// <param name="initialSolutions">List of initial solutions</param>
+        /// <returns>List of optimized solutions</returns>
         public List<SchedulingSolution> OptimizeSolutions(List<SchedulingSolution> initialSolutions)
         {
             if (initialSolutions == null || initialSolutions.Count == 0)
             {
-                _logger.LogWarning("传入的初始解列表为空");
+                _logger.LogWarning("Input initial solution list is empty");
                 return new List<SchedulingSolution>();
             }
 
-            _logger.LogInformation($"开始优化 {initialSolutions.Count} 个初始解");
+            _logger.LogInformation($"Starting to optimize {initialSolutions.Count} initial solutions");
 
-            // 并行优化解
+            // Optimize solutions in parallel
             var optimizedSolutions = new List<SchedulingSolution>();
 
             if (_parameters.EnableParallelOptimization)
             {
-                // 使用并行处理
+                // Use parallel processing
                 optimizedSolutions = initialSolutions
                     .AsParallel()
                     .WithDegreeOfParallelism(_parameters.MaxParallelism > 0 ?
@@ -74,15 +74,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"优化解 {solution.Id} 时发生错误");
-                            return solution; // 如果优化失败，返回原解
+                            _logger.LogError(ex, $"Error optimizing solution {solution.Id}");
+                            return solution; // If optimization fails, return original solution
                         }
                     })
                     .ToList();
             }
             else
             {
-                // 串行处理
+                // Serial processing
                 foreach (var solution in initialSolutions)
                 {
                     try
@@ -91,49 +91,49 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"优化解 {solution.Id} 时发生错误");
-                        optimizedSolutions.Add(solution); // 如果优化失败，添加原解
+                        _logger.LogError(ex, $"Error optimizing solution {solution.Id}");
+                        optimizedSolutions.Add(solution); // If optimization fails, add original solution
                     }
                 }
             }
 
-            _logger.LogInformation($"完成 {optimizedSolutions.Count} 个解的优化");
+            _logger.LogInformation($"Completed optimization of {optimizedSolutions.Count} solutions");
 
             return optimizedSolutions;
         }
         /// <summary>
-        /// 优化指定的解
+        /// Optimize specified solution
         /// </summary>
-        /// <param name="initialSolution">初始解</param>
-        /// <returns>优化后的解</returns>
+        /// <param name="initialSolution">Initial solution</param>
+        /// <returns>Optimized solution</returns>
         public SchedulingSolution OptimizeSolution(SchedulingSolution initialSolution)
         {
-            _logger.LogInformation("开始局部搜索优化...");
+            _logger.LogInformation("Starting local search optimization...");
 
-            // 深拷贝初始解
+            // Deep copy initial solution
             var currentSolution = initialSolution.Clone();
             var bestSolution = initialSolution.Clone();
 
-            // 保存当前约束应用级别
+            // Save current constraint application level
             var currentConstraintLevel = SmartSchedulingSystem.Scheduling.Engine.GlobalConstraintManager.Current?.GetCurrentApplicationLevel() 
                                        ?? Engine.ConstraintApplicationLevel.Basic;
             
-            _logger.LogDebug($"使用约束级别 {currentConstraintLevel} 进行局部搜索优化");
+            _logger.LogDebug($"Using constraint level {currentConstraintLevel} for local search optimization");
 
-            // 首次评估解
+            // First evaluation of solution
             var currentEvaluation = _evaluator.Evaluate(currentSolution);
             double bestScore = currentEvaluation.Score;
 
-            _logger.LogInformation("初始解评分: {Score}", bestScore);
+            _logger.LogInformation("Initial solution score: {Score}", bestScore);
 
-            // 重置模拟退火控制器
+            // Reset simulated annealing controller
             _saController.Reset();
 
             int iteration = 0;
             int noImprovementCount = 0;
             const int MAX_NO_IMPROVEMENT = 100;
 
-            // 预计算并缓存每个约束的初始满足度
+            // Pre-calculate and cache initial satisfaction for each constraint
             var constraintScores = new Dictionary<int, double>();
             var allConstraints = _evaluator.GetAllActiveConstraints().ToList();
 
@@ -143,14 +143,14 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 constraintScores[constraint.Id] = score;
             }
 
-            // 迭代优化
+            // Iterative optimization
             while (!_saController.Cool())
             {
                 iteration++;
 
                 try
                 {
-                    // 找出满足度最低的约束
+                    // Find constraint with lowest satisfaction
                     int weakestConstraintId = -1;
                     double lowestScore = double.MaxValue;
 
@@ -165,19 +165,19 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
                     if (weakestConstraintId == -1)
                     {
-                        _logger.LogDebug("没有找到需要优化的约束，跳过迭代");
+                        _logger.LogDebug("No constraints found needing optimization, skipping iteration");
                         continue;
                     }
 
-                    // 找到对应的约束对象
+                    // Find corresponding constraint object
                     var targetConstraint = allConstraints.FirstOrDefault(c => c.Id == weakestConstraintId);
                     if (targetConstraint == null)
                     {
-                        _logger.LogWarning("无法找到ID为{id}的约束", weakestConstraintId);
+                        _logger.LogWarning("Cannot find constraint with ID {id}", weakestConstraintId);
                         continue;
                     }
 
-                    // 分析约束并生成移动
+                    // Analyze constraint and generate moves
                     var constraintAnalysis = _constraintAnalyzer.AnalyzeSolution(currentSolution);
                     var assignments = constraintAnalysis.GetAssignmentsAffectedByConstraint(currentSolution, targetConstraint);
 
@@ -189,57 +189,57 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                             .ToList();
                     }
 
-                    // 选择一个随机分配进行修改
+                    // Select a random assignment to modify
                     var targetAssignment = assignments.OrderBy(a => Guid.NewGuid()).First();
                     var moves = _moveGenerator.GenerateValidMoves(currentSolution, targetAssignment, 5);
 
                     if (moves.Count == 0)
                     {
-                        _logger.LogDebug("迭代 {Iteration}: 未找到合法移动", iteration);
+                        _logger.LogDebug("Iteration {Iteration}: No valid moves found", iteration);
                         continue;
                     }
                     IMove bestMove = SelectBestMove(moves, currentSolution);
 
-                    // 应用移动并评估
+                    // Apply move and evaluate
                     var newSolution = bestMove.Apply(currentSolution);
                     
-                    // 确保应用移动后的解仍然满足当前约束级别的要求
+                    // Ensure solution after applying move still satisfies current constraint level requirements
                     var hardConstraintsSatisfied = _evaluator.EvaluateHardConstraints(newSolution) >= 1.0;
                     if (!hardConstraintsSatisfied)
                     {
-                        _logger.LogDebug("迭代 {Iteration}: 移动 {MoveDescription} 违反了硬约束，拒绝", 
+                        _logger.LogDebug("Iteration {Iteration}: Move {MoveDescription} violates hard constraints, rejected", 
                             iteration, bestMove.GetDescription());
                         continue;
                     }
                     
                     double newScore = _evaluator.Evaluate(newSolution).Score;
 
-                    // 决定是否接受新解
+                    // Decide whether to accept new solution
                     bool acceptMove = _saController.ShouldAccept(bestScore, newScore);
 
                     if (acceptMove)
                     {
-                        _logger.LogDebug("迭代 {Iteration}: 接受移动 {MoveDescription}, 新评分: {NewScore}",
+                        _logger.LogDebug("Iteration {Iteration}: Accepting move {MoveDescription}, new score: {NewScore}",
                             iteration, bestMove.GetDescription(), newScore);
 
                         currentSolution = newSolution;
                         
-                        // 保存当前解使用的约束级别
+                        // Save constraint level used by current solution
                         currentSolution.ConstraintLevel = currentConstraintLevel;
 
-                        // 更新约束分数缓存
+                        // Update constraint score cache
                         foreach (var constraint in allConstraints)
                         {
                             var (score, _) = constraint.Evaluate(currentSolution);
                             constraintScores[constraint.Id] = score;
                         }
 
-                        // 如果新解更好，更新最佳解
+                        // If new solution is better, update best solution
                         if (newScore > bestScore)
                         {
                             bestSolution = newSolution;
                             bestScore = newScore;
-                            _logger.LogInformation("迭代 {Iteration}: 找到更好的解，评分: {Score}", iteration, bestScore);
+                            _logger.LogInformation("Iteration {Iteration}: Found better solution, score: {Score}", iteration, bestScore);
                             noImprovementCount = 0;
                         }
                         else
@@ -249,41 +249,22 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     }
                     else
                     {
-                        _logger.LogDebug("迭代 {Iteration}: 拒绝移动 {MoveDescription}, 当前温度: {Temperature}",
-                            iteration, bestMove.GetDescription(), _saController.CurrentTemperature);
-                        noImprovementCount++;
-                    }
-
-                    // 提前终止检查
-                    if (noImprovementCount >= MAX_NO_IMPROVEMENT)
-                    {
-                        _logger.LogInformation("连续 {Count} 次无改进，提前终止搜索", MAX_NO_IMPROVEMENT);
-                        break;
+                        _logger.LogDebug("Iteration {Iteration}: Rejected move {MoveDescription}, new score: {NewScore}",
+                            iteration, bestMove.GetDescription(), newScore);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "局部搜索迭代 {Iteration} 发生错误", iteration);
-                }
-
-                // 定期记录进度
-                if (iteration % 50 == 0)
-                {
-                    _logger.LogInformation("已完成 {Iteration} 次迭代，当前最佳评分: {Score}, 温度: {Temperature}",
-                        iteration, bestScore, _saController.CurrentTemperature);
+                    _logger.LogError(ex, "Error in iteration {Iteration}", iteration);
                 }
             }
 
-            _logger.LogInformation("局部搜索完成，共 {Iteration} 次迭代，最终评分: {Score}", iteration, bestScore);
-            
-            // 确保最佳解记录了使用的约束级别
-            bestSolution.ConstraintLevel = currentConstraintLevel;
-            
+            _logger.LogInformation("Local search optimization completed, best score: {Score}", bestScore);
             return bestSolution;
         }
 
         /// <summary>
-        /// 评估并选择最佳移动
+        /// Evaluate and select the best move
         /// </summary>
         private IMove SelectBestMove(List<IMove> moves, SchedulingSolution currentSolution)
         {
@@ -306,43 +287,43 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 使用指定参数优化解决方案
+        /// Optimize solution with specified parameters
         /// </summary>
-        /// <param name="initialSolution">初始解</param>
-        /// <param name="maxIterations">最大迭代次数</param>
-        /// <param name="initialTemperature">初始温度</param>
-        /// <param name="coolingRate">冷却率</param>
-        /// <returns>优化后的解</returns>
+        /// <param name="initialSolution">Initial solution</param>
+        /// <param name="maxIterations">Maximum number of iterations</param>
+        /// <param name="initialTemperature">Initial temperature</param>
+        /// <param name="coolingRate">Cooling rate</param>
+        /// <returns>Optimized solution</returns>
         public SchedulingSolution OptimizeSolution(
             SchedulingSolution initialSolution, 
             int maxIterations, 
             double initialTemperature, 
             double coolingRate)
         {
-            _logger.LogInformation("使用指定参数开始局部搜索优化...");
-            _logger.LogInformation($"参数: maxIterations={maxIterations}, initialTemperature={initialTemperature}, coolingRate={coolingRate}");
+            _logger.LogInformation("Using specified parameters to start local search optimization...");
+            _logger.LogInformation($"Parameters: maxIterations={maxIterations}, initialTemperature={initialTemperature}, coolingRate={coolingRate}");
             
-            // 保存原始参数
+            // Save original parameters
             var originalMaxIterations = _parameters.MaxLsIterations;
             var originalTemperature = _parameters.InitialTemperature;
             var originalCoolingRate = _parameters.CoolingRate;
             
             try
             {
-                // 应用新参数
+                // Apply new parameters
                 _parameters.MaxLsIterations = maxIterations;
                 _parameters.InitialTemperature = initialTemperature;
                 _parameters.CoolingRate = coolingRate;
                 
-                // 重置模拟退火控制器并应用新参数
+                // Reset simulated annealing controller and apply new parameters
                 _saController.Reset(initialTemperature, coolingRate);
                 
-                // 调用标准优化方法
+                // Call standard optimization method
                 return OptimizeSolution(initialSolution);
             }
             finally
             {
-                // 恢复原始参数
+                // Restore original parameters
                 _parameters.MaxLsIterations = originalMaxIterations;
                 _parameters.InitialTemperature = originalTemperature;
                 _parameters.CoolingRate = originalCoolingRate;

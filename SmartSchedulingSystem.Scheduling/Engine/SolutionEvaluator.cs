@@ -104,6 +104,8 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                                $"质量软约束={qualitySoftScore:F4}, 总分={softConstraintScore:F4}");
 
                 evaluation.IsFeasible = true;
+                evaluation.HardConstraintsSatisfactionLevel = hardConstraintScore;
+                evaluation.SoftConstraintsSatisfactionLevel = softConstraintScore;
                 evaluation.Score = softConstraintScore;
                 return evaluation;
             }

@@ -6,304 +6,304 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Models
 {
     /// <summary>
-    /// 排课结果，包含解决方案和评估信息
+    /// Scheduling result, containing solution and evaluation information
     /// </summary>
     public class SchedulingResult
     {
         /// <summary>
-        /// 排课问题
+        /// Scheduling problem
         /// </summary>
         public SchedulingProblem Problem { get; set; }
 
         /// <summary>
-        /// 最终解决方案
+        /// Final solution
         /// </summary>
         public List<SchedulingSolution> Solutions { get; set; }
 
         public int SolutionSetId { get; set; }
         /// <summary>
-        /// 解决方案评估
+        /// Solution evaluation
         /// </summary>
         public SchedulingEvaluation Evaluation { get; set; }
 
         /// <summary>
-        /// 初始解决方案
+        /// Initial solution
         /// </summary>
         public SchedulingSolution InitialSolution { get; set; }
 
         /// <summary>
-        /// 优化后的解决方案（可能与最终解决方案不同，如果进行了冲突解决）
+        /// Optimized solution (may differ from final solution if conflict resolution was performed)
         /// </summary>
         public SchedulingSolution OptimizedSolution { get; set; }
 
         /// <summary>
-        /// 运行状态
+        /// Running status
         /// </summary>
         public SchedulingStatus Status { get; set; }
 
         /// <summary>
-        /// 执行时间（毫秒）
+        /// Execution time (milliseconds)
         /// </summary>
         public long ExecutionTimeMs { get; set; }
 
         /// <summary>
-        /// 创建时间
+        /// Creation time
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public string Message { get; set; }
         /// <summary>
-        /// 结果是否成功
+        /// Whether the result is successful
         /// </summary>
         public bool IsSuccessful => Status == SchedulingStatus.Success;
 
         /// <summary>
-        /// 统计信息
+        /// Statistical information
         /// </summary>
         public SchedulingStatistics Statistics { get; set; } = new SchedulingStatistics();
 
         /// <summary>
-        /// 计算各种统计信息
+        /// Calculate various statistical information
         /// </summary>
         
     }
 
     /// <summary>
-    /// 排课运行状态
+    /// Scheduling running status
     /// </summary>
     public enum SchedulingStatus
     {
         /// <summary>
-        /// 未开始
+        /// Not started
         /// </summary>
         NotStarted,
 
         /// <summary>
-        /// 已生成初始解
+        /// Initial solution generated
         /// </summary>
         InitialSolutionGenerated,
 
         /// <summary>
-        /// 成功（所有约束都满足）
+        /// Success (all constraints satisfied)
         /// </summary>
         Success,
 
         /// <summary>
-        /// 部分成功（软约束可能未完全满足）
+        /// Partial success (soft constraints may not be fully satisfied)
         /// </summary>
         PartialSuccess,
 
         /// <summary>
-        /// 失败（未能找到可行解）
+        /// Failure (no feasible solution found)
         /// </summary>
         Failure,
 
         /// <summary>
-        /// 已取消
+        /// Cancelled
         /// </summary>
         Cancelled,
 
         /// <summary>
-        /// 出错
+        /// Error
         /// </summary>
         Error
     }
 
     /// <summary>
-    /// 排课统计信息
+    /// Scheduling statistics information
     /// </summary>
     public class SchedulingStatistics
     {
         /// <summary>
-        /// 总课程班级数
+        /// Total number of course sections
         /// </summary>
         public int TotalSections { get; set; }
 
         /// <summary>
-        /// 已安排的课程班级数
+        /// Number of scheduled course sections
         /// </summary>
         public int ScheduledSections { get; set; }
 
         /// <summary>
-        /// 未安排的课程班级数
+        /// Number of unscheduled course sections
         /// </summary>
         public int UnscheduledSections { get; set; }
 
         /// <summary>
-        /// 总教师数
+        /// Total number of teachers
         /// </summary>
         public int TotalTeachers { get; set; }
 
         /// <summary>
-        /// 已分配的教师数
+        /// Number of assigned teachers
         /// </summary>
         public int AssignedTeachers { get; set; }
 
         /// <summary>
-        /// 总教室数
+        /// Total number of classrooms
         /// </summary>
         public int TotalClassrooms { get; set; }
 
         /// <summary>
-        /// 已使用的教室数
+        /// Number of used classrooms
         /// </summary>
         public int UsedClassrooms { get; set; }
 
         /// <summary>
-        /// 教室利用信息
+        /// Classroom utilization information
         /// </summary>
         public Dictionary<int, ClassroomUtilizationInfo> ClassroomUtilization { get; set; } = new Dictionary<int, ClassroomUtilizationInfo>();
 
         /// <summary>
-        /// 平均教室利用率
+        /// Average classroom utilization rate
         /// </summary>
         public double AverageClassroomUtilization { get; set; }
 
         /// <summary>
-        /// 教师工作量信息
+        /// Teacher workload information
         /// </summary>
         public Dictionary<int, TeacherWorkloadInfo> TeacherWorkloads { get; set; } = new Dictionary<int, TeacherWorkloadInfo>();
 
         /// <summary>
-        /// 教师工作量标准差（衡量工作量平衡性）
+        /// Teacher workload standard deviation (measuring workload balance)
         /// </summary>
         public double TeacherWorkloadStdDev { get; set; }
 
         /// <summary>
-        /// 时间槽利用信息
+        /// Time slot utilization information
         /// </summary>
         public Dictionary<int, TimeSlotUtilizationInfo> TimeSlotUtilization { get; set; } = new Dictionary<int, TimeSlotUtilizationInfo>();
 
         /// <summary>
-        /// 平均时间槽利用率
+        /// Average time slot utilization rate
         /// </summary>
         public double AverageTimeSlotUtilization { get; set; }
 
         /// <summary>
-        /// 高峰时段ID
+        /// Peak time slot ID
         /// </summary>
         public int PeakTimeSlotId { get; set; }
 
         /// <summary>
-        /// 高峰时段利用率
+        /// Peak time slot utilization rate
         /// </summary>
         public double PeakTimeSlotUtilization { get; set; }
 
         /// <summary>
-        /// 低谷时段ID
+        /// Lowest time slot ID
         /// </summary>
         public int LowestTimeSlotId { get; set; }
 
         /// <summary>
-        /// 低谷时段利用率
+        /// Lowest time slot utilization rate
         /// </summary>
         public double LowestTimeSlotUtilization { get; set; }
     }
 
     /// <summary>
-    /// 教室利用信息
+    /// Classroom utilization information
     /// </summary>
     public class ClassroomUtilizationInfo
     {
         /// <summary>
-        /// 教室ID
+        /// Classroom ID
         /// </summary>
         public int ClassroomId { get; set; }
 
         /// <summary>
-        /// 教室名称
+        /// Classroom name
         /// </summary>
         public string ClassroomName { get; set; }
 
         /// <summary>
-        /// 所在建筑物
+        /// Building location
         /// </summary>
         public string Building { get; set; }
 
         /// <summary>
-        /// 利用率
+        /// Utilization rate
         /// </summary>
         public double UtilizationRate { get; set; }
 
         /// <summary>
-        /// 安排的课程数
+        /// Number of assigned courses
         /// </summary>
         public int AssignmentCount { get; set; }
     }
 
     /// <summary>
-    /// 教师工作量信息
+    /// Teacher workload information
     /// </summary>
     public class TeacherWorkloadInfo
     {
         /// <summary>
-        /// 教师ID
+        /// Teacher ID
         /// </summary>
         public int TeacherId { get; set; }
 
         /// <summary>
-        /// 教师名称
+        /// Teacher name
         /// </summary>
         public string TeacherName { get; set; }
 
         /// <summary>
-        /// 总学时
+        /// Total teaching hours
         /// </summary>
         public int TotalHours { get; set; }
 
         /// <summary>
-        /// 每日工作量（学时）
+        /// Daily workload (hours)
         /// </summary>
         public Dictionary<int, int> DailyWorkload { get; set; } = new Dictionary<int, int>();
 
         /// <summary>
-        /// 最高日工作量（学时）
+        /// Maximum daily workload (hours)
         /// </summary>
         public int MaxDailyHours { get; set; }
 
         /// <summary>
-        /// 最大连续课时数
+        /// Maximum consecutive hours
         /// </summary>
         public int MaxConsecutiveHours { get; set; }
 
         /// <summary>
-        /// 安排的课程数
+        /// Number of assigned courses
         /// </summary>
         public int AssignmentCount { get; set; }
     }
 
     /// <summary>
-    /// 时间槽利用信息
+    /// Time slot utilization information
     /// </summary>
     public class TimeSlotUtilizationInfo
     {
         /// <summary>
-        /// 时间槽ID
+        /// Time slot ID
         /// </summary>
         public int TimeSlotId { get; set; }
 
         /// <summary>
-        /// 星期几（1-7）
+        /// Day of week (1-7)
         /// </summary>
         public int DayOfWeek { get; set; }
 
         /// <summary>
-        /// 开始时间
+        /// Start time
         /// </summary>
         public TimeSpan StartTime { get; set; }
 
         /// <summary>
-        /// 结束时间
+        /// End time
         /// </summary>
         public TimeSpan EndTime { get; set; }
 
         /// <summary>
-        /// 利用率
+        /// Utilization rate
         /// </summary>
         public double UtilizationRate { get; set; }
 
         /// <summary>
-        /// 安排的课程数
+        /// Number of assigned courses
         /// </summary>
         public int AssignmentCount { get; set; }
     }

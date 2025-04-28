@@ -7,8 +7,8 @@ using SmartSchedulingSystem.Scheduling.Constraints;
 namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
 {
     /// <summary>
-    /// 教室容量约束：确保教室容量满足课程学生人数需求
-    /// 核心硬约束 - Level1_CoreHard
+    /// Classroom capacity constraint: Ensures classroom capacity meets course enrollment requirements
+    /// Core hard constraint - Level1_CoreHard
     /// </summary>
     public class ClassroomCapacityConstraint : BaseConstraint
     {
@@ -49,7 +49,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
 
             var conflicts = new List<SchedulingConflict>();
             
-            // 填充容量字典（如果为空）
+            // Fill capacity dictionary (if empty)
             if (_classroomCapacities.Count == 0 && solution.Problem?.Classrooms != null)
             {
                 foreach (var classroom in solution.Problem.Classrooms)
@@ -58,7 +58,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
                 }
             }
             
-            // 填充学生人数字典（如果为空）
+            // Fill enrollment dictionary (if empty)
             if (_expectedEnrollments.Count == 0 && solution.Problem?.CourseSections != null)
             {
                 foreach (var section in solution.Problem.CourseSections)
@@ -67,7 +67,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
                 }
             }
 
-            // 检查每个安排的教室容量是否满足课程需求
+            // Check if each assigned classroom's capacity meets course requirements
             foreach (var assignment in solution.Assignments)
             {
                 if (_classroomCapacities.TryGetValue(assignment.ClassroomId, out int capacity) &&
@@ -92,7 +92,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level1_CoreHard
                 }
             }
 
-            // 硬约束：如果没有冲突，得分为1，否则为0
+            // Hard constraint: Score is 1 if no conflicts, 0 otherwise
             double score = conflicts.Count == 0 ? 1.0 : 0.0;
 
             return (score, conflicts);

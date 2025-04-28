@@ -9,58 +9,58 @@ using SmartSchedulingSystem.Scheduling.Models;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
-    /// 参数调整器 - 根据问题特性和中间结果动态调整参数
+    /// Parameter Adjuster - Dynamically adjusts parameters based on problem characteristics and intermediate results
     /// </summary>
     public class ParameterAdjuster
     {
         private readonly Utils.SchedulingParameters _parameters;
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
-        /// <param name="parameters">排课参数</param>
+        /// <param name="parameters">Scheduling parameters</param>
         public ParameterAdjuster(Utils.SchedulingParameters parameters)
         {
             _parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
         /// <summary>
-        /// 基于问题特征调整参数
+        /// Adjust parameters based on problem characteristics
         /// </summary>
         public void AdjustParameters(SchedulingProblem problem)
         {
-            // 计算问题的基本特征
+            // Calculate basic problem characteristics
             int courseCount = problem.CourseSections.Count;
             int teacherCount = problem.Teachers.Count;
             int classroomCount = problem.Classrooms.Count;
             int timeSlotCount = problem.TimeSlots.Count;
 
-            // 计算问题规模指标 (0-1范围)
+            // Calculate problem size metric (0-1 range)
             double problemSizeMetric = CalculateProblemSizeMetric(courseCount, teacherCount, classroomCount, timeSlotCount);
 
-            // 计算约束复杂度
+            // Calculate constraint complexity
             double constraintComplexity = CalculateConstraintComplexity(problem);
 
-            // 调整参数
+            // Adjust parameters
             AdjustCPParameters(problemSizeMetric, constraintComplexity);
             AdjustLSParameters(problemSizeMetric, constraintComplexity);
             AdjustParallelizationParameters(problemSizeMetric);
 
-            // 输出调整后的参数信息
+            // Output adjusted parameter information
             LogParameters();
         }
 
         /// <summary>
-        /// 计算问题规模指标 (0-1范围)
+        /// Calculate problem size metric (0-1 range)
         /// </summary>
         private double CalculateProblemSizeMetric(int courseCount, int teacherCount, int classroomCount, int timeSlotCount)
         {
-            // 根据经验值确定大小问题的阈值
+            // Determine thresholds for problem size based on experience
             const int smallCourseCount = 20;
             const int mediumCourseCount = 100;
             const int largeCourseCount = 500;
 
-            // 根据课程数量计算规模指标
+            // Calculate size metric based on course count
             double sizeMetric;
             if (courseCount <= smallCourseCount)
             {
@@ -79,75 +79,75 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算约束复杂度
+        /// Calculate constraint complexity
         /// </summary>
         private double CalculateConstraintComplexity(SchedulingProblem problem)
         {
-            // 简化版：根据硬约束比例估算约束复杂度
-            // 实际实现中可以考虑更多因素，如约束间的相互作用
+            // Simplified version: Estimate constraint complexity based on hard constraint ratio
+            // In actual implementation, more factors can be considered, such as interactions between constraints
 
-            const double defaultComplexity = 0.5; // 默认中等复杂度
+            const double defaultComplexity = 0.5; // Default medium complexity
 
-            // 如果约束信息不可用，返回默认值
+            // If constraint information is not available, return default value
             if (problem.Constraints == null || problem.Constraints.Count == 0)
             {
                 return defaultComplexity;
             }
 
-            // 计算硬约束比例
+            // Calculate hard constraint ratio
             int hardConstraintCount = problem.Constraints.Count(c => c.IsHard);
             double hardConstraintRatio = (double)hardConstraintCount / problem.Constraints.Count;
 
-            // 硬约束比例越高，问题越复杂
-            return 0.3 + hardConstraintRatio * 0.7; // 0.3-1.0范围
+            // Higher hard constraint ratio means more complex problem
+            return 0.3 + hardConstraintRatio * 0.7; // 0.3-1.0 range
         }
 
         /// <summary>
-        /// 调整CP参数
+        /// Adjust CP parameters
         /// </summary>
         private void AdjustCPParameters(double problemSizeMetric, double constraintComplexity)
         {
-            // 根据问题规模调整初始解数量
-            if (problemSizeMetric < 0.4) // 小型问题
+            // Adjust initial solution count based on problem size
+            if (problemSizeMetric < 0.4) // Small problem
             {
                 _parameters.InitialSolutionCount = 10;
             }
-            else if (problemSizeMetric < 0.7) // 中型问题
+            else if (problemSizeMetric < 0.7) // Medium problem
             {
                 _parameters.InitialSolutionCount = 5;
             }
-            else // 大型问题
+            else // Large problem
             {
                 _parameters.InitialSolutionCount = 3;
             }
 
-            // 根据约束复杂度调整CP求解时间限制
-            _parameters.CpTimeLimit = (int)(30 + constraintComplexity * 270); // 30-300秒
+            // Adjust CP solving time limit based on constraint complexity
+            _parameters.CpTimeLimit = (int)(30 + constraintComplexity * 270); // 30-300 seconds
         }
 
         /// <summary>
-        /// 调整LS参数
+        /// Adjust LS parameters
         /// </summary>
         private void AdjustLSParameters(double problemSizeMetric, double constraintComplexity)
         {
-            // 根据问题规模和约束复杂度调整局部搜索迭代次数
+            // Adjust local search iteration count based on problem size and constraint complexity
             _parameters.MaxLsIterations = (int)(500 + 4500 * problemSizeMetric * constraintComplexity); // 500-5000
 
-            // 调整模拟退火参数
+            // Adjust simulated annealing parameters
             _parameters.InitialTemperature = 0.5 + 0.5 * constraintComplexity; // 0.5-1.0
             _parameters.CoolingRate = 0.999 - 0.001 * problemSizeMetric; // 0.999-0.998
         }
 
         /// <summary>
-        /// 调整并行化参数
+        /// Adjust parallelization parameters
         /// </summary>
         private void AdjustParallelizationParameters(double problemSizeMetric)
         {
-            // 小型问题可能不需要并行化
+            // Small problems may not need parallelization
             _parameters.EnableParallelOptimization = problemSizeMetric >= 0.4;
 
-            // 根据问题规模调整最大并行度
-            // 大型问题使用更多线程
+            // Adjust maximum parallelism based on problem size
+            // Large problems use more threads
             int availableProcessors = Environment.ProcessorCount;
             _parameters.MaxParallelism = problemSizeMetric < 0.7
                 ? Math.Max(2, availableProcessors / 2)
@@ -155,18 +155,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 输出调整后的参数
+        /// Output adjusted parameters
         /// </summary>
         private void LogParameters()
         {
-            Console.WriteLine("调整后的参数:");
-            Console.WriteLine($"初始解数量: {_parameters.InitialSolutionCount}");
-            Console.WriteLine($"CP求解时间限制: {_parameters.CpTimeLimit}秒");
-            Console.WriteLine($"LS最大迭代次数: {_parameters.MaxLsIterations}");
-            Console.WriteLine($"初始温度: {_parameters.InitialTemperature}");
-            Console.WriteLine($"冷却率: {_parameters.CoolingRate}");
-            Console.WriteLine($"启用并行优化: {_parameters.EnableParallelOptimization}");
-            Console.WriteLine($"最大并行度: {_parameters.MaxParallelism}");
+            Console.WriteLine("Adjusted parameters:");
+            Console.WriteLine($"Initial solution count: {_parameters.InitialSolutionCount}");
+            Console.WriteLine($"CP solving time limit: {_parameters.CpTimeLimit} seconds");
+            Console.WriteLine($"LS maximum iterations: {_parameters.MaxLsIterations}");
+            Console.WriteLine($"Initial temperature: {_parameters.InitialTemperature}");
+            Console.WriteLine($"Cooling rate: {_parameters.CoolingRate}");
+            Console.WriteLine($"Enable parallel optimization: {_parameters.EnableParallelOptimization}");
+            Console.WriteLine($"Maximum parallelism: {_parameters.MaxParallelism}");
         }
     }
 }

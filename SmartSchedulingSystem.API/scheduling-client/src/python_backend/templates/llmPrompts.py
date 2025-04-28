@@ -1,31 +1,31 @@
 """
-此文件包含用于LLM API的提示模板
+This file contains prompt templates for the LLM API
 """
 
 # 约束分析提示
 CONSTRAINT_ANALYSIS_PROMPT = """
-分析以下课程安排需求描述，提取所有明确或隐含的约束条件。
+Analyze the following course scheduling requirements description, extract all explicit or implicit constraints.
 
-需求描述：
+Requirements description:
 {input}
 
-请以JSON格式返回结果，包含两个数组：
-1. explicitConstraints（显式约束）- 明确表达的要求
-2. implicitConstraints（隐式约束）- 未明确表达但可以推断出的约束
+Please return the result in JSON format, containing two arrays:
+1. explicitConstraints (explicit constraints) - explicitly stated requirements
+2. implicitConstraints（implicit constraints）- constraints that are not explicitly stated but can be inferred
 
-每个约束应包含：
-- id: 唯一标识符（显式约束从101开始，隐式约束从201开始）
-- name: 约束的简短名称
-- description: 约束的详细描述
-- type: 约束类型（"Hard"表示硬性要求，"Soft"表示灵活偏好）
-- weight: 约束权重（1.0表示最高优先级，0表示无关紧要）
+Each constraint should include:
+- id: unique identifier (explicit constraints start from 101, implicit constraints start from 201)
+- name: short name of the constraint
+- description: detailed description of the constraint
+- type: constraint type ("Hard" for hard requirements, "Soft" for flexible preferences)
+- weight: constraint weight (1.0 for highest priority, 0 for无关紧要)
 
-注意事项：
-- 显式约束可以是Hard或Soft类型，取决于需求描述中的用词和重要性
-- 所有隐式约束必须全部设置为"Soft"类型，因为它们是系统推断出来的，而非用户明确要求的
-- 隐式约束的权重应该在0.5到0.9之间，表示它们是灵活偏好而非硬性要求
+Notes:
+- explicit constraints can be either "Hard" or "Soft" type, depending on the wording and importance in the requirements description
+- all implicit constraints must be set to "Soft" type, as they are system inferred rather than user explicitly stated
+- implicit constraints should have a weight between 0.5 and 0.9, indicating they are flexible preferences rather than hard requirements
 
-示例JSON响应格式：
+Example JSON response format:
 {
   "explicitConstraints": [
     {
@@ -48,7 +48,7 @@ CONSTRAINT_ANALYSIS_PROMPT = """
 }
 """
 
-# 冲突解决提示
+# Conflict resolution prompt
 CONFLICT_RESOLUTION_PROMPT = """
 Analyze the following course scheduling conflict, identify the root cause, and propose solutions.
 
@@ -85,7 +85,7 @@ Example JSON response format:
 }
 """
 
-# 调度解释提示
+# Schedule explanation prompt
 SCHEDULE_EXPLANATION_PROMPT = """
 Explain the reasoning behind the following course scheduling decision, including why specific time, classroom, and teacher were chosen.
 
@@ -132,7 +132,7 @@ Example JSON response format:
 }
 """
 
-# 参数优化提示
+# Parameter optimization prompt
 PARAMETER_OPTIMIZATION_PROMPT = """
 Analyze the current scheduling parameters and historical data to provide optimization suggestions.
 
@@ -181,7 +181,7 @@ Example JSON response format:
 }
 """
 
-# 聊天提示
+# Chat prompt
 CHAT_PROMPT = """
 You are an intelligent scheduling assistant capable of answering questions about course scheduling, resource utilization, and conflict resolution.
 Based on the user's message, provide professional, helpful, and friendly responses. Be honest if you're unsure about something.

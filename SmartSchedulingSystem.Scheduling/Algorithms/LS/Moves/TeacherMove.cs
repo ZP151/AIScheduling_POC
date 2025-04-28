@@ -5,7 +5,7 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
 {
     /// <summary>
-    /// 表示更改课程教师的移动
+    /// Move that changes the teacher of a course assignment
     /// </summary>
     public class TeacherMove : IMove
     {
@@ -19,27 +19,32 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
         }
         public int NewTeacherId => _newTeacherId;
         public int AssignmentId => _assignmentId;
+
+        /// <summary>
+        /// Apply the move to a solution
+        /// </summary>
         public SchedulingSolution Apply(SchedulingSolution solution)
         {
-            // 创建解决方案的深拷贝
+            // Create deep copy of solution
             var newSolution = solution.Clone();
 
-            // 查找要修改的分配
+            // Find assignment to modify
             var assignment = newSolution.Assignments.FirstOrDefault(a => a.Id == _assignmentId);
-            if (assignment == null)
+            if (assignment != null)
             {
-                return newSolution; // 未找到分配，返回未修改的解
+                // Update teacher
+                assignment.TeacherId = _newTeacherId;
             }
-
-            // 更新教师
-            assignment.TeacherId = _newTeacherId;
 
             return newSolution;
         }
 
+        /// <summary>
+        /// Get move description
+        /// </summary>
         public string GetDescription()
         {
-            return $"将课程分配 #{_assignmentId} 分配给教师 #{_newTeacherId}";
+            return $"Change teacher of assignment {_assignmentId} to {_newTeacherId}";
         }
 
         public int[] GetAffectedAssignmentIds()

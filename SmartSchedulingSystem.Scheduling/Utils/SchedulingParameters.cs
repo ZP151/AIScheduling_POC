@@ -1,4 +1,5 @@
 using System;
+using SmartSchedulingSystem.Scheduling.Engine;
 
 namespace SmartSchedulingSystem.Scheduling.Utils
 {
@@ -31,6 +32,16 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         /// 是否使用标准约束集
         /// </summary>
         public bool UseStandardConstraints { get; set; } = true;
+
+        /// <summary>
+        /// 是否使用增强约束集
+        /// </summary>
+        public bool UseEnhancedConstraints { get; set; } = false;
+
+        /// <summary>
+        /// 资源约束应用级别
+        /// </summary>
+        public ConstraintApplicationLevel ResourceConstraintLevel { get; set; } = ConstraintApplicationLevel.Standard;
 
         /// <summary>
         /// 最大并行度，默认使用CPU逻辑核心数
@@ -110,6 +121,8 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 EnableParallelOptimization = this.EnableParallelOptimization,
                 UseBasicConstraints = this.UseBasicConstraints,
                 UseStandardConstraints = this.UseStandardConstraints,
+                UseEnhancedConstraints = this.UseEnhancedConstraints,
+                ResourceConstraintLevel = this.ResourceConstraintLevel,
                 MaxParallelism = this.MaxParallelism,
                 MaxIterations = this.MaxIterations,
                 MaxNoImprovementIterations = this.MaxNoImprovementIterations,

@@ -18,14 +18,14 @@ namespace SmartSchedulingSystem.Core.DTOs
         {
             return dayOfWeek switch
             {
-                1 => "周一",
-                2 => "周二",
-                3 => "周三",
-                4 => "周四",
-                5 => "周五",
-                6 => "周六",
-                7 => "周日",
-                _ => "未知"
+                1 => "Monday",
+                2 => "Tuesday",
+                3 => "Wednesday",
+                4 => "Thursday",
+                5 => "Friday",
+                6 => "Saturday",
+                7 => "Sunday",
+                _ => "Unknown"
             };
         }
     }

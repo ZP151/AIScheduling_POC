@@ -7,7 +7,7 @@ using System.Text;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 {
     /// <summary>
-    /// 增强的CP回调，用于生成多样化解决方案
+    /// Enhanced CP callback for generating diverse solutions
     /// </summary>
     public class DiverseSolutionCallback : CpSolverSolutionCallback
     {
@@ -18,11 +18,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         private readonly double _diversityThreshold;
 
         /// <summary>
-        /// 收集到的解决方案
+        /// Collected solutions
         /// </summary>
         public List<Dictionary<string, long>> Solutions { get; } = new List<Dictionary<string, long>>();
 
-        // 使用HashSet记录已找到解的特征
+        // Use HashSet to record features of found solutions
         private readonly HashSet<string> _solutionSignatures = new HashSet<string>();
 
         public DiverseSolutionCallback(
@@ -39,33 +39,33 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 
         public override void OnSolutionCallback()
         {
-            // 计算当前解的特征签名
+            // Calculate feature signature of current solution
             string signature = ComputeSolutionSignature();
 
-            // 如果是新的解结构
+            // If it's a new solution structure
             if (!_solutionSignatures.Contains(signature))
             {
                 _solutionSignatures.Add(signature);
 
-                // 收集解
+                // Collect solution
                 var solution = new Dictionary<string, long>();
                 foreach (var entry in _variables)
                 {
                     solution[entry.Key] = Value(entry.Value);
                 }
 
-                // 检查与现有解的多样性
+                // Check diversity with existing solutions
                 if (IsSufficientlyDiverse(solution))
                 {
                     Solutions.Add(solution);
                     _solutionCount++;
 
-                    // 添加排除当前解的约束以促进多样性
+                    // Add constraint to exclude current solution to promote diversity
                     AddDiversificationConstraint();
                 }
             }
 
-            // 如果已找到足够多的解，停止搜索
+            // If enough solutions found, stop search
             if (_solutionCount >= _maxSolutions)
             {
                 StopSearch();
@@ -73,11 +73,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         }
 
         /// <summary>
-        /// 计算解的特征签名，用于识别不同结构的解
+        /// Calculate solution feature signature for identifying different solution structures
         /// </summary>
         private string ComputeSolutionSignature()
         {
-            // 只考虑值为1的变量（表示被选中的分配）
+            // Only consider variables with value 1 (indicating selected assignments)
             var assignmentVars = _variables
                 .Where(kv => kv.Key.Contains("_") && Value(kv.Value) == 1)
                 .Select(kv => kv.Key)
@@ -94,38 +94,38 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
         }
 
         /// <summary>
-        /// 检查当前解与现有解的多样性是否足够
+        /// Check if current solution is sufficiently diverse from existing solutions
         /// </summary>
         private bool IsSufficientlyDiverse(Dictionary<string, long> newSolution)
         {
-            // 如果是第一个解，直接接受
+            // If it's the first solution, accept directly
             if (Solutions.Count == 0)
             {
                 return true;
             }
 
-            // 计算当前解与每个现有解的差异度
+            // Calculate diversity between current solution and each existing solution
             foreach (var existingSolution in Solutions)
             {
                 double diversityScore = CalculateDiversity(newSolution, existingSolution);
 
-                // 如果与任何现有解过于相似，拒绝这个解
+                // If too similar to any existing solution, reject this solution
                 if (diversityScore < _diversityThreshold)
                 {
                     return false;
                 }
             }
 
-            // 与所有现有解差异都足够大
+            // Sufficiently different from all existing solutions
             return true;
         }
 
         /// <summary>
-        /// 计算两个解之间的差异度（0-1范围，1表示完全不同）
+        /// Calculate diversity between two solutions (0-1 range, 1 means completely different)
         /// </summary>
         private double CalculateDiversity(Dictionary<string, long> solution1, Dictionary<string, long> solution2)
         {
-            // 计算两个解中值为1的变量（表示选中的分配）
+            // Calculate variables with value 1 in both solutions (indicating selected assignments)
             var selectedVars1 = solution1
                 .Where(kv => kv.Value == 1)
                 .Select(kv => kv.Key)
@@ -136,24 +136,24 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 .Select(kv => kv.Key)
                 .ToHashSet();
 
-            // 计算共同选择的变量数
+            // Calculate number of commonly selected variables
             int commonVars = selectedVars1.Intersect(selectedVars2).Count();
 
-            // 计算所有选择的变量总数
+            // Calculate total number of selected variables
             int totalVars = selectedVars1.Count + selectedVars2.Count - commonVars;
 
-            // 差异度 = 1 - 共同部分比例
+            // Diversity = 1 - proportion of common parts
             return totalVars > 0 ? 1.0 - ((double)commonVars / totalVars) : 0.0;
         }
 
         /// <summary>
-        /// 添加约束排除当前解
+        /// Add constraint to exclude current solution
         /// </summary>
         private void AddDiversificationConstraint()
         {
             try
             {
-                // 获取当前所有值为1的分配变量
+                // Get all assignment variables with value 1
                 var activeVars = new List<IntVar>();
                 var activeVarIndices = new List<string>();
 
@@ -166,8 +166,8 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                     }
                 }
 
-                // 创建约束：sum(activeVars) <= activeVars.Count - 1
-                // 这确保下一个解与当前解至少有一个分配不同
+                // Create constraint: sum(activeVars) <= activeVars.Count - 1
+                // This ensures next solution differs from current solution in at least one assignment
                 if (activeVars.Count > 0)
                 {
                     var constraint = LinearExpr.Sum(activeVars.ToArray());
@@ -176,13 +176,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
             }
             catch (Exception ex)
             {
-                // 在实际项目中应该使用日志记录这个异常
-                Console.WriteLine($"添加多样性约束时出错: {ex.Message}");
+                // In actual project should use logging for this exception
+                Console.WriteLine($"Error adding diversity constraint: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// 获取找到的解决方案数量
+        /// Get number of solutions found
         /// </summary>
         public int SolutionCount => _solutionCount;
     }

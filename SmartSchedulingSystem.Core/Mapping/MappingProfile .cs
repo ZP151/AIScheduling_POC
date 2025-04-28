@@ -9,7 +9,7 @@ namespace SmartSchedulingSystem.Core.Mapping
     {
         public MappingProfile()
         {
-            // 定义实体与DTO之间的映射
+            // Define the mapping between entities and DTOs
             CreateMap<Department, DepartmentDto>().ReverseMap();
             CreateMap<Teacher, TeacherDto>()
                 .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Name))
@@ -42,14 +42,15 @@ namespace SmartSchedulingSystem.Core.Mapping
                 .ReverseMap();
             CreateMap<SchedulingConstraint, SchedulingConstraintDto>().ReverseMap();
             
-            // 扩展DTO的映射配置
+            // Extended DTO mapping configuration
+
             CreateMap<Teacher, TeacherExtDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.TeacherId))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.DepartmentId))
-                .ForMember(dest => dest.MaxDailyHours, opt => opt.MapFrom(src => 8)) // 默认值
-                .ForMember(dest => dest.MaxWeeklyHours, opt => opt.MapFrom(src => 40)) // 默认值
-                .ForMember(dest => dest.MaxConsecutiveHours, opt => opt.MapFrom(src => 4)) // 默认值
+                .ForMember(dest => dest.MaxDailyHours, opt => opt.MapFrom(src => 8)) // Default value
+                .ForMember(dest => dest.MaxWeeklyHours, opt => opt.MapFrom(src => 40)) // Default value
+                .ForMember(dest => dest.MaxConsecutiveHours, opt => opt.MapFrom(src => 4)) // Default value
                 .ReverseMap();
                 
             CreateMap<Classroom, ClassroomExtDto>()
@@ -57,9 +58,9 @@ namespace SmartSchedulingSystem.Core.Mapping
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Building, opt => opt.MapFrom(src => src.Building))
                 .ForMember(dest => dest.Capacity, opt => opt.MapFrom(src => src.Capacity))
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => "普通教室")) // 默认值
-                .ForMember(dest => dest.CampusId, opt => opt.MapFrom(src => 1)) // 默认值
-                .ForMember(dest => dest.CampusName, opt => opt.MapFrom(src => "主校区")) // 默认值
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => "General classroom")) // Default value
+                .ForMember(dest => dest.CampusId, opt => opt.MapFrom(src => 1)) // Default value
+                .ForMember(dest => dest.CampusName, opt => opt.MapFrom(src => "Main campus")) // Default value
                 .ReverseMap();
                 
             CreateMap<TimeSlot, TimeSlotExtDto>()
@@ -76,19 +77,19 @@ namespace SmartSchedulingSystem.Core.Mapping
                 .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.Course.Code))
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.Course.Name))
                 .ForMember(dest => dest.SectionCode, opt => opt.MapFrom(src => src.SectionCode))
-                .ForMember(dest => dest.Credits, opt => opt.MapFrom(src => 3)) // 默认值
-                .ForMember(dest => dest.WeeklyHours, opt => opt.MapFrom(src => 3.0)) // 默认值
-                .ForMember(dest => dest.SessionsPerWeek, opt => opt.MapFrom(src => 2)) // 默认值
-                .ForMember(dest => dest.HoursPerSession, opt => opt.MapFrom(src => 1.5)) // 默认值
+                .ForMember(dest => dest.Credits, opt => opt.MapFrom(src => 3)) // Default value
+                .ForMember(dest => dest.WeeklyHours, opt => opt.MapFrom(src => 3.0)) // Default value
+                .ForMember(dest => dest.SessionsPerWeek, opt => opt.MapFrom(src => 2)) // Default value
+                .ForMember(dest => dest.HoursPerSession, opt => opt.MapFrom(src => 1.5)) // Default value
                 .ForMember(dest => dest.Enrollment, opt => opt.MapFrom(src => src.ActualEnrollment))
                 .ForMember(dest => dest.DepartmentId, opt => opt.MapFrom(src => src.Course.DepartmentId))
                 .ReverseMap();
             
-            // 配置 ScheduleResult 到 ScheduleResultDto 的映射
+            // Configure mapping from ScheduleResult to ScheduleResultDto
             CreateMap<ScheduleResult, ScheduleResultDto>()
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items));
 
-            // 配置 ScheduleItem 到 ScheduleItemDto 的映射
+            // Configure mapping from ScheduleItem to ScheduleItemDto
             CreateMap<ScheduleItem, ScheduleItemDto>()
                 .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.CourseSection.Course.Name))
                 .ForMember(dest => dest.CourseCode, opt => opt.MapFrom(src => src.CourseSection.Course.Code))
@@ -106,14 +107,14 @@ namespace SmartSchedulingSystem.Core.Mapping
         {
             return dayOfWeek switch
             {
-                1 => "周一",
-                2 => "周二",
-                3 => "周三",
-                4 => "周四",
-                5 => "周五",
-                6 => "周六",
-                7 => "周日",
-                _ => "未知"
+                1 => "Monday",
+                2 => "Tuesday",
+                3 => "Wednesday",
+                4 => "Thursday",
+                5 => "Friday",
+                6 => "Saturday",
+                7 => "Sunday",
+                _ => "Unknown"
             };
         }
     }

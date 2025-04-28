@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
-    /// 智能移动选择器，为不同类型的约束冲突选择合适的移动操作
+    /// Intelligent move selector to choose the appropriate move action for different types of constraint conflicts
     /// </summary>
     public class IntelligentMoveSelector
     {
@@ -25,7 +25,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 根据约束冲突类型选择合适的移动操作
+        /// Select appropriate move actions based on constraint conflict types
         /// </summary>
         public List<IMove> SelectMovesForConflict(
             SchedulingSolution solution,
@@ -35,25 +35,25 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
             if (solution == null) throw new ArgumentNullException(nameof(solution));
             if (conflict == null) throw new ArgumentNullException(nameof(conflict));
 
-            _logger.LogDebug($"为冲突类型 {conflict.Type} 选择移动操作");
+            _logger.LogDebug($"Selecting moves for conflict type {conflict.Type}");
 
-            // 提取涉及的实体ID
+            // Extract involved entity IDs
             var sectionIds = GetInvolvedIds(conflict, "Sections");
             var teacherIds = GetInvolvedIds(conflict, "Teachers");
             var classroomIds = GetInvolvedIds(conflict, "Classrooms");
             var timeSlotIds = conflict.InvolvedTimeSlots ?? new List<int>();
 
-            // 找出与冲突相关的分配
+            // Find assignments related to conflict
             var relevantAssignments = FindRelevantAssignments(
                 solution, sectionIds, teacherIds, classroomIds, timeSlotIds);
 
             if (relevantAssignments.Count == 0)
             {
-                _logger.LogWarning($"未找到与冲突 {conflict.Type} 相关的分配");
+                _logger.LogWarning($"No assignments found related to conflict {conflict.Type}");
                 return new List<IMove>();
             }
 
-            // 根据冲突类型生成特定的移动
+            // Generate specific moves based on conflict type
             var moves = new List<IMove>();
 
             switch (conflict.Type)
@@ -79,18 +79,18 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     break;
 
                 default:
-                    // 对于其他类型的冲突，使用通用方法生成移动
+                    // For other types of conflicts, use the generic method to generate the move
                     moves.AddRange(GenerateGenericMoves(solution, relevantAssignments));
                     break;
             }
 
-            // 如果生成的移动太多，随机选择部分移动
+            // If the generated moves are too many, randomly select some moves
             if (moves.Count > maxMoves)
             {
                 moves = moves.OrderBy(x => _random.Next()).Take(maxMoves).ToList();
             }
 
-            _logger.LogDebug($"为冲突类型 {conflict.Type} 生成了 {moves.Count} 个移动操作");
+            _logger.LogDebug($"Generated {moves.Count} moves for conflict type {conflict.Type}.");
             return moves;
         }
 
@@ -125,11 +125,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于教师冲突，优先考虑：
-            // 1. 时间移动（把其中一门课移到其他时间）
-            // 2. 教师交换（在课程间交换教师）
+            // For teacher conflicts, prioritize:
+            // 1. Time move (move one course to other time)
+            // 2. Teacher swap (swap teachers between courses)
 
-            // 获取冲突中的所有分配对
+            // Get all assignment pairs in conflict
             for (int i = 0; i < assignments.Count - 1; i++)
             {
                 for (int j = i + 1; j < assignments.Count; j++)
@@ -137,10 +137,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     var a1 = assignments[i];
                     var a2 = assignments[j];
 
-                    // 如果两个分配使用同一教师和同一时间，则找到冲突对
+                    // If two assignments use the same teacher and same time, find the conflict pair
                     if (a1.TeacherId == a2.TeacherId && a1.TimeSlotId == a2.TimeSlotId)
                     {
-                        // 为每个分配生成时间移动
+                        // Generate time moves for each assignment
                         var timeMoves1 = _moveGenerator.GenerateValidMoves(solution, a1, 3)
                             .Where(m => m is TimeMove).ToList();
                         var timeMoves2 = _moveGenerator.GenerateValidMoves(solution, a2, 3)
@@ -149,7 +149,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         moves.AddRange(timeMoves1);
                         moves.AddRange(timeMoves2);
 
-                        // 为互相交换教师生成一个移动
+                        // Generate a move for swapping teachers between the two assignments
                         var potentialSwapPartners = solution.Assignments
                             .Where(a => a.TimeSlotId != a1.TimeSlotId && a.Id != a1.Id && a.Id != a2.Id)
                             .Take(3);
@@ -172,11 +172,11 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于教室冲突，优先考虑：
-            // 1. 教室移动（把其中一门课移到其他教室）
-            // 2. 时间移动（把其中一门课移到其他时间）
+            // For classroom conflicts, prioritize:
+            // 1. Room move (move one course to another classroom)
+            // 2. Time move (move one course to another time)
 
-            // 获取冲突中的所有分配对
+            // Get all assignment pairs in conflict
             for (int i = 0; i < assignments.Count - 1; i++)
             {
                 for (int j = i + 1; j < assignments.Count; j++)
@@ -184,10 +184,10 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                     var a1 = assignments[i];
                     var a2 = assignments[j];
 
-                    // 如果两个分配使用同一教室和同一时间，则找到冲突对
+                    // If two assignments use the same classroom and same time, find the conflict pair
                     if (a1.ClassroomId == a2.ClassroomId && a1.TimeSlotId == a2.TimeSlotId)
                     {
-                        // 为每个分配生成教室移动
+                        // Generate room moves for each assignment
                         var roomMoves1 = _moveGenerator.GenerateValidMoves(solution, a1, 3)
                             .Where(m => m is RoomMove).ToList();
                         var roomMoves2 = _moveGenerator.GenerateValidMoves(solution, a2, 3)
@@ -196,7 +196,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                         moves.AddRange(roomMoves1);
                         moves.AddRange(roomMoves2);
 
-                        // 如果找不到足够的教室移动，添加一些时间移动
+                        // If not enough room moves found, add some time moves
                         if (roomMoves1.Count + roomMoves2.Count < 4)
                         {
                             var timeMoves1 = _moveGenerator.GenerateValidMoves(solution, a1, 2)
@@ -220,7 +220,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于教室容量冲突，主要考虑更换教室
+            // For classroom capacity conflicts, mainly consider changing classroom
             foreach (var assignment in assignments)
             {
                 var roomMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 5)
@@ -237,15 +237,15 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于教师可用性冲突，主要考虑更换时间或教师
+            // For teacher availability conflicts, mainly consider changing time or teacher
             foreach (var assignment in assignments)
             {
-                // 首先尝试更换时间
+                // First try changing time
                 var timeMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 3)
                     .Where(m => m is TimeMove).ToList();
                 moves.AddRange(timeMoves);
 
-                // 如果找不到足够的时间移动，尝试更换教师
+                // If not enough time moves found, try changing teacher
                 if (timeMoves.Count < 2)
                 {
                     var teacherMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 3)
@@ -263,24 +263,24 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于旅行时间冲突，可以考虑：
-            // 1. 更换时间（增加两节课之间的间隔）
-            // 2. 更换教室（选择更接近的教室）
-            // 3. 交换课程（使同一区域的课程相邻）
+            // For travel time conflicts, consider:
+            // 1. Changing time (increase interval between two classes)
+            // 2. Changing classroom (choose closer classroom)
+            // 3. Swapping courses (make courses in same area adjacent)
 
             foreach (var assignment in assignments)
             {
-                // 时间移动
+                // Time moves
                 var timeMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 3)
                     .Where(m => m is TimeMove).ToList();
                 moves.AddRange(timeMoves);
 
-                // 教室移动
+                // Room moves
                 var roomMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 3)
                     .Where(m => m is RoomMove).ToList();
                 moves.AddRange(roomMoves);
 
-                // 添加一些交换移动
+                // Add some swap moves
                 var swapMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 2)
                     .Where(m => m is SwapMove).ToList();
                 moves.AddRange(swapMoves);
@@ -324,7 +324,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         {
             var moves = new List<IMove>();
 
-            // 对于泛用的冲突，生成各种类型的移动
+            // For generic conflicts, generate various types of moves
             foreach (var assignment in assignments)
             {
                 var genericMoves = _moveGenerator.GenerateValidMoves(solution, assignment, 5);

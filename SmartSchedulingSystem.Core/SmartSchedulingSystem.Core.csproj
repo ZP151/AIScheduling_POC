@@ -2,7 +2,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SmartSchedulingSystem.Data\SmartSchedulingSystem.Data.csproj" />
-    <ProjectReference Include="..\SmartSchedulingSystem.Scheduling\SmartSchedulingSystem.Scheduling.csproj" />
   </ItemGroup>
 
   <ItemGroup>

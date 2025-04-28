@@ -6,21 +6,21 @@ using SmartSchedulingSystem.Scheduling.Models;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 {
     /// <summary>
-    /// 将CP求解器的解转换为排课系统的解
+    /// Convert CP solver solutions to scheduling system solutions
     /// </summary>
     public class SolutionConverter
     {
         /// <summary>
-        /// 将CP求解器的解转换为排课系统的解 (别名方法)
+        /// Convert CP solver solutions to scheduling system solutions (alias method)
         /// </summary>
         public SchedulingSolution ConvertToDomainSolution(SchedulingProblem problem, Dictionary<string, long> cpSolution)
         {
-            // 调用原来的方法
+            // Call original method
             return ConvertToSchedulingSolution(cpSolution, problem);
         }
         
         /// <summary>
-        /// 将CP求解器的解转换为排课系统的解
+        /// Convert CP solver solutions to scheduling system solutions
         /// </summary>
         public SchedulingSolution ConvertToSchedulingSolution(Dictionary<string, long> cpSolution, SchedulingProblem problem)
         {
@@ -31,30 +31,30 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 GeneratedAt = DateTime.Now
             };
 
-            // 解析变量名称并创建分配
+            // Parse variable names and create assignments
             var assignments = new List<SchedulingAssignment>();
             int assignmentId = 1;
 
             foreach (var entry in cpSolution)
             {
-                // 只处理值为1的变量（表示该分配被选中）
+                // Only process variables with value 1 (indicating this assignment is selected)
                 if (entry.Value != 1)
                     continue;
 
                 string varName = entry.Key;
                 
-                // 解析变量名格式： c{sectionId}_t{timeSlotId}_r{classroomId}_f{teacherId}
+                // Parse variable name format: c{sectionId}_t{timeSlotId}_r{classroomId}_f{teacherId}
                 var parts = varName.Split('_');
                 if (parts.Length != 4)
                     continue;
                 
-                // 提取ID
+                // Extract IDs
                 int sectionId = int.Parse(parts[0].Substring(1));
                 int timeSlotId = int.Parse(parts[1].Substring(1));
                 int classroomId = int.Parse(parts[2].Substring(1));
                 int teacherId = int.Parse(parts[3].Substring(1));
 
-                // 查找相关信息
+                // Find related information
                 var timeSlot = problem.TimeSlots.FirstOrDefault(t => t.Id == timeSlotId);
                 if (timeSlot == null)
                     continue;
@@ -63,7 +63,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
                 if (classroom == null)
                     continue;
 
-                // 创建分配
+                // Create assignment
                 var assignment = new SchedulingAssignment
                 {
                     Id = assignmentId++,

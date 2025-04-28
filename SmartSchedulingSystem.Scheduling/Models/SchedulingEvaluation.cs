@@ -5,139 +5,141 @@ using SmartSchedulingSystem.Scheduling.Constraints;
 namespace SmartSchedulingSystem.Scheduling.Models
 {
     /// <summary>
-    /// 排课解决方案的评估结果
+    /// Evaluation results of a scheduling solution
     /// </summary>
     public class SchedulingEvaluation
     {
         /// <summary>
-        /// 解决方案是否可行（满足所有硬约束）
+        /// Whether the solution is feasible (satisfies all hard constraints)
         /// </summary>
         public bool IsFeasible { get; set; }
 
         /// <summary>
-        /// 总评分（0-1，1为最佳）
+        /// Total score (0-1, 1 being best)
         /// </summary>
         public double Score { get; set; }
+
         /// <summary>
-        /// 解决方案ID
+        /// Solution ID
         /// </summary>
         public int SolutionId { get; set; }
 
         /// <summary>
-        /// 硬约束是否都满足
+        /// Whether all hard constraints are satisfied
         /// </summary>
         public bool HardConstraintsSatisfied { get; set; }
 
         /// <summary>
-        /// 硬约束满足程度（0-1）
+        /// Hard constraints satisfaction level (0-1)
         /// </summary>
         public double HardConstraintsSatisfactionLevel { get; set; }
 
         /// <summary>
-        /// 软约束满足程度（0-1）
+        /// Soft constraints satisfaction level (0-1)
         /// </summary>
         public double SoftConstraintsSatisfactionLevel { get; set; }
+
         /// <summary>
-        /// 硬约束评估
+        /// Hard constraints evaluation
         /// </summary>
         public List<ConstraintEvaluation> HardConstraintEvaluations { get; set; } = new List<ConstraintEvaluation>();
 
         /// <summary>
-        /// 软约束评估
+        /// Soft constraints evaluation
         /// </summary>
         public List<ConstraintEvaluation> SoftConstraintEvaluations { get; set; } = new List<ConstraintEvaluation>();
 
         /// <summary>
-        /// 检测到的冲突
+        /// Detected conflicts
         /// </summary>
         public List<SchedulingConflict> Conflicts { get; set; } = new List<SchedulingConflict>();
     }
 
     /// <summary>
-    /// 单个约束的评估结果
+    /// Evaluation result of a single constraint
     /// </summary>
     public class ConstraintEvaluation
     {
         /// <summary>
-        /// 被评估的约束
+        /// Constraint being evaluated
         /// </summary>
         public IConstraint Constraint { get; set; }
 
         /// <summary>
-        /// 约束ID
+        /// Constraint ID
         /// </summary>
         public int ConstraintId => Constraint?.Id ?? 0;
 
         /// <summary>
-        /// 约束名称
+        /// Constraint name
         /// </summary>
         public string ConstraintName => Constraint?.Name ?? string.Empty;
 
         /// <summary>
-        /// 是否是硬约束
+        /// Whether it is a hard constraint
         /// </summary>
         public bool IsHard => Constraint?.IsHard ?? false;
 
         /// <summary>
-        /// 约束权重
+        /// Constraint weight
         /// </summary>
         public double Weight => Constraint?.Weight ?? 1.0;
 
         /// <summary>
-        /// 约束是否满足
+        /// Whether the constraint is satisfied
         /// </summary>
-        public bool Satisfied => Score >= 0.99; // 当得分接近1时认为约束满足
+        public bool Satisfied => Score >= 0.99; // Considered satisfied when score is close to 1
 
         /// <summary>
-        /// 约束满足程度（0-1，1为完全满足）
+        /// Constraint satisfaction level (0-1, 1 being fully satisfied)
         /// </summary>
         public double Score { get; set; }
 
         /// <summary>
-        /// 约束相关的冲突
+        /// Conflicts related to this constraint
         /// </summary>
         public List<SchedulingConflict> Conflicts { get; set; } = new List<SchedulingConflict>();
     }
 
     /// <summary>
-    /// 冲突解决选项
+    /// Conflict resolution option
     /// </summary>
     public class ConflictResolutionOption
     {
         /// <summary>
-        /// 选项ID
+        /// Option ID
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// 冲突ID
+        /// Conflict ID
         /// </summary>
         public int ConflictId { get; set; }
 
         /// <summary>
-        /// 选项描述
+        /// Option description
         /// </summary>
         public string Description { get; set; }
 
         /// <summary>
-        /// 兼容性评分（0-100，100为最佳）
+        /// Compatibility score (0-100, 100 being best)
         /// </summary>
         public int Compatibility { get; set; }
 
         /// <summary>
-        /// 潜在影响
+        /// Potential impacts
         /// </summary>
         public List<string> Impacts { get; set; } = new List<string>();
 
         /// <summary>
-        /// 应用此选项所需的操作
+        /// Actions required to apply this option
         /// </summary>
         public List<ResolutionAction> Actions { get; set; } = new List<ResolutionAction>();
 
         /// <summary>
-        /// 将此解决方案应用到排课方案
+        /// Apply this resolution to the scheduling solution
         /// </summary>
-        /// <param name="solution">排课方案</param>
+        /// <param name="solution">Scheduling solution</param>
         public void Apply(SchedulingSolution solution)
         {
             foreach (var action in Actions)
@@ -148,44 +150,44 @@ namespace SmartSchedulingSystem.Scheduling.Models
     }
 
     /// <summary>
-    /// 解决方案操作
+    /// Resolution action
     /// </summary>
     public abstract class ResolutionAction
     {
         /// <summary>
-        /// 操作类型
+        /// Action type
         /// </summary>
         public ResolutionActionType Type { get; set; }
 
         /// <summary>
-        /// 执行操作
+        /// Execute the action
         /// </summary>
-        /// <param name="solution">排课方案</param>
+        /// <param name="solution">Scheduling solution</param>
         public abstract void Execute(SchedulingSolution solution);
     }
 
     /// <summary>
-    /// 重新分配教师操作
+    /// Reassign teacher action
     /// </summary>
     public class ReassignTeacherAction : ResolutionAction
     {
         /// <summary>
-        /// 排课分配ID
+        /// Assignment ID
         /// </summary>
         public int AssignmentId { get; set; }
 
         /// <summary>
-        /// 新教师ID
+        /// New teacher ID
         /// </summary>
         public int NewTeacherId { get; set; }
 
         /// <summary>
-        /// 新教师名称
+        /// New teacher name
         /// </summary>
         public string NewTeacherName { get; set; }
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         public ReassignTeacherAction()
         {
@@ -193,9 +195,9 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 执行操作
+        /// Execute the action
         /// </summary>
-        /// <param name="solution">排课方案</param>
+        /// <param name="solution">Scheduling solution</param>
         public override void Execute(SchedulingSolution solution)
         {
             var assignment = solution.Assignments.FirstOrDefault(a => a.Id == AssignmentId);
@@ -248,7 +250,9 @@ namespace SmartSchedulingSystem.Scheduling.Models
             if (assignment != null)
             {
                 assignment.TimeSlotId = NewTimeSlotId;
-               
+                assignment.DayOfWeek = NewDayOfWeek;
+                assignment.StartTime = NewStartTime;
+                assignment.EndTime = NewEndTime;
             }
         }
     }

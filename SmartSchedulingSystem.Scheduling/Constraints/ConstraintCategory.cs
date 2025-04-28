@@ -7,79 +7,79 @@ using System.Threading.Tasks;
 namespace SmartSchedulingSystem.Scheduling.Constraints
 {
     /// <summary>
-    /// 约束类别常量，用于对约束进行分类
+    /// Constraint category constants for classifying constraints
     /// </summary>
     public static class ConstraintCategory
     {
         /// <summary>
-        /// 资源分配类别 - 涉及教师、教室等物理资源的分配
+        /// Resource allocation category - Constraints related to allocation of physical resources like teachers and classrooms
         /// </summary>
         public const string ResourceAllocation = "ResourceAllocation";
 
         /// <summary>
-        /// 时间分配类别 - 涉及时间段分配和时间相关约束
+        /// Time allocation category - Constraints related to time slot allocation and time-based restrictions
         /// </summary>
         public const string TimeAllocation = "TimeAllocation";
 
         /// <summary>
-        /// 教学质量类别 - 涉及教学质量和效果的约束
+        /// Teaching quality category - Constraints related to teaching quality and effectiveness
         /// </summary>
         public const string TeachingQuality = "TeachingQuality";
 
         /// <summary>
-        /// 学生体验类别 - 涉及学生体验和课表质量的约束
+        /// Student experience category - Constraints related to student experience and schedule quality
         /// </summary>
         public const string StudentExperience = "StudentExperience";
 
         /// <summary>
-        /// 核心规则类别 - 基本的排课规则和限制
+        /// Core rules category - Basic scheduling rules and restrictions
         /// </summary>
         public const string CoreRules = "CoreRules";
 
         /// <summary>
-        /// 管理类别 - 涉及管理和行政方面的约束
+        /// Administrative category - Constraints related to management and administrative aspects
         /// </summary>
         public const string Administrative = "Administrative";
     }
 
     /// <summary>
-    /// 约束类型枚举
+    /// Constraint type enumeration
     /// </summary>
     public enum ConstraintType
     {
         /// <summary>
-        /// 硬约束 - 必须满足
+        /// Hard constraint - Must be satisfied
         /// </summary>
         Hard,
 
         /// <summary>
-        /// 软约束 - 尽量满足
+        /// Soft constraint - Should be satisfied when possible
         /// </summary>
         Soft
     }
 
     /// <summary>
-    /// 约束层次结构
+    /// Constraint hierarchy levels
     /// </summary>
     public enum ConstraintHierarchy
     {
         /// <summary>
-        /// 一级：核心硬约束，基本排课规则，必须满足
+        /// Level 1: Core hard constraints - Basic scheduling rules that must be satisfied
         /// </summary>
         Level1_CoreHard = 1,
 
         /// <summary>
-        /// 二级：可配置硬约束，必须满足但可以配置
+        /// Level 2: Configurable hard constraints - Must be satisfied but can be configured
         /// </summary>
         Level2_ConfigurableHard = 2,
 
         /// <summary>
-        /// 三级：物理软约束，涉及物理资源限制，尽量满足
+        /// Level 3: Physical soft constraints - Related to physical resource limitations, should be satisfied when possible
         /// </summary>
         Level3_PhysicalSoft = 3,
 
         /// <summary>
-        /// 四级：质量软约束，涉及质量和体验，尽量满足
+        /// Level 4: Quality soft constraints - Related to quality and experience, should be satisfied when possible
         /// </summary>
         Level4_QualitySoft = 4
     }

@@ -28,9 +28,15 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: externalAvailabilitySettings, semesterId, onUpdate }) => {
-  // 使用本地状态来管理可用性设置
-  const [localAvailability, setLocalAvailability] = useState({});
-  
+  // Initialize state with default values
+  const [localAvailability, setLocalAvailability] = useState(externalAvailabilitySettings || {});
+  const [selectedClassroom, setSelectedClassroom] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editMode, setEditMode] = useState('add'); // 'add' or 'remove'
+  const [feedback, setFeedback] = useState({ open: false, message: '', type: 'info' });
+
   const [weekMode, setWeekMode] = useState('regular');
   const [weekSets, setWeekSets] = useState([
     { id: 1, name: 'Regular Weeks', weeks: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] },
@@ -38,37 +44,163 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
     { id: 3, name: 'Special Weeks', weeks: [5, 6] },
   ]);
   const [selectedWeekSet, setSelectedWeekSet] = useState(1);
-  const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [tabValue, setTabValue] = useState(0); // 0: Daily, 1: Weekly, 2: Date Range
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [unavailabilityReason, setUnavailabilityReason] = useState('Maintenance');
   
-  // 同步外部和本地状态
+  // Synchronize external and local state
   useEffect(() => {
-    setLocalAvailability(externalAvailabilitySettings || {});
+    setLocalAvailability(externalAvailabilitySettings);
   }, [externalAvailabilitySettings]);
-  
-  // 添加调试用的useEffect
+
+  // Add debug useEffect
   useEffect(() => {
     console.log('Component initialized, current availability settings:', localAvailability);
+    console.log('Classroom list:', classrooms);
   }, []);
 
   useEffect(() => {
     if (selectedClassroom) {
-      console.log(`Selected classroom ${selectedClassroom}, availability settings:`, 
+      console.log(`Selected classroom ${selectedClassroom}, their availability settings:`,
         localAvailability[selectedClassroom] || 'No availability settings');
     }
   }, [selectedClassroom, localAvailability]);
-  
-  // 确保在组件加载和选择教室时，如果没有可用性设置，自动初始化
+
+  // Ensure that when component loads and classroom is selected, if there are no availability settings, automatically initialize
   useEffect(() => {
     if (selectedClassroom && (!localAvailability[selectedClassroom] || Object.keys(localAvailability[selectedClassroom] || {}).length === 0)) {
-      console.log(`Classroom ${selectedClassroom} has no availability settings, auto initializing...`);
-      initializeAvailability(selectedClassroom);
+      setLocalAvailability(prev => ({
+        ...prev,
+        [selectedClassroom]: {
+          regular: {
+            monday: [],
+            tuesday: [],
+            wednesday: [],
+            thursday: [],
+            friday: []
+          },
+          special: []
+        }
+      }));
     }
-  }, [selectedClassroom, localAvailability]);
-  
+  }, [selectedClassroom]);
+
+  // Handle classroom selection
+  const handleClassroomSelect = (event) => {
+    setSelectedClassroom(event.target.value);
+  };
+
+  // Handle day selection
+  const handleDaySelect = (event) => {
+    setSelectedDay(event.target.value);
+  };
+
+  // Handle time slot selection
+  const handleTimeSlotSelect = (event) => {
+    setSelectedTimeSlot(event.target.value);
+  };
+
+  // Handle edit mode change
+  const handleEditModeChange = (event) => {
+    setEditMode(event.target.value);
+  };
+
+  // Handle edit button click
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  // Handle save button click
+  const handleSaveClick = () => {
+    setIsEditing(false);
+    if (onUpdate) {
+      onUpdate(localAvailability);
+    }
+  };
+
+  // Handle cancel button click
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setLocalAvailability(externalAvailabilitySettings);
+  };
+
+  // Handle add time slot
+  const handleAddTimeSlot = () => {
+    if (!selectedClassroom || !selectedDay || !selectedTimeSlot) {
+      showFeedback('Please select a classroom, day and time slot', 'warning');
+      return;
+    }
+
+    const newSettings = { ...localAvailability };
+    if (!newSettings[selectedClassroom]) {
+      newSettings[selectedClassroom] = {
+        regular: {
+          monday: [],
+          tuesday: [],
+          wednesday: [],
+          thursday: [],
+          friday: []
+        },
+        special: []
+      };
+    }
+
+    if (!newSettings[selectedClassroom].regular[selectedDay]) {
+      newSettings[selectedClassroom].regular[selectedDay] = [];
+    }
+
+    if (newSettings[selectedClassroom].regular[selectedDay].includes(selectedTimeSlot)) {
+      showFeedback('This time slot is already added', 'warning');
+      return;
+    }
+
+    newSettings[selectedClassroom].regular[selectedDay].push(selectedTimeSlot);
+    setLocalAvailability(newSettings);
+    showFeedback('Time slot added successfully', 'success');
+  };
+
+  // Handle remove time slot
+  const handleRemoveTimeSlot = () => {
+    if (!selectedClassroom || !selectedDay || !selectedTimeSlot) {
+      showFeedback('Please select a classroom, day and time slot', 'warning');
+      return;
+    }
+
+    const newSettings = { ...localAvailability };
+    if (!newSettings[selectedClassroom] || !newSettings[selectedClassroom].regular[selectedDay]) {
+      showFeedback('No time slots to remove', 'warning');
+      return;
+    }
+
+    const index = newSettings[selectedClassroom].regular[selectedDay].indexOf(selectedTimeSlot);
+    if (index === -1) {
+      showFeedback('Time slot not found', 'warning');
+      return;
+    }
+
+    newSettings[selectedClassroom].regular[selectedDay].splice(index, 1);
+    setLocalAvailability(newSettings);
+    showFeedback('Time slot removed successfully', 'success');
+  };
+
+  // Show feedback message
+  const showFeedback = (message, type = 'info') => {
+    setFeedback({
+      open: true,
+      message,
+      type
+    });
+  };
+
+  // Close feedback message
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({
+      ...prev,
+      open: false
+    }));
+  };
+
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const timeSlots = ['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00', '19:00-21:00'];
   
@@ -76,7 +208,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
     const newClassroomId = event.target.value;
     setSelectedClassroom(newClassroomId);
     
-    // 选择教室后，如果该教室没有设置过可用性，自动初始化所有时间段为可用
+    // After selecting a classroom, if the classroom has no availability settings, automatically initialize all time slots as available
     if (newClassroomId && (!localAvailability[newClassroomId] || Object.keys(localAvailability[newClassroomId]).length === 0)) {
       initializeAvailability(newClassroomId);
     }
@@ -111,7 +243,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
 
   const handleAvailabilityChange = (day, timeSlot, isAvailable) => {
     const classroomId = selectedClassroom;
-    // 使用函数式更新以确保基于最新状态进行更新
+    // Use functional update to ensure updates based on latest state
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
     if (!newSettings[classroomId]) {
@@ -122,25 +254,25 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
       newSettings[classroomId][day] = {};
     }
     
-    // 确保设置为明确的布尔值
+    // Ensure setting is a clear boolean value
     newSettings[classroomId][day][timeSlot] = Boolean(isAvailable);
     
-    // 添加调试日志
+    // Add debug log
     console.log(`Setting ${day} ${timeSlot} to ${isAvailable ? 'available' : 'unavailable'}`);
     
-    // 更新本地状态
+    // Update local state
     setLocalAvailability(newSettings);
     
-    // 调用父组件提供的更新函数
+    // Call parent component's update function
     if (onUpdate) {
       onUpdate(newSettings);
     }
   };
 
-  // 设置某一天所有时间段的可用性
+  // Set availability for all time slots of a day
   const handleDayAvailabilityChange = (day, isAvailable) => {
     const classroomId = selectedClassroom;
-    // 创建深拷贝而不是浅拷贝
+    // Create deep copy instead of shallow copy
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
     if (!newSettings[classroomId]) {
@@ -151,34 +283,34 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
       newSettings[classroomId][day] = {};
     }
     
-    // 设置该天所有时间段
+    // Set all time slots for this day
     timeSlots.forEach(slot => {
       newSettings[classroomId][day][slot] = isAvailable;
     });
     
-    // 添加调试日志
+    // Add debug log
     console.log(`Setting all time slots for ${day} to ${isAvailable ? 'available' : 'unavailable'}`);
     
-    // 更新本地状态
+    // Update local state
     setLocalAvailability(newSettings);
     
-    // 调用父组件提供的更新函数
+    // Call parent component's update function
     if (onUpdate) {
       onUpdate(newSettings);
     }
   };
 
-  // 设置某一时间段所有天的可用性
+  // Set availability for a time slot across all days
   const handleTimeSlotAvailabilityChange = (timeSlot, isAvailable) => {
     const classroomId = selectedClassroom;
-    // 创建深拷贝而不是浅拷贝
+    // Create deep copy instead of shallow copy
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
     if (!newSettings[classroomId]) {
       newSettings[classroomId] = {};
     }
     
-    // 设置该时间段所有天
+    // Set this time slot for all days
     days.forEach(day => {
       if (!newSettings[classroomId][day]) {
         newSettings[classroomId][day] = {};
@@ -186,50 +318,50 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
       newSettings[classroomId][day][timeSlot] = isAvailable;
     });
     
-    // 添加调试日志
+    // Add debug log
     console.log(`Setting ${timeSlot} time slot for all days to ${isAvailable ? 'available' : 'unavailable'}`);
     
-    // 更新本地状态
+    // Update local state
     setLocalAvailability(newSettings);
     
-    // 调用父组件提供的更新函数
+    // Call parent component's update function
     if (onUpdate) {
       onUpdate(newSettings);
     }
   };
   
-  // 初始化教室的可用性设置（默认全部可用）
+  // Initialize classroom's availability settings (default all available)
   const initializeAvailability = (classroomId) => {
     const newSettings = JSON.parse(JSON.stringify(localAvailability || {}));
     
     newSettings[classroomId] = {};
     
-    // 设置所有日期和时间段为可用
+    // Set all dates and time slots as available
     days.forEach(day => {
       newSettings[classroomId][day] = {};
       timeSlots.forEach(slot => {
-        newSettings[classroomId][day][slot] = true; // 默认设置为可用
+        newSettings[classroomId][day][slot] = true; // Default to available
       });
     });
     
     console.log(`Initializing classroom ${classroomId} availability to all available`);
     
-    // 更新本地状态
+    // Update local state
     setLocalAvailability(newSettings);
     
-    // 调用父组件提供的更新函数
+    // Call parent component's update function
     if (onUpdate) {
       onUpdate(newSettings);
     }
   };
 
-  // 这将确保保存按钮能基于本地状态正确工作
+  // This ensures the save button works correctly based on local state
   const handleSaveAvailability = () => {
     if (selectedClassroom) {
-      // 在真实应用中，这里会保存到后端
+      // In a real application, this would save to the backend
       alert(`Saved availability settings for classroom ${classrooms.find(c => c.id === selectedClassroom)?.name} with ${weekSets.length} different week patterns`);
       
-      // 如果需要，可以在这里调用特殊的保存函数
+      // If needed, call special save function here
       if (onUpdate) {
         onUpdate(localAvailability);
       }
@@ -239,10 +371,10 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
   const handleAddDateRangeException = () => {
     if (!selectedClassroom || !startDate || !endDate) return;
     
-    // 实际应用中，这里会添加日期范围例外到后端
+    // In practice, date range exceptions are added here to the backend
     console.log(`Adding date range exception for classroom ${selectedClassroom} from ${startDate} to ${endDate}`);
     
-    // 清空表单字段
+    // Clear form fields
     setStartDate('');
     setEndDate('');
   };
@@ -361,7 +493,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
             </Tabs>
           </Paper>
           
-          {/* Daily Schedule Tab - 日历视图 */}
+          {/* Daily Schedule Tab - Calendar View */}
           {tabValue === 0 && (
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
@@ -380,7 +512,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
                               onClick={() => {
                                 const classroomSettings = localAvailability[selectedClassroom] || {};
                                 const daySettings = classroomSettings[day] || {};
-                                // 检查当前状态 - 如果大部分是可用的则切换为不可用，反之亦然
+                                // Check current status - if most are available then switch to unavailable and vice versa
                                 const availableCount = timeSlots.filter(slot => 
                                   daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined)
                                 ).length;
@@ -388,7 +520,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
                                 handleDayAvailabilityChange(day, !isMainlyAvailable);
                               }}
                             >
-                              {/* 根据这一天的整体可用性状态显示不同的标签 */}
+                              {/* Display different labels based on the overall availability status of this day */}
                               {(() => {
                                 const classroomSettings = localAvailability[selectedClassroom] || {};
                                 const daySettings = classroomSettings[day] || {};
@@ -423,7 +555,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
                                 sx={{ mt: 1, minWidth: '90px' }}
                                 onClick={() => {
                                   const classroomSettings = localAvailability[selectedClassroom] || {};
-                                  // 检查当前状态 - 如果大部分是可用的则切换为不可用，反之亦然
+                                  // Check current status - if most are available then switch to unavailable,反之亦然
                                   const availableCount = days.filter(day => {
                                     const daySettings = classroomSettings[day] || {};
                                     return daySettings[slot] === true || (daySettings[slot] !== false && daySettings[slot] !== undefined);
@@ -432,7 +564,7 @@ const ClassroomAvailabilitySettings = ({ classrooms, availabilitySettings: exter
                                   handleTimeSlotAvailabilityChange(slot, !isMainlyAvailable);
                                 }}
                               >
-                                {/* 根据这一时间段的整体可用性状态显示不同的标签 */}
+                                {/* Display different labels based on the overall availability status of this time slot */}
                                 {(() => {
                                   const classroomSettings = localAvailability[selectedClassroom] || {};
                                   const availableCount = days.filter(day => {

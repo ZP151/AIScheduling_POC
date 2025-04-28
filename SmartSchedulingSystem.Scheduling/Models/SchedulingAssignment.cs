@@ -7,104 +7,105 @@ using System.Threading.Tasks;
 namespace SmartSchedulingSystem.Scheduling.Models
 {
     /// <summary>
-    /// 排课分配，表示一次课程安排
+    /// Course scheduling assignment, represents a single course arrangement
     /// </summary>
     public class SchedulingAssignment
     {
         /// <summary>
-        /// 排课分配的唯一ID
+        /// Unique ID of the scheduling assignment
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// 课程班级ID
+        /// Course section ID
         /// </summary>
         public int SectionId { get; set; }
 
         /// <summary>
-        /// 课程班级ID（与SectionId同义，用于兼容性）
+        /// Course section ID (synonym with SectionId, for compatibility)
         /// </summary>
         public int CourseSectionId { get => SectionId; set => SectionId = value; }
 
         /// <summary>
-        /// 课程班级代码
+        /// Course section code
         /// </summary>
         public string SectionCode { get; set; }
 
         /// <summary>
-        /// 教师ID
+        /// Teacher ID
         /// </summary>
         public int TeacherId { get; set; }
 
         /// <summary>
-        /// 教师名称
+        /// Teacher name
         /// </summary>
         public string TeacherName { get; set; }
 
         /// <summary>
-        /// 教室ID
+        /// Classroom ID
         /// </summary>
         public int ClassroomId { get; set; }
 
-        // 每周几次课的第几次
+        // Which session of the weekly course meetings
         public int SessionNumber { get; set; }
+        
         /// <summary>
-        /// 教室名称
+        /// Classroom name
         /// </summary>
         public string ClassroomName { get; set; }
 
         /// <summary>
-        /// 教室所在建筑
+        /// Building where classroom is located
         /// </summary>
         public string Building { get; set; }
 
         /// <summary>
-        /// 时间槽ID
+        /// Time slot ID
         /// </summary>
         public int TimeSlotId { get; set; }
 
         /// <summary>
-        /// 星期几（1-7）
+        /// Day of week (1-7)
         /// </summary>
         public int DayOfWeek { get; set; }
 
         /// <summary>
-        /// 开始时间
+        /// Start time
         /// </summary>
         public TimeSpan StartTime { get; set; }
 
         /// <summary>
-        /// 结束时间
+        /// End time
         /// </summary>
         public TimeSpan EndTime { get; set; }
 
         /// <summary>
-        /// 适用的教学周（例如[1,2,3,4,5,6,7,8,9,10,11,12]）
+        /// Teaching weeks pattern (e.g. [1,2,3,4,5,6,7,8,9,10,11,12])
         /// </summary>
         public List<int> WeekPattern { get; set; } = new List<int>();
 
         /// <summary>
-        /// 教师导航属性（运行时填充，不存储）
+        /// Teacher navigation property (populated at runtime, not stored)
         /// </summary>
         public TeacherInfo Teacher { get; set; }
 
         /// <summary>
-        /// 教室导航属性（运行时填充，不存储）
+        /// Classroom navigation property (populated at runtime, not stored)
         /// </summary>
         public ClassroomInfo Classroom { get; set; }
 
         /// <summary>
-        /// 课程班级导航属性（运行时填充，不存储）
+        /// Course section navigation property (populated at runtime, not stored)
         /// </summary>
         public CourseSectionInfo CourseSection { get; set; }
 
         /// <summary>
-        /// 时间槽导航属性（运行时填充，不存储）
+        /// Time slot navigation property (populated at runtime, not stored)
         /// </summary>
         public TimeSlotInfo TimeSlot { get; set; }
 
         /// <summary>
-        /// 周数（与WeekPattern对应，用于兼容性）
+        /// Week number (corresponds to WeekPattern, for compatibility)
         /// </summary>
         public int Week { get => WeekPattern.Count > 0 ? WeekPattern.First() : 1; }
     }

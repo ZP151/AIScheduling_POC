@@ -14,7 +14,7 @@ const llmApi = axios.create({
 // Natural language chat
 export const chatWithLLM = async (message, conversation = []) => {
   try {
-    // 始终使用API，不使用模拟数据
+    // Always use API, do not use mock data
     /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockChatResponse(message);
@@ -32,7 +32,7 @@ export const chatWithLLM = async (message, conversation = []) => {
 // Constraint identification and analysis
 export const analyzeConstraints = async (input) => {
   try {
-    // 始终使用API，不使用模拟数据
+    // Always use API, do not use mock data
     /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockConstraintAnalysis(input);
@@ -49,25 +49,25 @@ export const analyzeConstraints = async (input) => {
 
 // Conflict analysis and resolution
 export const analyzeConflicts = async (conflict) => {
-  console.log('llmApi服务: 开始调用冲突分析API');
-  console.log('llmApi服务: 冲突数据:', conflict);
+  console.log('llmApi service: Starting conflict analysis API call');
+  console.log('llmApi service: Conflict data:', conflict);
   
-  // 首先定义默认的模拟响应，确保在任何情况下都能返回结果
+  // First define the default mock response, ensuring a result is returned in all cases
   let mockResponse = mockConflictAnalysis(conflict);
   
   try {
-    // 设置超时选项
+    // Set timeout options
     const options = {
-      timeout: 30000, // 30秒超时
+      timeout: 30000, // 30 seconds timeout
       headers: {
         'Content-Type': 'application/json'
       }
     };
     
-    // 格式化冲突类型以匹配后端期望的格式
+    // Format conflict type to match the backend expected format
     let formattedConflict = { ...conflict };
     
-    // 处理类型差异 - 将前端的类型映射到后端期望的类型
+    // Handle type differences - map frontend types to backend expected types
     if (formattedConflict.type) {
       if (formattedConflict.type.includes('Teachers')) {
         formattedConflict.type = 'Teacher Conflict';
@@ -76,75 +76,75 @@ export const analyzeConflicts = async (conflict) => {
       }
     }
     
-    // 确保请求格式匹配后端期望的ConflictAnalysisRequest模型
+    // Ensure request format matches the backend expected ConflictAnalysisRequest model
     const requestData = { conflict: formattedConflict };
     
-    // 调用API
-    console.log('llmApi服务: 发送请求到:', `${API_URL}/llm/analyze-conflicts`);
-    console.log('llmApi服务: 请求格式:', requestData);
+    // Call API
+    console.log('llmApi service: Sending request to:', `${API_URL}/llm/analyze-conflicts`);
+    console.log('llmApi service: Request format:', requestData);
     
     const response = await llmApi.post('/llm/analyze-conflicts', requestData, options);
     
-    // 验证响应内容
+    // Validate response content
     const data = response.data;
-    console.log('llmApi服务: 收到原始响应:', data);
+    console.log('llmApi service: Received raw response:', data);
     
     if (!data) {
-      console.error('llmApi服务: 响应为空');
-      throw new Error('响应为空');
+      console.error('llmApi service: Empty response');
+      throw new Error('Empty response');
     }
     
     if (!data.solutions || !Array.isArray(data.solutions)) {
-      console.error('llmApi服务: 响应缺少solutions数组:', data);
-      throw new Error('响应格式不正确: 缺少solutions数组');
+      console.error('llmApi service: Response missing solutions array:', data);
+      throw new Error('Invalid response format: missing solutions array');
     }
     
     if (!data.rootCause) {
-      console.error('llmApi服务: 响应缺少rootCause字段:', data);
-      data.rootCause = '未能确定冲突根本原因';
+      console.error('llmApi service: Response missing rootCause field:', data);
+      data.rootCause = 'Unable to determine conflict root cause';
     }
     
-    // 添加标记表示这不是模拟数据
+    // Add a flag to indicate this is not mock data
     data._isMockData = false;
     
-    console.log('llmApi服务: 成功获取有效API响应:', data);
+    console.log('llmApi service: Successfully received valid API response:', data);
     return data;
   } catch (error) {
-    console.error('llmApi服务: 冲突分析API错误:', error);
+    console.error('llmApi service: Conflict analysis API error:', error);
     
-    // 确保模拟响应已被正确标记
+    // Ensure mock response is properly marked
     if (!mockResponse._isMockData) {
       mockResponse._isMockData = true;
     }
     
-    // 记录详细的错误信息
+    // Log detailed error information
     if (error.response) {
-      console.error('llmApi服务: 错误状态码:', error.response.status);
-      console.error('llmApi服务: 错误数据:', error.response.data);
+      console.error('llmApi service: Error status code:', error.response.status);
+      console.error('llmApi service: Error data:', error.response.data);
       
-      // 返回一个带有详细错误信息的对象，包含模拟数据
+      // Return an object with detailed error information, including mock data
       return {
         error: true,
         httpStatus: error.response.status,
-        message: `API响应错误: ${error.response.status}`,
+        message: `API response error: ${error.response.status}`,
         details: error.response.data,
         mockResponse: mockResponse
       };
     } else if (error.request) {
-      console.error('llmApi服务: 未收到响应。请求对象:', error.request);
+      console.error('llmApi service: No response received. Request object:', error.request);
       
       return {
         error: true,
-        message: '服务器未响应请求，请检查API服务是否运行',
-        details: '未收到服务器响应',
+        message: 'Server did not respond to request, please check if API service is running',
+        details: 'No server response received',
         mockResponse: mockResponse
       };
     } else {
-      console.error('llmApi服务: 请求配置错误:', error.message);
+      console.error('llmApi service: Request configuration error:', error.message);
       
       return {
         error: true,
-        message: `请求错误: ${error.message}`,
+        message: `Request error: ${error.message}`,
         details: error.stack,
         mockResponse: mockResponse
       };
@@ -155,7 +155,7 @@ export const analyzeConflicts = async (conflict) => {
 // Schedule explanation
 export const explainSchedule = async (scheduleItem) => {
   try {
-    // 始终使用API，不使用模拟数据
+    // Always use the API, no simulated data
     /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockScheduleExplanation(scheduleItem);
@@ -173,7 +173,7 @@ export const explainSchedule = async (scheduleItem) => {
 // Parameter optimization
 export const optimizeParameters = async (currentParameters, historicalData = null) => {
   try {
-    // 始终使用API，不使用模拟数据
+    // Always use API, do not use mock data
     /*
     if (process.env.NODE_ENV === 'development' && !process.env.USE_REAL_API) {
       return mockParameterOptimization(currentParameters);
@@ -266,7 +266,7 @@ const mockConstraintAnalysis = (input) => {
 };
 
 const mockConflictAnalysis = (conflict) => {
-  // 默认的通用冲突分析响应
+  // Default general conflict analysis response
   const defaultResponse = {
     rootCause: "Resource allocation conflicts typically occur when the same resource is required by multiple courses simultaneously. These conflicts can be resolved by adjusting scheduling times or reallocating resources.",
     solutions: [
@@ -298,20 +298,20 @@ const mockConflictAnalysis = (conflict) => {
         ]
       }
     ],
-    _isMockData: true  // 添加标记表示这是模拟数据
+    _isMockData: true  // Add marker to indicate this is mock data
   };
 
-  // 如果没有提供冲突信息，返回默认响应
+  // If no conflict information is provided, return the default response
   if (!conflict) return defaultResponse;
 
-  // 检查并标准化冲突类型
+  // Check and standardize conflict types
   let conflictType = conflict.type || "";
   if (typeof conflictType === 'string') {
     conflictType = conflictType.trim().toLowerCase();
   }
 
-  // 根据冲突类型返回特定的模拟数据
-  if (conflictType.includes('teacher') || conflictType.includes('教师')) {
+  // Return specific mock data based on conflict type
+  if (conflictType.includes('teacher') || conflictType.includes('teacher')) {
     return {
       rootCause: "Teacher time conflicts occur when the same teacher is scheduled to teach two different courses during the same time slot. This is typically a resource allocation issue caused by the scheduling system not properly accounting for teacher availability.",
       solutions: [
@@ -343,7 +343,7 @@ const mockConflictAnalysis = (conflict) => {
           ]
         }
       ],
-      _isMockData: true  // 添加标记表示这是模拟数据
+      _isMockData: true  // Add marker to indicate this is mock data
     };
   } else if (conflictType.includes('classroom') || conflictType.includes('教室')) {
     return {
@@ -377,10 +377,10 @@ const mockConflictAnalysis = (conflict) => {
           ]
         }
       ],
-      _isMockData: true  // 添加标记表示这是模拟数据
+      _isMockData: true  // Add marker to indicate this is mock data
     };
   } else {
-    // 通用冲突分析
+    // General conflict analysis
     return defaultResponse;
   }
 };

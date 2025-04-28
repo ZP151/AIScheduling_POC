@@ -7,12 +7,12 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
 {
     /// <summary>
-    /// 将教室容量约束转换为CP模型约束
+    /// Converting classroom capacity constraints to CP model constraints
     /// </summary>
     public class ClassroomCapacityConstraintConverter : ICPConstraintConverter
     {
         /// <summary>
-        /// 获取约束转换器的约束级别
+        /// Get the constraint level of the constraint converter
         /// </summary>
         public Engine.ConstraintApplicationLevel ConstraintLevel => Engine.ConstraintApplicationLevel.Basic;
 
@@ -34,35 +34,35 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.CP.Converters
             if (variables == null) throw new ArgumentNullException(nameof(variables));
             if (problem == null) throw new ArgumentNullException(nameof(problem));
 
-            // 处理每个课程班级
+            // Process each course section
             foreach (var section in problem.CourseSections)
             {
-                // 获取班级的预期学生人数
+                // Get the expected number of students for the section
                 if (!_expectedEnrollments.TryGetValue(section.Id, out int enrollment))
                 {
-                    enrollment = section.Enrollment; // 使用班级的默认人数
+                    enrollment = section.Enrollment; // Use the default number of students for the section
                 }
 
-                // 处理每个教室
+                // Process each classroom
                 foreach (var classroom in problem.Classrooms)
                 {
-                    // 获取教室容量
+                    // Get the classroom capacity
                     if (!_classroomCapacities.TryGetValue(classroom.Id, out int capacity))
                     {
-                        capacity = classroom.Capacity; // 使用教室的默认容量
+                        capacity = classroom.Capacity; // Use the default capacity of the classroom
                     }
 
-                    // 检查容量是否足够
+                    // Check if the capacity is sufficient
                     if (capacity < enrollment)
                     {
-                        // 找出所有将该班级安排到该教室的变量
+                        // Find all variables that assign this section to this classroom
                         var invalidVars = variables
                             .Where(kv => kv.Key.StartsWith($"c{section.Id}_") &&
                                        kv.Key.Contains($"_r{classroom.Id}_"))
                             .Select(kv => kv.Value)
                             .ToList();
 
-                        // 添加约束：这些变量必须为0（禁止该班级使用该教室）
+                        // Add constraints: these variables must be 0 (prohibit the class from using the classroom)
                         foreach (var variable in invalidVars)
                         {
                             model.Add(variable == 0);

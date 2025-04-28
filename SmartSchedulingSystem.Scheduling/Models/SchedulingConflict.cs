@@ -16,19 +16,19 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public Dictionary<string, List<int>> InvolvedEntities { get; set; } = new Dictionary<string, List<int>>();
         public List<int> InvolvedTimeSlots { get; set; } = new List<int>();
 
-        // AI辅助分析字段
+        // AI-assisted analysis fields
         public string RootCause { get; set; }
         public List<ConflictResolutionOption> ResolutionOptions { get; set; } = new List<ConflictResolutionOption>();
         public string AIAnalysisDetails { get; set; }
         public DateTime AnalyzedAt { get; set; }
 
-        // 冲突分类
+        // Conflict category
         public string Category { get; set; }
 
-        // 冲突解决状态
+        // Conflict resolution status
         public ConflictResolutionStatus ResolutionStatus { get; set; } = ConflictResolutionStatus.Unresolved;
 
-        // 应用的解决方案ID
+        // Applied resolution ID
         public int? AppliedResolutionId { get; set; }
     }
 
@@ -41,107 +41,116 @@ namespace SmartSchedulingSystem.Scheduling.Models
     }
 
     /// <summary>
-    /// 冲突类型
+    /// Conflict types
     /// </summary>
     public enum SchedulingConflictType
     {
         /// <summary>
-        /// 教师冲突（同一时间被安排两门课）
+        /// Teacher conflict (scheduled for two courses at the same time)
         /// </summary>
         TeacherConflict,
 
         /// <summary>
-        /// 教室冲突（同一时间有两门课）
+        /// Classroom conflict (two courses scheduled at the same time)
         /// </summary>
         ClassroomConflict,
 
         /// <summary>
-        /// 教师可用性冲突（教师在安排的时间不可用）
+        /// Teacher availability conflict (teacher is not available at scheduled time)
         /// </summary>
         TeacherAvailabilityConflict,
 
         /// <summary>
-        /// 教室可用性冲突（教室在安排的时间不可用）
+        /// Classroom availability conflict (classroom is not available at scheduled time)
         /// </summary>
         ClassroomAvailabilityConflict,
 
         /// <summary>
-        /// 教室容量不足
+        /// Classroom capacity exceeded
         /// </summary>
         ClassroomCapacityExceeded,
 
         /// <summary>
-        /// 教室类型不匹配
+        /// Classroom type mismatch
         /// </summary>
         ClassroomTypeMismatch,
 
         /// <summary>
-        /// 校区间旅行时间冲突
+        /// Campus travel time conflict
         /// </summary>
         CampusTravelTimeConflict,
 
         /// <summary>
-        /// 课程先决条件冲突
+        /// Course prerequisite conflict
         /// </summary>
         PrerequisiteConflict,
 
         /// <summary>
-        /// 课程连续性冲突
+        /// Course sequence conflict
         /// </summary>
         CourseSequenceConflict,
 
         /// <summary>
-        /// 教师工作量超额
+        /// Teacher workload exceeded
         /// </summary>
         TeacherWorkloadExceeded,
 
         /// <summary>
-        /// 约束评估错误
+        /// Constraint evaluation error
         /// </summary>
         ConstraintEvaluationError,
 
         BuildingProximityConflict,
         
         /// <summary>
-        /// 教师不可用
+        /// Teacher unavailable
         /// </summary>
         TeacherUnavailable,
         
         /// <summary>
-        /// 教室不可用
+        /// Classroom unavailable
         /// </summary>
         ClassroomUnavailable,
         
         /// <summary>
-        /// 其他冲突
+        /// Building distance conflict (teacher needs to move quickly between different buildings)
+        /// </summary>
+        BuildingDistanceConflict,
+        
+        /// <summary>
+        /// Equipment mismatch (required equipment not available in classroom)
+        /// </summary>
+        EquipmentMismatch,
+        
+        /// <summary>
+        /// Other conflicts
         /// </summary>
         Other
     }
 
     /// <summary>
-    /// 冲突严重程度
+    /// Conflict severity levels
     /// </summary>
     public enum ConflictSeverity
     {
         /// <summary>
-        /// 轻微（可忽略）
+        /// Minor (can be ignored)
         /// </summary>
         Minor,
 
         /// <summary>
-        /// 中等
+        /// Moderate
         /// </summary>
         Moderate,
 
         /// <summary>
-        /// 严重
+        /// Severe
         /// </summary>
         Severe,
 
         /// <summary>
-        /// 严重（需要立即解决）
+        /// Critical (requires immediate resolution)
         /// </summary>
         Critical
     }
-
 }

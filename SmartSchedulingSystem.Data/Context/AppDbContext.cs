@@ -145,16 +145,16 @@ namespace SmartSchedulingSystem.Data.Context
                 }
             );
         }
-        // 在AppDbContext的OnModelCreating方法中
+        // In the OnModelCreating method of AppDbContext
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // 调用种子数据方法
+            // Call the seed data method
             SeedData(modelBuilder);
 
-            // 配置复合主键
-            // 添加缺少的主键配置
+            // Configure composite keys
+            // Add missing primary key configurations
             modelBuilder.Entity<Department>()
                 .HasKey(d => d.DepartmentId);
 
@@ -192,7 +192,7 @@ namespace SmartSchedulingSystem.Data.Context
             modelBuilder.Entity<Prerequisite>()
                 .HasKey(p => new { p.CourseId, p.PrerequisiteCourseId });
 
-            // 配置关系
+            // Configure relationships
             modelBuilder.Entity<Teacher>()
                 .HasOne(t => t.Department)
                 .WithMany(d => d.Teachers)
@@ -242,56 +242,56 @@ namespace SmartSchedulingSystem.Data.Context
             modelBuilder.Entity<TeacherPreference>()
                 .HasKey(p => new { p.TeacherId, p.TimeSlotId });
 
-            // 更新 ScheduleItem 实体的关系配置
+            // Update the relationship configuration for the ScheduleItem entity
             modelBuilder.Entity<ScheduleItem>(entity =>
             {
-                // 修改 ScheduleResult 的外键关系
+                // Modify the foreign key relationship for ScheduleResult
                 entity.HasOne(si => si.ScheduleResult)
                     .WithMany(sr => sr.Items)
                     .HasForeignKey(si => si.ScheduleResultId)
                     .OnDelete(DeleteBehavior.Restrict); // 改为 Restrict
 
-                // CourseSection 外键
+                // CourseSection foreign key
                 entity.HasOne(si => si.CourseSection)
                     .WithMany()
                     .HasForeignKey(si => si.CourseSectionId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Teacher 外键 
+                // Teacher foreign key
                 entity.HasOne(si => si.Teacher)
                     .WithMany()
                     .HasForeignKey(si => si.TeacherId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Classroom 外键
+                // Classroom foreign key
                 entity.HasOne(si => si.Classroom)
                     .WithMany()
                     .HasForeignKey(si => si.ClassroomId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // TimeSlot 外键
+                // TimeSlot foreign key
                 entity.HasOne(si => si.TimeSlot)
                     .WithMany()
                     .HasForeignKey(si => si.TimeSlotId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
-            // 可以保留 CourseSection 和 TimeSlot 的级联删除
-            // 或者根据业务需要也将它们改为 NoAction
+            // You can keep the cascading delete for CourseSection and TimeSlot
+            // Or also change them to NoAction based on your business needs
 
-            // 添加 AISchedulingSuggestion 配置
+            // Add AISchedulingSuggestion configuration
             modelBuilder.Entity<AISchedulingSuggestion>(entity =>
             {
-                // 指定主键
+                // Specify the primary key
                 entity.HasKey(x => x.SuggestionId);
 
-                // 可选：添加索引
+                // Optional: Add an index
                 entity.HasIndex(x => x.ScheduleRequestId);
 
-                // 配置字段
+                // Configure fields
                 entity.Property(x => x.SuggestionData)
                     .HasColumnType("nvarchar(max)");
 
-                // 设置默认创建时间
+                // Set the default creation time
                 entity.Property(x => x.CreatedAt)
                     .HasDefaultValueSql("GETDATE()");
             });

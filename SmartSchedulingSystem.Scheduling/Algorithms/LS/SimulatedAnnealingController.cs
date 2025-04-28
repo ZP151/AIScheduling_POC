@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 {
     /// <summary>
-    /// 实现模拟退火控制逻辑的类，用于指导局部搜索过程
+    /// Class implementing simulated annealing control logic, used to guide the local search process
     /// </summary>
     public class SimulatedAnnealingController
     {
@@ -12,100 +12,140 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         private readonly Random _random = new Random();
 
         private double _initialTemperature;
-        private double _finalTemperature;
+        private readonly double _finalTemperature;
         private double _coolingRate;
+        private readonly int _maxIterations;
+        private readonly int _maxNoImprovementIterations;
+
+        /// <summary>
+        /// Current temperature
+        /// </summary>
         private double _currentTemperature;
-        private int _iteration;
-        private int _maxIterations;
+
+        /// <summary>
+        /// Current iteration count
+        /// </summary>
+        private int _currentIteration;
+
+        /// <summary>
+        /// Search progress (0-1 range)
+        /// </summary>
+        private double _progress;
+
+        /// <summary>
+        /// Number of iterations without improvement
+        /// </summary>
         private int _noImprovementCount;
-        private int _maxNoImprovementIterations;
+
+        /// <summary>
+        /// Best score
+        /// </summary>
         private double _bestScore;
 
         /// <summary>
-        /// 当前温度
+        /// Current temperature
         /// </summary>
         public double CurrentTemperature => _currentTemperature;
 
         /// <summary>
-        /// 当前迭代数
+        /// Current iteration count
         /// </summary>
-        public int CurrentIteration => _iteration;
+        public int CurrentIteration => _currentIteration;
 
         /// <summary>
-        /// 搜索进度(0-1范围)
+        /// Search progress (0-1 range)
         /// </summary>
-        public double Progress => Math.Min(1.0, (double)_iteration / _maxIterations);
+        public double Progress => _progress;
 
         /// <summary>
-        /// 无改进的迭代次数
+        /// Number of iterations without improvement
         /// </summary>
         public int NoImprovementCount => _noImprovementCount;
 
         /// <summary>
-        /// 最佳得分
+        /// Best score
         /// </summary>
         public double BestScore => _bestScore;
 
         /// <summary>
-        /// 创建模拟退火控制器
+        /// Create simulated annealing controller with default parameters
         /// </summary>
-        /// <param name="logger">日志记录器</param>
-        /// <param name="initialTemp">初始温度</param>
-        /// <param name="finalTemp">最终温度</param>
-        /// <param name="coolingRate">冷却率</param>
-        /// <param name="maxIterations">最大迭代次数</param>
-        /// <param name="maxNoImprovementIterations">允许无改进的最大迭代次数</param>
+        /// <param name="logger">Logger</param>
+        public SimulatedAnnealingController(ILogger<SimulatedAnnealingController> logger)
+        {
+            _logger = logger;
+            _initialTemperature = 100.0;
+            _finalTemperature = 0.1;
+            _coolingRate = 0.95;
+            _maxIterations = 1000;
+            _maxNoImprovementIterations = 100;
+
+            Reset();
+        }
+
+        /// <summary>
+        /// Create simulated annealing controller
+        /// </summary>
+        /// <param name="logger">Logger</param>
+        /// <param name="initialTemp">Initial temperature</param>
+        /// <param name="finalTemp">Final temperature</param>
+        /// <param name="coolingRate">Cooling rate</param>
+        /// <param name="maxIterations">Maximum iterations</param>
+        /// <param name="maxNoImprovementIterations">Maximum iterations allowed without improvement</param>
         public SimulatedAnnealingController(
             ILogger<SimulatedAnnealingController> logger,
-            double initialTemp = 1.0,
-            double finalTemp = 0.01,
-            double coolingRate = 0.995,
-            int maxIterations = 1000,
-            int maxNoImprovementIterations = 200)
+            double initialTemp,
+            double finalTemp,
+            double coolingRate,
+            int maxIterations,
+            int maxNoImprovementIterations)
         {
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
             _initialTemperature = initialTemp;
             _finalTemperature = finalTemp;
             _coolingRate = coolingRate;
             _maxIterations = maxIterations;
             _maxNoImprovementIterations = maxNoImprovementIterations;
+
             Reset();
         }
 
         /// <summary>
-        /// 重置到初始状态
+        /// Reset to initial state
         /// </summary>
         public void Reset()
         {
             _currentTemperature = _initialTemperature;
-            _iteration = 0;
+            _currentIteration = 0;
+            _progress = 0;
             _noImprovementCount = 0;
             _bestScore = double.MinValue;
 
-            _logger.LogInformation($"模拟退火控制器已重置，初始温度: {_initialTemperature}, 冷却率: {_coolingRate}");
+            _logger.LogInformation($"Simulated annealing controller reset, initial temperature: {_initialTemperature}, cooling rate: {_coolingRate}");
         }
 
         /// <summary>
-        /// 使用指定参数重置
+        /// Reset with specified parameters
         /// </summary>
-        /// <param name="initialTemperature">初始温度</param>
-        /// <param name="coolingRate">冷却率</param>
+        /// <param name="initialTemperature">Initial temperature</param>
+        /// <param name="coolingRate">Cooling rate</param>
         public void Reset(double initialTemperature, double coolingRate)
         {
             _initialTemperature = initialTemperature;
             _coolingRate = coolingRate;
             _currentTemperature = _initialTemperature;
-            _iteration = 0;
+            _currentIteration = 0;
+            _progress = 0;
             _noImprovementCount = 0;
             _bestScore = double.MinValue;
 
-            _logger.LogInformation($"模拟退火控制器已使用新参数重置，初始温度: {_initialTemperature}, 冷却率: {_coolingRate}");
+            _logger.LogInformation($"Simulated annealing controller reset with new parameters, initial temperature: {_initialTemperature}, cooling rate: {_coolingRate}");
         }
 
         /// <summary>
-        /// 更新最佳得分并计算无改进次数
+        /// Update best score and calculate no improvement count
         /// </summary>
-        /// <param name="score">当前得分</param>
+        /// <param name="score">Current score</param>
         public void UpdateBestScore(double score)
         {
             if (score > _bestScore)
@@ -114,7 +154,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
                 _bestScore = score;
                 _noImprovementCount = 0;
 
-                _logger.LogDebug($"发现新的最佳解，得分: {_bestScore}, 改进: {improvement:F4}");
+                _logger.LogDebug($"Found new best solution, score: {_bestScore}, improvement: {improvement:F4}");
             }
             else
             {
@@ -122,56 +162,56 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
 
                 if (_noImprovementCount % 50 == 0)
                 {
-                    _logger.LogDebug($"已有 {_noImprovementCount} 次迭代无改进");
+                    _logger.LogDebug($"No improvement for {_noImprovementCount} iterations");
                 }
             }
         }
 
         /// <summary>
-        /// 降低温度(调用一次代表一次迭代)
+        /// Cool down temperature (each call represents one iteration)
         /// </summary>
-        /// <returns>是否应该停止搜索</returns>
+        /// <returns>Whether to stop search</returns>
         public bool Cool()
         {
-            // 标准退火冷却
+            // Standard annealing cooling
             _currentTemperature *= _coolingRate;
 
-            // 处理温度下限
+            // Handle temperature lower limit
             if (_currentTemperature < _finalTemperature)
             {
                 _currentTemperature = _finalTemperature;
             }
 
-            _iteration++;
+            _currentIteration++;
 
-            // 记录日志（间隔性地）
-            if (_iteration % 100 == 0 || _iteration == 1)
+            // Log progress (intermittently)
+            if (_currentIteration % 100 == 0 || _currentIteration == 1)
             {
-                _logger.LogDebug($"迭代: {_iteration}, 温度: {_currentTemperature:F6}, 最佳分数: {_bestScore:F4}");
+                _logger.LogDebug($"Iteration: {_currentIteration}, temperature: {_currentTemperature:F6}, best score: {_bestScore:F4}");
             }
 
-            // 检查是否应该停止搜索
+            // Check if should stop search
             bool shouldStop =
-                _iteration >= _maxIterations || // 达到最大迭代次数
-                _currentTemperature <= _finalTemperature || // 温度降到最低
-                _noImprovementCount >= _maxNoImprovementIterations; // 长时间无改进
+                _currentIteration >= _maxIterations || // Reached maximum iterations
+                _currentTemperature <= _finalTemperature || // Temperature reached minimum
+                _noImprovementCount >= _maxNoImprovementIterations; // No improvement for too long
 
-            if (shouldStop && _iteration % 100 != 0) // 避免重复日志
+            if (shouldStop && _currentIteration % 100 != 0) // Avoid duplicate logs
             {
-                _logger.LogInformation($"搜索结束，迭代: {_iteration}, 温度: {_currentTemperature:F6}, 最佳分数: {_bestScore:F4}");
+                _logger.LogInformation($"Search ended, iteration: {_currentIteration}, temperature: {_currentTemperature:F6}, best score: {_bestScore:F4}");
 
-                // 记录停止原因
-                if (_iteration >= _maxIterations)
+                // Log stop reason
+                if (_currentIteration >= _maxIterations)
                 {
-                    _logger.LogInformation("停止原因: 达到最大迭代次数");
+                    _logger.LogInformation("Stop reason: Reached maximum iterations");
                 }
                 else if (_currentTemperature <= _finalTemperature)
                 {
-                    _logger.LogInformation("停止原因: 温度达到最低值");
+                    _logger.LogInformation("Stop reason: Temperature reached minimum value");
                 }
                 else if (_noImprovementCount >= _maxNoImprovementIterations)
                 {
-                    _logger.LogInformation($"停止原因: {_noImprovementCount} 次迭代无改进");
+                    _logger.LogInformation($"Stop reason: No improvement for {_noImprovementCount} iterations");
                 }
             }
 
@@ -179,81 +219,81 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.LS
         }
 
         /// <summary>
-        /// 确定是否应接受新解
+        /// Determine whether to accept new solution
         /// </summary>
-        /// <param name="currentScore">当前解的评分</param>
-        /// <param name="newScore">新解的评分</param>
-        /// <returns>是否应接受新解</returns>
+        /// <param name="currentScore">Current solution score</param>
+        /// <param name="newScore">New solution score</param>
+        /// <returns>Whether to accept new solution</returns>
         public bool ShouldAccept(double currentScore, double newScore)
         {
-            // 如果新解更好，总是接受
+            // Always accept better solutions
             if (newScore >= currentScore)
             {
                 return true;
             }
 
-            // 根据温度和评分差异计算接受概率
+            // Calculate acceptance probability based on temperature and score difference
             double scoreDifference = newScore - currentScore;
             double acceptanceProbability = Math.Exp(scoreDifference / _currentTemperature);
 
-            // 根据概率决定是否接受
+            // Decide whether to accept based on probability
             bool shouldAccept = _random.NextDouble() < acceptanceProbability;
 
-            // 记录详细日志
-            if (_iteration % 100 == 0 || shouldAccept)
+            // Log detailed information
+            if (_currentIteration % 100 == 0 || shouldAccept)
             {
-                _logger.LogDebug($"当前分数: {currentScore:F4}, 新分数: {newScore:F4}, " +
-                                $"差异: {scoreDifference:F4}, 接受概率: {acceptanceProbability:F4}, " +
-                                $"接受: {shouldAccept}");
+                _logger.LogDebug($"Current score: {currentScore:F4}, new score: {newScore:F4}, " +
+                                $"difference: {scoreDifference:F4}, acceptance probability: {acceptanceProbability:F4}, " +
+                                $"accepted: {shouldAccept}");
             }
 
             return shouldAccept;
         }
 
         /// <summary>
-        /// 调整搜索参数（自适应）
+        /// Adjust search parameters (adaptive)
         /// </summary>
         public void AdjustParameters()
         {
-            // 根据搜索进展调整参数
-            double progress = Progress;
+            // Adjust parameters based on search progress
+            _progress = _currentIteration / (double)_maxIterations;
 
-            // 早期搜索：高温阶段
-            if (progress < 0.2)
+            // Early search: High temperature phase
+            if (_progress < 0.2)
             {
-                // 保持较高接受率，鼓励探索
+                // Maintain high acceptance rate to encourage exploration
                 if (_noImprovementCount > 20)
                 {
-                    // 如果长时间无改进，提高温度
+                    // If no improvement for long time, increase temperature
                     _currentTemperature = Math.Min(_initialTemperature, _currentTemperature / _coolingRate);
                     _noImprovementCount = 0;
 
-                    _logger.LogDebug($"提高温度以增加探索, 新温度: {_currentTemperature:F6}");
+                    _logger.LogDebug($"Increased temperature to encourage exploration, new temperature: {_currentTemperature:F6}");
                 }
             }
-            // 中期搜索：逐渐降温
-            else if (progress < 0.7)
+            // Mid search: Gradual cooling
+            else if (_progress < 0.7)
             {
-                // 标准冷却，不做额外调整
+                // Standard cooling, no additional adjustments
             }
-            // 后期搜索：低温阶段
+            // Late search: Low temperature phase
             else
             {
                 if (_noImprovementCount > 50)
                 {
-                    // 如果较长时间无改进，可能陷入局部最优
-                    // 临时升高温度
+                    // If no improvement for long time, might be stuck in local optimum
+                    // Temporarily increase temperature
                     _currentTemperature = Math.Min(_initialTemperature * 0.5, _currentTemperature / (_coolingRate * _coolingRate));
                     _noImprovementCount = 0;
 
-                    _logger.LogDebug($"临时升高温度以跳出局部最优, 新温度: {_currentTemperature:F6}");
+                    _logger.LogDebug($"Temporarily increased temperature to escape local optimum, new temperature: {_currentTemperature:F6}");
                 }
                 else if (_noImprovementCount == 0 && _currentTemperature > _finalTemperature * 10)
                 {
-                    // 如果找到更好解，可以加速冷却
+                    // If found better solution, can accelerate cooling
                     _currentTemperature *= _coolingRate;
 
-                    _logger.LogDebug($"加速冷却以集中搜索, 新温度: {_currentTemperature:F6}");
+                    _logger.LogDebug($"Accelerated cooling to focus search, new temperature: {_currentTemperature:F6}");
                 }
             }
         }

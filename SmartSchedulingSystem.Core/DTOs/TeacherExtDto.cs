@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SmartSchedulingSystem.Core.DTOs
 {
-    // 扩展版TeacherDto，用于排课服务
+    // Extended version of TeacherDto, used for scheduling service
     public class TeacherExtDto
     {
         public int Id { get; set; }

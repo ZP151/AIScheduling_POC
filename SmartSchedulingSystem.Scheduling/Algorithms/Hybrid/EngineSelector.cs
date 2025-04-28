@@ -5,25 +5,25 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
-    /// 根据问题特征选择或分配计算资源给不同引擎的工具
+    /// Tool for selecting or allocating computational resources to different engines based on problem characteristics
     /// </summary>
     public class EngineSelector
     {
         /// <summary>
-        /// 根据问题特征确定不同引擎的权重
+        /// Determine weights for different engines based on problem characteristics
         /// </summary>
         public EngineWeights DetermineWeights(SchedulingProblem problem)
         {
-            // 分析问题特征
+            // Analyze problem characteristics
             var features = ExtractProblemFeatures(problem);
 
-            // 根据特征计算各引擎权重
+            // Calculate engine weights based on features
             var weights = new EngineWeights
             {
-                // 硬约束比例高的问题更适合CP引擎
+                // Problems with high hard constraint ratio are more suitable for CP engine
                 CPWeight = 0.3 + 0.5 * features.HardConstraintRatio,
 
-                // 默认LS引擎权重，确保CP+LS=1
+                // Default LS engine weight, ensure CP+LS=1
                 LSWeight = 0.7 - 0.5 * features.HardConstraintRatio
             };
 
@@ -31,37 +31,37 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 提取问题特征
+        /// Extract problem features
         /// </summary>
         private ProblemFeatures ExtractProblemFeatures(SchedulingProblem problem)
         {
             var features = new ProblemFeatures();
 
-            // 计算约束比例
+            // Calculate constraint ratio
             if (problem.Constraints != null && problem.Constraints.Count > 0)
             {
                 int hardConstraintCount = problem.Constraints.Count(c => c.IsHard);
                 features.HardConstraintRatio = (double)hardConstraintCount / problem.Constraints.Count;
             }
 
-            // 计算问题规模
+            // Calculate problem size
             features.ProblemSize = CalculateProblemSize(problem);
 
-            // 评估约束复杂度
+            // Evaluate constraint complexity
             features.ConstraintComplexity = CalculateConstraintComplexity(problem);
 
             return features;
         }
 
         /// <summary>
-        /// 计算问题规模(0-1范围)
+        /// Calculate problem size (0-1 range)
         /// </summary>
         private double CalculateProblemSize(SchedulingProblem problem)
         {
-            // 简单版：根据课程数量估算
+            // Simple version: Estimate based on course count
             int courseCount = problem.CourseSections?.Count ?? 0;
 
-            // 定义课程数量阈值
+            // Define course count thresholds
             const int smallProblem = 20;
             const int mediumProblem = 100;
             const int largeProblem = 500;
@@ -82,21 +82,21 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 计算约束复杂度(0-1范围)
+        /// Calculate constraint complexity (0-1 range)
         /// </summary>
         private double CalculateConstraintComplexity(SchedulingProblem problem)
         {
-            // 简化版：根据约束数量和类型估算
+            // Simplified version: Estimate based on constraint count and types
 
-            double complexityScore = 0.5; // 默认中等复杂度
+            double complexityScore = 0.5; // Default medium complexity
 
             if (problem.Constraints != null && problem.Constraints.Count > 0)
             {
-                // 约束数量因子(0-0.5)
+                // Constraint count factor (0-0.5)
                 int constraintCount = problem.Constraints.Count;
                 double countFactor = Math.Min(0.5, constraintCount / 20.0);
 
-                // 约束类型多样性因子(0-0.5)
+                // Constraint type diversity factor (0-0.5)
                 var constraintTypes = problem.Constraints.Select(c => c.GetType().Name).Distinct().Count();
                 double diversityFactor = Math.Min(0.5, constraintTypes / 10.0);
 
@@ -108,38 +108,38 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
     }
 
     /// <summary>
-    /// 表示各引擎的权重
+    /// Represents weights for each engine
     /// </summary>
     public class EngineWeights
     {
         /// <summary>
-        /// CP引擎权重
+        /// CP engine weight
         /// </summary>
         public double CPWeight { get; set; } = 0.5;
 
         /// <summary>
-        /// LS引擎权重
+        /// LS engine weight
         /// </summary>
         public double LSWeight { get; set; } = 0.5;
     }
 
     /// <summary>
-    /// 表示问题特征
+    /// Represents problem features
     /// </summary>
     public class ProblemFeatures
     {
         /// <summary>
-        /// 硬约束比例
+        /// Hard constraint ratio
         /// </summary>
         public double HardConstraintRatio { get; set; } = 0.5;
 
         /// <summary>
-        /// 问题规模(0-1)
+        /// Problem size (0-1)
         /// </summary>
         public double ProblemSize { get; set; } = 0.5;
 
         /// <summary>
-        /// 约束复杂度(0-1)
+        /// Constraint complexity (0-1)
         /// </summary>
         public double ConstraintComplexity { get; set; } = 0.5;
     }

@@ -9,7 +9,7 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 {
     /// <summary>
-    /// 分析解的约束满足情况，用于指导局部搜索
+    /// Analyzes constraint satisfaction of solutions, used to guide local search
     /// </summary>
     public class ConstraintAnalyzer
     {
@@ -26,7 +26,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 分析解的约束满足情况
+        /// Analyze constraint satisfaction of a solution
         /// </summary>
         public ConstraintAnalysisResult AnalyzeSolution(SchedulingSolution solution)
         {
@@ -35,65 +35,65 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
             try
             {
-                _logger.LogDebug("开始分析解的约束满足情况");
+                _logger.LogDebug("Starting to analyze constraint satisfaction");
 
                 var result = new ConstraintAnalysisResult();
 
-                // 获取所有软约束
+                // Get all soft constraints
                 var softConstraints = _constraintManager.GetSoftConstraints();
 
-                // 分析各约束的满足情况
+                // Analyze satisfaction of each constraint
                 foreach (var constraint in softConstraints)
                 {
                     try
                     {
                         var (score, conflicts) = constraint.Evaluate(solution);
 
-                        // 记录满足度和冲突
+                        // Record satisfaction and conflicts
                         result.ConstraintSatisfaction[constraint] = score;
                         result.ConstraintConflicts[constraint] = conflicts;
 
-                        _logger.LogDebug($"约束 '{constraint.Name}' 满足度: {score:F4}, 冲突数: {conflicts?.Count ?? 0}");
+                        _logger.LogDebug($"Constraint '{constraint.Name}' satisfaction: {score:F4}, conflict count: {conflicts?.Count ?? 0}");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, $"评估约束 '{constraint.Name}' 时出错");
-                        // 出错的约束记为低满足度，优先优化
+                        _logger.LogError(ex, $"Error evaluating constraint '{constraint.Name}'");
+                        // Mark constraint with error as low satisfaction, prioritize optimization
                         result.ConstraintSatisfaction[constraint] = 0.0;
                         result.ConstraintConflicts[constraint] = new List<SchedulingConflict>();
                     }
                 }
 
-                _logger.LogDebug($"约束分析完成，共 {softConstraints.Count} 个软约束");
+                _logger.LogDebug($"Constraint analysis completed, total {softConstraints.Count} soft constraints");
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "分析约束满足情况时出错");
+                _logger.LogError(ex, "Error analyzing constraint satisfaction");
                 throw;
             }
         }
     }
 
     /// <summary>
-    /// 表示约束分析结果
+    /// Represents constraint analysis results
     /// </summary>
     public class ConstraintAnalysisResult
     {
         /// <summary>
-        /// 各约束的满足度(0-1)
+        /// Satisfaction level of each constraint (0-1)
         /// </summary>
         public Dictionary<IConstraint, double> ConstraintSatisfaction { get; } = new Dictionary<IConstraint, double>();
 
         /// <summary>
-        /// 各约束的冲突
+        /// Conflicts of each constraint
         /// </summary>
         public Dictionary<IConstraint, List<SchedulingConflict>> ConstraintConflicts { get; } =
             new Dictionary<IConstraint, List<SchedulingConflict>>();
 
         /// <summary>
-        /// 获取满足度最低的约束
+        /// Get the constraint with lowest satisfaction
         /// </summary>
         public IConstraint GetWeakestConstraint()
         {
@@ -102,26 +102,26 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 return null;
             }
 
-            // 根据满足度和权重计算优化优先级
+            // Calculate optimization priority based on satisfaction and weight
             var prioritizedConstraints = ConstraintSatisfaction
                 .Select(kv => new
                 {
                     Constraint = kv.Key,
-                    // 计算加权优先级: (1-满足度) * 权重
-                    // 满足度越低，权重越高，优先级越高
+                    // Calculate weighted priority: (1-satisfaction) * weight
+                    // Lower satisfaction and higher weight means higher priority
                     Priority = (1.0 - kv.Value) * kv.Key.Weight
                 })
-                .Where(item => item.Priority > 0) // 只考虑未完全满足的约束
+                .Where(item => item.Priority > 0) // Only consider constraints not fully satisfied
                 .OrderByDescending(item => item.Priority)
                 .ToList();
 
             if (prioritizedConstraints.Count == 0)
             {
-                return null; // 所有约束都完全满足
+                return null; // All constraints fully satisfied
             }
 
-            // 从前3个优先级最高的约束中随机选择一个
-            // 这样可以避免总是优化同一个约束，增加搜索多样性
+            // Randomly select from top 3 highest priority constraints
+            // This avoids always optimizing the same constraint, increasing search diversity
             int selectCount = Math.Min(3, prioritizedConstraints.Count);
 
             if (selectCount == 1)
@@ -136,7 +136,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
         }
 
         /// <summary>
-        /// 获取与指定约束相关的课程分配
+        /// Get course assignments affected by specified constraint
         /// </summary>
         public List<SchedulingAssignment> GetAssignmentsAffectedByConstraint(
             SchedulingSolution solution,
@@ -147,12 +147,12 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                 return new List<SchedulingAssignment>();
             }
 
-            // 如果约束没有冲突，随机选择分配
+            // If constraint has no conflicts, randomly select assignments
             if (!ConstraintConflicts.TryGetValue(constraint, out var conflicts) ||
                 conflicts == null ||
                 conflicts.Count == 0)
             {
-                // 如果没有明确的冲突信息，随机选择2-3个分配
+                // If no clear conflict information, randomly select 2-3 assignments
                 int count = Math.Min(3, solution.Assignments.Count);
 
                 return solution.Assignments
@@ -161,7 +161,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     .ToList();
             }
 
-            // 获取所有冲突中涉及的分配ID
+            // Get all assignment IDs involved in conflicts
             var affectedSectionIds = new HashSet<int>();
             var affectedTeacherIds = new HashSet<int>();
             var affectedClassroomIds = new HashSet<int>();
@@ -169,7 +169,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
 
             foreach (var conflict in conflicts)
             {
-                // 收集冲突中涉及的所有实体ID
+                // Collect all entity IDs involved in conflicts
                 if (conflict.InvolvedEntities != null)
                 {
                     if (conflict.InvolvedEntities.TryGetValue("Sections", out var sections))
@@ -185,13 +185,13 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                             affectedClassroomIds.Add(id);
                 }
 
-                // 收集涉及的时间槽
+                // Collect involved time slots
                 if (conflict.InvolvedTimeSlots != null)
                     foreach (var id in conflict.InvolvedTimeSlots)
                         affectedTimeSlotIds.Add(id);
             }
 
-            // 找出与这些ID相关的所有分配
+            // Find all assignments related to these IDs
             var affectedAssignments = solution.Assignments
                 .Where(a =>
                     affectedSectionIds.Contains(a.SectionId) ||
@@ -200,7 +200,7 @@ namespace SmartSchedulingSystem.Scheduling.Algorithms.Hybrid
                     affectedTimeSlotIds.Contains(a.TimeSlotId))
                 .ToList();
 
-            // 如果没有找到相关分配，随机选择
+            // If no related assignments found, randomly select
             if (affectedAssignments.Count == 0)
             {
                 int count = Math.Min(3, solution.Assignments.Count);

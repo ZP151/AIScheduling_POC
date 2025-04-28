@@ -63,28 +63,28 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
   const [error, setError] = useState(null);
   const [availableSchedules, setAvailableSchedules] = useState([]);
   
-  // 添加冲突面板展开/折叠状态
+  // Add conflict panel expansion/collapse status
   const [conflictsPanelExpanded, setConflictsPanelExpanded] = useState(false);
   const [aiAnalysisExpanded, setAiAnalysisExpanded] = useState(false);
   
-  // 添加加载状态和冲突分析状态
+  // Add loading status and conflict analysis status
   const [analyzingConflict, setAnalyzingConflict] = useState(false);
   const [analyzedConflictId, setAnalyzedConflictId] = useState(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [conflictToResolve, setConflictToResolve] = useState(null);
   const [solutionToApply, setSolutionToApply] = useState(null);
 
-  // 教师冲突和教室冲突状态
+  // Teacher conflict and classroom conflict status
   const [teacherConflicts, setTeacherConflicts] = useState([]);
   const [classroomConflicts, setClassroomConflicts] = useState([]);
 
-  // 添加排课历史记录状态
+  // Add schedule history record status
   const [scheduleHistory, setScheduleHistory] = useState([]);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [statusHistoryOpen, setStatusHistoryOpen] = useState(false);
   const [selectedScheduleHistory, setSelectedScheduleHistory] = useState(null);
 
-  // 添加调试辅助函数
+  // Add debugging helper function
   const debugObject = (obj) => {
     console.log(JSON.stringify(obj, null, 2));
   };
@@ -102,11 +102,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       )
     );
     
-    // 检测冲突类型，可以同时处理多种冲突
+    // Detect conflict type, can handle multiple conflicts at once
     const isTeacherConflict = conflictId.toString().includes('teacher');
     const isClassroomConflict = conflictId.toString().includes('classroom');
     
-    // 更新教师冲突状态
+    // Update teacher conflict status
     if (isTeacherConflict) {
       setTeacherConflicts(prevConflicts => 
         prevConflicts.map(conflict => 
@@ -117,7 +117,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       );
     }
     
-    // 更新教室冲突状态
+    // Update classroom conflict status
     if (isClassroomConflict) {
       setClassroomConflicts(prevConflicts => 
         prevConflicts.map(conflict => 
@@ -128,9 +128,9 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       );
     }
     
-    // 如果是组合冲突（即既包含教师冲突又包含教室冲突），则同时更新两种状态
+    // If it is a combined conflict (i.e., both teacher and classroom conflicts), update both statuses simultaneously
     if (conflictId.toString().includes('combined')) {
-      // 更新教师冲突
+      // Update teacher conflict
       setTeacherConflicts(prevConflicts => 
         prevConflicts.map(conflict => 
           conflict.relatedId === conflictId || conflict.relatedId?.toString() === conflictId.toString()
@@ -139,7 +139,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
         )
       );
       
-      // 更新教室冲突
+      // Update classroom conflict
       setClassroomConflicts(prevConflicts => 
         prevConflicts.map(conflict => 
           conflict.relatedId === conflictId || conflict.relatedId?.toString() === conflictId.toString()
@@ -159,37 +159,37 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
     alert(`Test environment: Solution applied successfully! In production, the system will send a request to the server and process actual constraints.`);
   };
   
-  // 处理确认应用解决方案
+  // Handle confirm application solution
   const handleConfirmApplySolution = () => {
     if (conflictToResolve && solutionToApply) {
-      // 在实际应用中，会调用API
-      console.log("应用解决方案...", solutionToApply, "到冲突：", conflictToResolve.id);
+      // In actual application, the API will be called
+      console.log("Applying solution...", solutionToApply, "to conflict:", conflictToResolve.id);
       
-      // 更新本地状态
+      // Update local status
       handleConflictResolved(solutionToApply, conflictToResolve.id);
     }
   };
   
-  // 处理取消应用解决方案
+  // Handle cancel application solution
   const handleCancelApplySolution = () => {
     setConfirmDialogOpen(false);
     setConflictToResolve(null);
     setSolutionToApply(null);
   };
   
-  // 处理分析冲突
+  // Handle analyze conflict
   const handleAnalyzeConflict = (conflictId) => {
     setAnalyzingConflict(true);
     setAnalyzedConflictId(null);
     
-    // 模拟分析延迟
+    // Simulate analysis delay
     setTimeout(() => {
       setAnalyzingConflict(false);
       setAnalyzedConflictId(conflictId);
     }, 1000);
   };
   
-  // 处理应用解决方案前的确认
+  // Handle apply solution confirmation
   const handleApplySolution = (solution, conflict) => {
     setConflictToResolve(conflict);
     setSolutionToApply(solution);
@@ -243,7 +243,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
     }
   ]);
 
-  // 获取排课数据
+  // Get schedule data
   const fetchScheduleData = async (id) => {
     if (!id) return;
     
@@ -251,22 +251,22 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
     setError(null);
     
     try {
-      // 使用API服务获取排课数据
+      // Use API service to get schedule data
       const scheduleData = await getScheduleById(id);
       setSchedule(scheduleData);
       
-      // 如果是第一次加载并且没有可用排课列表，使用传入的scheduleResults
+      // If it is the first load and there is no available schedule list, use the incoming scheduleResults
       if (availableSchedules.length === 0 && scheduleResults && scheduleResults.length > 0) {
-        // 确保每个排课方案都有状态和状态历史字段
+        // Ensure each schedule has status and status history fields
         const schedulesWithHistory = scheduleResults.map(result => {
-          // 确保状态值存在
+          // Ensure status value exists
           const updatedResult = {
             ...result,
             status: result.status || 'Generated'
           };
           
           if (!updatedResult.statusHistory) {
-            // 创建默认的状态历史
+            // Create default status history
             updatedResult.statusHistory = [{
               status: updatedResult.status,
               timestamp: updatedResult.createdAt || new Date().toISOString(),
@@ -276,43 +276,43 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           return updatedResult;
         });
         
-        // 按创建时间降序排序
+        // Sort by creation time in descending order
         schedulesWithHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         
         setAvailableSchedules(schedulesWithHistory);
       }
     } catch (err) {
-      console.error('获取排课数据失败:', err);
+      console.error('Failed to get schedule data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 当ID变化时获取数据
+  // When ID changes, get data
   useEffect(() => {
-    // 如果传入的scheduleResults有数据，使用它
+    // If the incoming scheduleResults has data, use it
     if (scheduleResults && scheduleResults.length > 0) {
-      // 如果没有选中特定的排课方案ID，默认选中第一个
+      // If there is no selected specific schedule ID, default to the first one
       if (!selectedScheduleId && scheduleResults.length > 0) {
         setSelectedScheduleId(scheduleResults[0].id);
       }
       
-      // 获取选中的排课方案或默认第一个
+      // Get the selected schedule or default to the first one
       const selectedResult = scheduleResults.find(r => r.id === selectedScheduleId) || scheduleResults[0];
       
-      // 确保选中的排课方案有正确的状态
+      // Ensure the selected schedule has the correct status
       const updatedResult = {
         ...selectedResult,
         status: selectedResult.status || 'Generated'
       };
       
-      // 设置当前查看的排课方案
+      // Set the current viewed schedule
       setSchedule(updatedResult);
       
-      // 确保每个排课方案都有状态和状态历史字段
+      // Ensure each schedule has status and status history fields
       const schedulesWithHistory = scheduleResults.map(result => {
-        // 确保状态值存在
+        // Ensure status value exists
         const updatedSchedule = {
           ...result,
           status: result.status || 'Generated'
@@ -331,22 +331,22 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       
       setAvailableSchedules(schedulesWithHistory);
     } else {
-      // 否则从API获取
+      // Otherwise, get from API
       fetchScheduleData(selectedScheduleId || scheduleId);
     }
   }, [scheduleId, selectedScheduleId, scheduleResults]);
 
-  // 当所选ID变化时更新
+  // When the selected ID changes, update
   useEffect(() => {
     if (selectedScheduleId && (!scheduleResults || scheduleResults.length === 0)) {
       fetchScheduleData(selectedScheduleId);
     }
   }, [selectedScheduleId]);
 
-  // 添加调试日志，检查各时间段的课程分布
+  // Add debugging log, check the course distribution in each time period
   useEffect(() => {
     if (schedule && schedule.details) {
-      // 按时间段统计课程数量
+      // Count the number of courses in each time period
       const stats = {
         morning: 0,
         afternoon: 0,
@@ -368,100 +368,75 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
         }
       });
       
-      // 输出统计信息
-      console.log("课程时间段分布:");
-      console.log(`  早上: ${stats.morning} 门课程 (${(stats.morning / stats.total * 100).toFixed(1)}%)`);
-      console.log(`  下午: ${stats.afternoon} 门课程 (${(stats.afternoon / stats.total * 100).toFixed(1)}%)`);
-      console.log(`  晚上: ${stats.evening} 门课程 (${(stats.evening / stats.total * 100).toFixed(1)}%)`);
+      // Output statistics
+      console.log("Course time period distribution:");
+      console.log(`  Morning: ${stats.morning} courses (${(stats.morning / stats.total * 100).toFixed(1)}%)`);
+      console.log(`  Afternoon: ${stats.afternoon} courses (${(stats.afternoon / stats.total * 100).toFixed(1)}%)`);
+      console.log(`  Evening: ${stats.evening} courses (${(stats.evening / stats.total * 100).toFixed(1)}%)`);
     }
   }, [schedule]);
 
-  // 添加调试日志，在组件加载时查看数据结构
-  // const [hasInjectedEveningCourses, setHasInjectedEveningCourses] = useState(false);
+  
 
-  /*
-  useEffect(() => {
-    if (schedule && schedule.details && !hasInjectedEveningCourses) {
-      console.log("检查课表数据中是否有晚上课程...");
-      
-      // 特别检查晚上时间段的课程
-      const eveningCourses = schedule.details.filter(item => 
-        item.startTime && (item.startTime.includes("19") || item.startTime.includes("21"))
-      );
-      
-      if (eveningCourses.length > 0) {
-        console.log(`找到 ${eveningCourses.length} 门晚上时间段的课程`);
-        setHasInjectedEveningCourses(true); // 标记已经有了晚上课程，不需要再注入
-      } else {
-        console.log("没有找到晚上时间段的课程，注入模拟数据");
-        
-        // 没有找到晚上课程，注入模拟数据
-        injectMockEveningCourses();
-        setHasInjectedEveningCourses(true); // 标记已经注入了晚上课程
-      }
-    }
-  }, [schedule, hasInjectedEveningCourses]);
-  */
-
-  // 注入模拟的晚上课程数据
+  // Inject mock evening course data
   const injectMockEveningCourses = () => {
     if (!schedule || !schedule.details || schedule.details.length === 0) return;
     
-    // 复制一个现有课程作为模板
+    // Copy an existing course as a template
     const templateCourse = {...schedule.details[0]};
     
-    // 周一晚上19:00-20:30的课程
+    // Monday evening 19:00-20:30 course
     const mondayEveningCourse = {
       ...templateCourse,
       courseCode: "CS601",
-      courseName: "晚间编程实验室",
+      courseName: "Evening Programming Lab",
       teacherName: "Prof. Night",
       classroom: "Building A-101",
-      day: 1, // 周一
+      day: 1, // Monday
       dayName: "Monday",
       startTime: "19:00",
       endTime: "20:30"
     };
     
-    // 周二晚上21:00-22:30的课程
+    // Tuesday evening 21:00-22:30 course
     const tuesdayEveningCourse = {
       ...templateCourse,
       courseCode: "CS602",
-      courseName: "高级夜间编程",
+      courseName: "Advanced Evening Programming",
       teacherName: "Prof. Moon",
       classroom: "Building B-202",
-      day: 2, // 周二
+      day: 2, // Tuesday
       dayName: "Tuesday",
       startTime: "21:00",
       endTime: "22:30"
     };
     
-    // 周四晚上19:00-20:30的课程
+    // Thursday evening 19:00-20:30 course
     const thursdayEveningCourse = {
       ...templateCourse,
       courseCode: "CS603",
-      courseName: "夜间算法设计",
+      courseName: "Evening Algorithm Design",
       teacherName: "Prof. Star",
       classroom: "Building C-303",
-      day: 4, // 周四
+      day: 4, // Thursday
       dayName: "Thursday",
       startTime: "19:00",
       endTime: "20:30"
     };
     
-    // 添加到课程列表
+    // Add to course list
     const updatedDetails = [...schedule.details, mondayEveningCourse, tuesdayEveningCourse, thursdayEveningCourse];
     
-    // 创建更新后的课表对象
+    // Create updated schedule object
     const updatedSchedule = {
       ...schedule,
       details: updatedDetails
     };
     
-    // 更新状态
+    // Update status
     setSchedule(updatedSchedule);
     
-    console.log("已注入模拟晚上课程数据:", [mondayEveningCourse, tuesdayEveningCourse, thursdayEveningCourse]);
+    console.log("Mock evening course data injected:", [mondayEveningCourse, tuesdayEveningCourse, thursdayEveningCourse]);
   };
 
   const handleResultsTabChange = (event, newValue) => {
@@ -559,13 +534,13 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
   useEffect(() => {
     if (!schedule || !schedule.details) return;
     
-    // 检查教师冲突
+    // Check teacher conflicts
     const newTeacherConflicts = [];
     
-    // 按教师和时间分组
+    // Group by teacher and time
     const teacherGroups = {};
     
-    // 收集所有课程按教师分组
+    // Collect all courses grouped by teacher
     schedule.details.forEach(item => {
       const key = `${item.teacherName}-${item.dayName}-${item.startTime}-${item.endTime}`;
       if (!teacherGroups[key]) {
@@ -574,11 +549,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       teacherGroups[key].push(item);
     });
     
-    // 只有当同一教师在同一时间段有多个课程时才认为是冲突 
+    // Only consider conflicts when there are multiple courses from the same teacher at the same time
     Object.entries(teacherGroups).forEach(([key, courses]) => {
       if (courses.length > 1) {
         const conflictId = `teacher-${key}-${schedule.id}`;
-        // 检查这个冲突是否已经在状态中被标记为已解决
+        // Check if this conflict has already been marked as resolved in the state
         const existingConflict = teacherConflicts.find(c => c.id === conflictId);
         const resolvedStatusInState = existingConflict ? existingConflict.status === 'Resolved' : false;
         
@@ -588,18 +563,18 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           description: `${courses[0].teacherName} has ${courses.length} courses scheduled at the same time (${courses[0].dayName}, ${courses[0].startTime}-${courses[0].endTime})`,
           status: resolvedStatusInState ? 'Resolved' : 'Unresolved',
           involvedCourses: courses,
-          scheduleId: schedule.id // 关联到特定排课方案
+          scheduleId: schedule.id // Associated with a specific schedule plan
         });
       }
     });
 
-    // 检查教室冲突
+    // Check classroom conflicts
     const newClassroomConflicts = [];
     
-    // 按教室和时间分组
+    // Group by classroom and time
     const classroomGroups = {};
     
-    // 收集所有课程按教室分组
+    // Collect all courses grouped by classroom
     schedule.details.forEach(item => {
       const key = `${item.classroom}-${item.dayName}-${item.startTime}-${item.endTime}`;
       if (!classroomGroups[key]) {
@@ -608,11 +583,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       classroomGroups[key].push(item);
     });
     
-    // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+    // Only consider conflicts when there are multiple courses from the same classroom at the same time
     Object.entries(classroomGroups).forEach(([key, courses]) => {
       if (courses.length > 1) {
         const conflictId = `classroom-${key}-${schedule.id}`;
-        // 检查这个冲突是否已经在状态中被标记为已解决
+        // Check if this conflict has already been marked as resolved in the state
         const existingConflict = classroomConflicts.find(c => c.id === conflictId);
         const resolvedStatusInState = existingConflict ? existingConflict.status === 'Resolved' : false;
         
@@ -622,14 +597,14 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           description: `${courses[0].classroom} has ${courses.length} courses scheduled at the same time (${courses[0].dayName}, ${courses[0].startTime}-${courses[0].endTime})`,
           status: resolvedStatusInState ? 'Resolved' : 'Unresolved',
           involvedCourses: courses,
-          scheduleId: schedule.id // 关联到特定排课方案
+          scheduleId: schedule.id // Associated with a specific schedule plan
         });
       }
     });
     
-    // 更新教师冲突状态
+    // Update teacher conflict status
     setTeacherConflicts(prevConflicts => {
-      // 保持已解决状态
+      // Keep resolved status
       const updatedConflicts = newTeacherConflicts.map(conflict => {
         const existingConflict = prevConflicts.find(c => c.id === conflict.id);
         if (existingConflict && existingConflict.status === 'Resolved') {
@@ -640,9 +615,9 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
       return updatedConflicts;
     });
     
-    // 更新教室冲突状态
+    // Update classroom conflict status
     setClassroomConflicts(prevConflicts => {
-      // 保持已解决状态
+      // Keep resolved status
       const updatedConflicts = newClassroomConflicts.map(conflict => {
         const existingConflict = prevConflicts.find(c => c.id === conflict.id);
         if (existingConflict && existingConflict.status === 'Resolved') {
@@ -656,25 +631,25 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
 
   // Update availableSchedules status management
   const handleScheduleStatusChange = (newStatus) => {
-    // 创建状态更新记录
+    // Create status update record
     const statusUpdate = {
       status: newStatus,
       timestamp: new Date().toISOString(),
       userId: 'Current User'
     };
     
-    // 更新当前选中排课方案的状态历史
+    // Update the status history of the currently selected schedule plan
     let updatedStatusHistory = schedule.statusHistory || [];
     updatedStatusHistory = [...updatedStatusHistory, statusUpdate];
     
-    // 创建新的排课对象（不可变更新）
+    // Create a new schedule object (immutable update)
     const updatedSchedule = {
       ...schedule, 
       status: newStatus,
       statusHistory: updatedStatusHistory
     };
     
-    // 更新当前显示的排课方案
+    // Update the currently displayed schedule plan
     setSchedule(updatedSchedule);
     
     // 更新可用排课方案列表中的相应方案
@@ -951,15 +926,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      // Filter courses for the current time slot and day, using more relaxed matching conditions
                       const coursesInCell = schedule.details.filter(item => {
-                        // 特殊处理晚上时间段的匹配逻辑
+                        // Special handling for matching logic in evening time slots
                         if (startTime === "19:00" || startTime === "21:00") {
-                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          // Evening time slots use relaxed matching, only the start of the time slot needs to match
                           const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
                           const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
                           
-                          // 因为startTime可能是"19:00"或"21:00"
+                          // Because startTime might be "19:00" or "21:00"
                           const matchesStartTime = 
                             (startTime === "19:00" && itemStartsAt19) || 
                             (startTime === "21:00" && itemStartsAt21);
@@ -968,7 +943,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                             item.day === dayNum &&
                             (!item.weekSpecific || item.week === currentWeek);
                         } else {
-                          // 其他时间段仍然使用精确匹配
+                          // Other time slots still use exact matching
                           return item.startTime === startTime && 
                             item.endTime === endTime && 
                             item.day === dayNum &&
@@ -976,15 +951,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                         }
                       });
                       
-                      // 调试信息 - 检查晚上时间段是否有课程
+                      // Debug information - Check if there are courses in the evening time slots
                       if (startTime === "19:00" || startTime === "21:00") {
-                        // 只在第一次渲染时显示日志
+                        // Only log on the first render
                         if (dayNum === 0 && !window.hasLoggedEveningSlots) {
-                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          console.log(`Check the number of courses in the time slot ${startTime}-${endTime}: ${coursesInCell.length}`);
                           window.hasLoggedEveningSlots = true;
                         }
                         
-                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        // Print all course times to see if there are matching issues, but only execute if no courses are found
                         if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
                           const possibleMatches = schedule.details.filter(item => 
                             item.day === dayNum &&
@@ -992,15 +967,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           );
                           
                           if (possibleMatches.length > 0) {
-                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            console.log(`Found possible matching evening courses, but not displayed in the time slot ${startTime}-${endTime}`);
                             window.hasLoggedEveningMatches = true;
                           }
                         }
                       }
                       
-                      // 检测同一教师在同一时间的冲突
+                      // Detect conflicts for the same teacher at the same time
                       const hasTeacherConflict = (() => {
-                        // 按教师名称分组
+                        // Group by teacher name
                         const teacherGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1010,13 +985,13 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           teacherGroups[course.teacherName].push(course);
                         });
                         
-                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same teacher has multiple courses in the same time slot
                         return Object.values(teacherGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 检测同一教室在同一时间的冲突
+                      // Detect conflicts for the same classroom at the same time
                       const hasClassroomConflict = (() => {
-                        // 按教室分组
+                        // Group by classroom
                         const classroomGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1026,11 +1001,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           classroomGroups[course.classroom].push(course);
                         });
                         
-                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same classroom has multiple courses in the same time slot
                         return Object.values(classroomGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 是否存在任何冲突
+                      // Check if there are any conflicts
                       const hasConflict = hasTeacherConflict || hasClassroomConflict;
                       
                       return (
@@ -1038,7 +1013,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           {coursesInCell.length > 0 ? (
                             <Box>
                               {coursesInCell.length === 1 ? (
-                                // 单课程显示
+                                // Display single course
                                 <>
                                   <Typography variant="body2" fontWeight="bold">
                                     {coursesInCell[0].courseName}
@@ -1060,7 +1035,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                   </Box>
                                 </>
                               ) : (
-                                // 多课程显示 - 创建下拉效果
+                                // Display multiple courses - Create dropdown effect
                                 <Tooltip 
                                   title={
                                     <Box>
@@ -1088,11 +1063,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                     fullWidth 
                                     endIcon={<ExpandMoreIcon />}
                                     onClick={(e) => {
-                                      // 打开包含所有课程的对话框
+                                      // Open dialog with all courses
                                       setMultiCourseDialogOpen(true);
                                       setSelectedMultiCourses(coursesInCell);
                                     }}
-                                    // 如果有冲突，使用红色样式
+                                    // If there is a conflict, use red style
                                     sx={{ color: hasConflict ? 'error.main' : undefined, 
                                          borderColor: hasConflict ? 'error.main' : undefined }}
                                   >
@@ -1130,15 +1105,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      // Filter courses for the current time slot and day, using more relaxed matching conditions
                       const coursesInCell = schedule.details.filter(item => {
-                        // 特殊处理晚上时间段的匹配逻辑
+                        // Special handling for matching logic in evening time slots
                         if (startTime === "19:00" || startTime === "21:00") {
-                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          // Evening time slots use relaxed matching, only the start of the time slot needs to match
                           const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
                           const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
                           
-                          // 因为startTime可能是"19:00"或"21:00"
+                          // Because startTime might be "19:00" or "21:00"
                           const matchesStartTime = 
                             (startTime === "19:00" && itemStartsAt19) || 
                             (startTime === "21:00" && itemStartsAt21);
@@ -1147,7 +1122,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                             item.day === dayNum &&
                             (!item.weekSpecific || item.week === currentWeek);
                         } else {
-                          // 其他时间段仍然使用精确匹配
+                          // Other time slots still use exact matching
                           return item.startTime === startTime && 
                             item.endTime === endTime && 
                             item.day === dayNum &&
@@ -1155,15 +1130,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                         }
                       });
                       
-                      // 调试信息 - 检查晚上时间段是否有课程
+                      // Debug information - Check if there are courses in the evening time slots
                       if (startTime === "19:00" || startTime === "21:00") {
-                        // 只在第一次渲染时显示日志
+                        // Only log on the first render
                         if (dayNum === 0 && !window.hasLoggedEveningSlots) {
-                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          console.log(`Check the number of courses in the time slot ${startTime}-${endTime}: ${coursesInCell.length}`);
                           window.hasLoggedEveningSlots = true;
                         }
                         
-                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        // Print all course times to see if there are matching issues, but only execute if no courses are found
                         if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
                           const possibleMatches = schedule.details.filter(item => 
                             item.day === dayNum &&
@@ -1171,15 +1146,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           );
                           
                           if (possibleMatches.length > 0) {
-                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            console.log(`Found possible matching evening courses, but not displayed in the time slot ${startTime}-${endTime}`);
                             window.hasLoggedEveningMatches = true;
                           }
                         }
                       }
                       
-                      // 检测同一教师在同一时间的冲突
+                      // Detect conflicts for the same teacher at the same time
                       const hasTeacherConflict = (() => {
-                        // 按教师名称分组
+                        // Group by teacher name
                         const teacherGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1189,13 +1164,13 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           teacherGroups[course.teacherName].push(course);
                         });
                         
-                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same teacher has multiple courses in the same time slot
                         return Object.values(teacherGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 检测同一教室在同一时间的冲突
+                      // Detect conflicts for the same classroom at the same time
                       const hasClassroomConflict = (() => {
-                        // 按教室分组
+                        // Group by classroom
                         const classroomGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1205,11 +1180,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           classroomGroups[course.classroom].push(course);
                         });
                         
-                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same classroom has multiple courses in the same time slot
                         return Object.values(classroomGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 是否存在任何冲突
+                      // Check if there are any conflicts
                       const hasConflict = hasTeacherConflict || hasClassroomConflict;
                       
                       return (
@@ -1239,7 +1214,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                   </Box>
                                 </>
                               ) : (
-                                // 多课程显示 - 创建下拉效果
+                                // Display multiple courses - Create dropdown effect
                                 <Tooltip 
                                   title={
                                     <Box>
@@ -1267,11 +1242,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                     fullWidth 
                                     endIcon={<ExpandMoreIcon />}
                                     onClick={(e) => {
-                                      // 打开包含所有课程的对话框
+                                      // Open dialog with all courses
                                       setMultiCourseDialogOpen(true);
                                       setSelectedMultiCourses(coursesInCell);
                                     }}
-                                    // 如果有冲突，使用红色样式
+                                    // If there is a conflict, use red style
                                     sx={{ color: hasConflict ? 'error.main' : undefined, 
                                          borderColor: hasConflict ? 'error.main' : undefined }}
                                   >
@@ -1309,15 +1284,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     </TableCell>
                     {/* Sunday to Saturday (0-6) */}
                     {[0, 1, 2, 3, 4, 5, 6].map(dayNum => {
-                      // 筛选当前时间段和星期的课程，使用更宽松的匹配条件
+                      // Filter courses for the current time slot and day, using more relaxed matching conditions
                       const coursesInCell = schedule.details.filter(item => {
-                        // 特殊处理晚上时间段的匹配逻辑
+                        // Special handling for matching logic in evening time slots
                         if (startTime === "19:00" || startTime === "21:00") {
-                          // 晚上时段的匹配采用宽松匹配，只要时间段的开头匹配即可
+                          // Evening time slots use relaxed matching, only the start of the time slot needs to match
                           const itemStartsAt19 = item.startTime && item.startTime.startsWith("19");
                           const itemStartsAt21 = item.startTime && item.startTime.startsWith("21");
                           
-                          // 因为startTime可能是"19:00"或"21:00"
+                          // Because startTime might be "19:00" or "21:00"
                           const matchesStartTime = 
                             (startTime === "19:00" && itemStartsAt19) || 
                             (startTime === "21:00" && itemStartsAt21);
@@ -1326,7 +1301,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                             item.day === dayNum &&
                             (!item.weekSpecific || item.week === currentWeek);
                         } else {
-                          // 其他时间段仍然使用精确匹配
+                          // Other time slots still use exact matching
                           return item.startTime === startTime && 
                             item.endTime === endTime && 
                             item.day === dayNum &&
@@ -1334,15 +1309,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                         }
                       });
                       
-                      // 调试信息 - 检查晚上时间段是否有课程
+                      // Debug information - Check if there are courses in the evening time slots
                       if (startTime === "19:00" || startTime === "21:00") {
-                        // 只在第一次渲染时显示日志
+                        // Only log on the first render
                         if (dayNum === 0 && !window.hasLoggedEveningSlots) {
-                          console.log(`检查时间段 ${startTime}-${endTime} 的课程数量: ${coursesInCell.length}`);
+                          console.log(`Check the number of courses in the time slot ${startTime}-${endTime}: ${coursesInCell.length}`);
                           window.hasLoggedEveningSlots = true;
                         }
                         
-                        // 打印所有课程的时间，看看是否有匹配问题，但只有当找不到课程时才执行
+                        // Print all course times to see if there are matching issues, but only execute if no courses are found
                         if (coursesInCell.length === 0 && dayNum === 0 && !window.hasLoggedEveningMatches) {
                           const possibleMatches = schedule.details.filter(item => 
                             item.day === dayNum &&
@@ -1350,15 +1325,15 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           );
                           
                           if (possibleMatches.length > 0) {
-                            console.log(`找到可能匹配的晚上课程，但未显示在时间段 ${startTime}-${endTime} 中`);
+                            console.log(`Found possible matching evening courses, but not displayed in the time slot ${startTime}-${endTime}`);
                             window.hasLoggedEveningMatches = true;
                           }
                         }
                       }
                       
-                      // 检测同一教师在同一时间的冲突
+                      // Detect conflicts for the same teacher at the same time
                       const hasTeacherConflict = (() => {
-                        // 按教师名称分组
+                        // Group by teacher name
                         const teacherGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1368,13 +1343,13 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           teacherGroups[course.teacherName].push(course);
                         });
                         
-                        // 只有当同一教师在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same teacher has multiple courses in the same time slot
                         return Object.values(teacherGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 检测同一教室在同一时间的冲突
+                      // Detect conflicts for the same classroom at the same time
                       const hasClassroomConflict = (() => {
-                        // 按教室分组
+                        // Group by classroom
                         const classroomGroups = {};
                         
                         coursesInCell.forEach(course => {
@@ -1384,11 +1359,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           classroomGroups[course.classroom].push(course);
                         });
                         
-                        // 只有当同一教室在同一时间段有多个课程时才认为是冲突
+                        // Only consider it a conflict if the same classroom has multiple courses in the same time slot
                         return Object.values(classroomGroups).some(courses => courses.length > 1);
                       })();
                       
-                      // 是否存在任何冲突
+                      // Check if there are any conflicts
                       const hasConflict = hasTeacherConflict || hasClassroomConflict;
                       
                       return (
@@ -1396,7 +1371,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                           {coursesInCell.length > 0 ? (
                             <Box>
                               {coursesInCell.length === 1 ? (
-                                // 单课程显示
+                                // Display single course
                                 <>
                                   <Typography variant="body2" fontWeight="bold">
                                     {coursesInCell[0].courseName}
@@ -1418,7 +1393,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                   </Box>
                                 </>
                               ) : (
-                                // 多课程显示 - 创建下拉效果
+                                // Display multiple courses - Create dropdown effect
                                 <Tooltip 
                                   title={
                                     <Box>
@@ -1446,11 +1421,11 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                                     fullWidth 
                                     endIcon={<ExpandMoreIcon />}
                                     onClick={(e) => {
-                                      // 打开包含所有课程的对话框
+                                      // Open dialog with all courses
                                       setMultiCourseDialogOpen(true);
                                       setSelectedMultiCourses(coursesInCell);
                                     }}
-                                    // 如果有冲突，使用红色样式
+                                    // If there is a conflict, use red style
                                     sx={{ color: hasConflict ? 'error.main' : undefined, 
                                          borderColor: hasConflict ? 'error.main' : undefined }}
                                   >
@@ -1600,9 +1575,9 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           maxWidth="md"
         >
           <DialogTitle>
-            {/* 检测是否有教师冲突和教室冲突 */}
+            {/* Check if there are teacher conflicts and classroom conflicts */}
             {(() => {
-              // 按教师分组
+              // Group by teacher
               const teacherGroups = {};
               selectedMultiCourses.forEach(course => {
                 const key = `${course.teacherName}-${course.dayName}-${course.startTime}-${course.endTime}`;
@@ -1612,7 +1587,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                 teacherGroups[key].push(course);
               });
               
-              // 按教室分组
+              // Group by classroom
               const classroomGroups = {};
               selectedMultiCourses.forEach(course => {
                 const key = `${course.classroom}-${course.dayName}-${course.startTime}-${course.endTime}`;
@@ -1622,7 +1597,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                 classroomGroups[key].push(course);
               });
               
-              // 找出真正的冲突 - 同一教师或同一教室在同一时间有多门课程
+              // Find actual conflicts - same teacher or same classroom at the same time
               const realTeacherConflicts = [];
               Object.entries(teacherGroups).forEach(([key, courses]) => {
                 if (courses.length > 1) {
@@ -1686,9 +1661,9 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
             </IconButton>
           </DialogTitle>
           <DialogContent>
-            {/* 如果有冲突，显示警告消息 */}
+            {/* If there are conflicts, display warning message */}
             {(() => {
-              // 按教师分组
+              // Group by teacher
               const teacherGroups = {};
               selectedMultiCourses.forEach(course => {
                 const key = `${course.teacherName}-${course.dayName}-${course.startTime}-${course.endTime}`;
@@ -1698,7 +1673,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                 teacherGroups[key].push(course);
               });
               
-              // 按教室分组
+              // Group by classroom
               const classroomGroups = {};
               selectedMultiCourses.forEach(course => {
                 const key = `${course.classroom}-${course.dayName}-${course.startTime}-${course.endTime}`;
@@ -1708,7 +1683,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                 classroomGroups[key].push(course);
               });
               
-              // 找出真正的冲突 - 同一教师或同一教室在同一时间有多门课程
+              // Find actual conflicts - same teacher or same classroom at the same time
               const realTeacherConflicts = [];
               Object.entries(teacherGroups).forEach(([key, courses]) => {
                 if (courses.length > 1) {
@@ -1772,7 +1747,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
             
             <List>
               {selectedMultiCourses.map((item, idx) => {
-                // 检查当前课程是否有教师冲突
+                // Check if the current course has a teacher conflict
                 const hasTeacherConflict = selectedMultiCourses.some(
                   otherItem => 
                     otherItem !== item && 
@@ -1782,7 +1757,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     otherItem.endTime === item.endTime
                 );
                 
-                // 检查当前课程是否有教室冲突
+                // Check if the current course has a classroom conflict
                 const hasClassroomConflict = selectedMultiCourses.some(
                   otherItem => 
                     otherItem !== item && 
@@ -1792,7 +1767,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     otherItem.endTime === item.endTime
                 );
                 
-                // 是否存在任何冲突
+                // Check if there are any conflicts
                 const hasConflict = hasTeacherConflict || hasClassroomConflict;
                 
                 return (
@@ -1802,7 +1777,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
                     sx={{ 
                       borderLeft: hasConflict ? '4px solid' : 'none', 
                       borderLeftColor: hasConflict ? 'error.main' : 'transparent',
-                      pl: hasConflict ? 2 : 1, // 冲突项稍微增加左边距
+                      pl: hasConflict ? 2 : 1, // Conflict items slightly increase left margin
                     }}
                   >
                   <ListItemText
@@ -1844,7 +1819,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           </DialogContent>
         </Dialog>
         
-        {/* 解决方案确认对话框 */}
+        {/* Solution confirmation dialog */}
         <Dialog
           open={confirmDialogOpen}
           onClose={handleCancelApplySolution}
@@ -1888,7 +1863,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           </DialogActions>
         </Dialog>
         
-        {/* 统一的冲突分析与解决部分 */}
+        {/* Unified conflict analysis and resolution section */}
         <Box sx={{ mt: 4, mb: 3, border: '1px solid #e0e0e0', borderRadius: 1 }}>
           {/* Conflict panel title */}
           <Box 
@@ -2045,7 +2020,7 @@ const ScheduleResults = ({ scheduleId, scheduleResults, onBack, onViewHistory })
           )}
         </Box>
 
-        {/* 状态历史记录对话框 */}
+        {/* Status history dialog */}
         <Dialog
           open={statusHistoryOpen}
           onClose={handleCloseStatusHistory}

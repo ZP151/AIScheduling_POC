@@ -5,17 +5,43 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Models
 {
     /// <summary>
-    /// 表示排课问题的一个解决方案
+    /// Solution status enumeration
+    /// </summary>
+    public enum SolutionStatus
+    {
+        /// <summary>
+        /// Feasible solution
+        /// </summary>
+        Feasible,
+        
+        /// <summary>
+        /// Optimal solution
+        /// </summary>
+        Optimal,
+        
+        /// <summary>
+        /// Infeasible solution
+        /// </summary>
+        Infeasible,
+        
+        /// <summary>
+        /// Unknown status
+        /// </summary>
+        Unknown
+    }
+
+    /// <summary>
+    /// Represents a solution to the course scheduling problem
     /// </summary>
     public class SchedulingSolution
     {
         /// <summary>
-        /// 解决方案的唯一ID
+        /// Unique ID of the solution
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// 所属排课问题的ID
+        /// ID of the scheduling problem this solution belongs to
         /// </summary>
         public int ProblemId { get; set; }
         public SchedulingProblem Problem { get; set; }
@@ -24,91 +50,103 @@ namespace SmartSchedulingSystem.Scheduling.Models
         public SchedulingEvaluation Evaluation { get; set; } // optional
 
         /// <summary>
-        /// 解决方案的得分，直接返回Evaluation.Score
+        /// Solution score, directly returns Evaluation.Score
         /// </summary>
-        public double Score => Evaluation?.Score ?? 0;
+        public double Score { get; set; }
 
         /// <summary>
-        /// 解决方案名称
+        /// Solution name
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// 排课分配列表
+        /// List of course assignments
         /// </summary>
         public List<SchedulingAssignment> Assignments { get; set; } = new List<SchedulingAssignment>();
 
         /// <summary>
-        /// 创建时间
+        /// Creation time
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         /// <summary>
-        /// 生成时间
+        /// Generation time
         /// </summary>
         public DateTime GeneratedAt { get; set; } = DateTime.Now;
 
         /// <summary>
-        /// 创建此解决方案的算法
+        /// Algorithm used to generate this solution
         /// </summary>
         public string Algorithm { get; set; }
 
         /// <summary>
-        /// 添加属性来跟踪解是在哪个约束级别下生成的
+        /// Add property to track at which constraint level the solution was generated
         /// </summary>
         public Engine.ConstraintApplicationLevel ConstraintLevel { get; set; } = Engine.ConstraintApplicationLevel.Basic;
 
         /// <summary>
-        /// 获取特定课程班级的排课分配
+        /// Solution status
         /// </summary>
-        /// <param name="sectionId">课程班级ID</param>
-        /// <returns>排课分配列表</returns>
+        public SolutionStatus Status { get; set; } = SolutionStatus.Unknown;
+        
+        /// <summary>
+        /// Additional data from solution generation process
+        /// </summary>
+        public Dictionary<string, string> GenerationData { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Get course assignments for a specific section
+        /// </summary>
+        /// <param name="sectionId">Course section ID</param>
+        /// <returns>List of course assignments</returns>
         public IEnumerable<SchedulingAssignment> GetAssignmentsForSection(int sectionId)
         {
             return Assignments.Where(a => a.SectionId == sectionId);
         }
 
         /// <summary>
-        /// 获取特定教师的排课分配
+        /// Get course assignments for a specific teacher
         /// </summary>
-        /// <param name="teacherId">教师ID</param>
-        /// <returns>排课分配列表</returns>
+        /// <param name="teacherId">Teacher ID</param>
+        /// <returns>List of course assignments</returns>
         public IEnumerable<SchedulingAssignment> GetAssignmentsForTeacher(int teacherId)
         {
             return Assignments.Where(a => a.TeacherId == teacherId);
         }
 
         /// <summary>
-        /// 获取特定教室的排课分配
+        /// Get course assignments for a specific classroom
         /// </summary>
-        /// <param name="classroomId">教室ID</param>
-        /// <returns>排课分配列表</returns>
+        /// <param name="classroomId">Classroom ID</param>
+        /// <returns>List of course assignments</returns>
         public IEnumerable<SchedulingAssignment> GetAssignmentsForClassroom(int classroomId)
         {
             return Assignments.Where(a => a.ClassroomId == classroomId);
         }
 
         /// <summary>
-        /// 获取特定时间槽的排课分配
+        /// Get course assignments for a specific time slot
         /// </summary>
-        /// <param name="timeSlotId">时间槽ID</param>
-        /// <returns>排课分配列表</returns>
+        /// <param name="timeSlotId">Time slot ID</param>
+        /// <returns>List of course assignments</returns>
         public IEnumerable<SchedulingAssignment> GetAssignmentsForTimeSlot(int timeSlotId)
         {
             return Assignments.Where(a => a.TimeSlotId == timeSlotId);
         }
+
         public IEnumerable<SchedulingAssignment> GetAssignmentsForDay(int dayOfWeek, List<TimeSlotInfo> timeSlots)
         {
             var relevantTimeSlots = timeSlots.Where(ts => ts.DayOfWeek == dayOfWeek).Select(ts => ts.Id).ToList();
             return Assignments.Where(a => relevantTimeSlots.Contains(a.TimeSlotId));
         }
+
         /// <summary>
-        /// 检查指定时间槽是否有教师冲突
+        /// Check if there is a teacher conflict for the specified time slot
         /// </summary>
-        /// <param name="teacherId">教师ID</param>
-        /// <param name="timeSlotId">时间槽ID</param>
-        /// <param name="ignoreSectionId">忽略的课程班级ID（可选）</param>
-        /// <returns>是否存在冲突</returns>
+        /// <param name="teacherId">Teacher ID</param>
+        /// <param name="timeSlotId">Time slot ID</param>
+        /// <param name="ignoreSectionId">Course section ID to ignore (optional)</param>
+        /// <returns>Whether there is a conflict</returns>
         public bool HasTeacherConflict(int teacherId, int timeSlotId, int? ignoreSectionId = null)
         {
             return Assignments.Any(a =>
@@ -118,12 +156,12 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 检查指定时间槽是否有教室冲突
+        /// Check if there is a classroom conflict for the specified time slot
         /// </summary>
-        /// <param name="classroomId">教室ID</param>
-        /// <param name="timeSlotId">时间槽ID</param>
-        /// <param name="ignoreSectionId">忽略的课程班级ID（可选）</param>
-        /// <returns>是否存在冲突</returns>
+        /// <param name="classroomId">Classroom ID</param>
+        /// <param name="timeSlotId">Time slot ID</param>
+        /// <param name="ignoreSectionId">Course section ID to ignore (optional)</param>
+        /// <returns>Whether there is a conflict</returns>
         public bool HasClassroomConflict(int classroomId, int timeSlotId, int? ignoreSectionId = null)
         {
             return Assignments.Any(a =>
@@ -133,16 +171,16 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 添加排课分配
+        /// Add a course assignment
         /// </summary>
-        /// <param name="assignment">排课分配</param>
-        /// <returns>是否添加成功</returns>
+        /// <param name="assignment">Course assignment</param>
+        /// <returns>Whether the addition was successful</returns>
         public bool AddAssignment(SchedulingAssignment assignment)
         {
             if (assignment == null)
                 throw new ArgumentNullException(nameof(assignment));
 
-            // 检查冲突
+            // Check for conflicts
             if (HasTeacherConflict(assignment.TeacherId, assignment.TimeSlotId) ||
                 HasClassroomConflict(assignment.ClassroomId, assignment.TimeSlotId))
             {
@@ -154,10 +192,10 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 移除排课分配
+        /// Remove a course assignment
         /// </summary>
-        /// <param name="assignmentId">排课分配ID</param>
-        /// <returns>是否移除成功</returns>
+        /// <param name="assignmentId">Course assignment ID</param>
+        /// <returns>Whether the removal was successful</returns>
         public bool RemoveAssignment(int assignmentId)
         {
             var assignment = Assignments.FirstOrDefault(a => a.Id == assignmentId);
@@ -170,10 +208,10 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 更新排课分配
+        /// Update a course assignment
         /// </summary>
-        /// <param name="assignment">更新后的排课分配</param>
-        /// <returns>是否更新成功</returns>
+        /// <param name="assignment">Updated course assignment</param>
+        /// <returns>Whether the update was successful</returns>
         public bool UpdateAssignment(SchedulingAssignment assignment)
         {
             if (assignment == null)
@@ -182,27 +220,28 @@ namespace SmartSchedulingSystem.Scheduling.Models
             int index = Assignments.FindIndex(a => a.Id == assignment.Id);
             if (index >= 0)
             {
-                // 先移除旧的分配
+                // Remove old assignment
                 Assignments.RemoveAt(index);
 
-                // 检查新分配是否会导致冲突
+                // Check if new assignment would cause conflicts
                 if (HasTeacherConflict(assignment.TeacherId, assignment.TimeSlotId, assignment.SectionId) ||
                     HasClassroomConflict(assignment.ClassroomId, assignment.TimeSlotId, assignment.SectionId))
                 {
-                    // 冲突，恢复原来的分配
+                    // Conflict found, restore original assignment
                     Assignments.Insert(index, assignment);
                     return false;
                 }
 
-                // 无冲突，添加新分配
+                // No conflicts, add new assignment
                 Assignments.Add(assignment);
                 return true;
             }
 
             return false;
         }
+
         /// <summary>
-        /// 创建解决方案的深拷贝
+        /// Create a deep copy of the solution
         /// </summary>
         public SchedulingSolution Clone()
         {
@@ -217,7 +256,7 @@ namespace SmartSchedulingSystem.Scheduling.Models
                 Algorithm = this.Algorithm
             };
 
-            // 深拷贝所有分配
+            // Deep copy all assignments
             clone.Assignments = Assignments.Select(a => new SchedulingAssignment
             {
                 Id = a.Id,
@@ -238,20 +277,18 @@ namespace SmartSchedulingSystem.Scheduling.Models
         }
 
         /// <summary>
-        /// 获取下一个冲突ID
+        /// Get next conflict ID
         /// </summary>
         public int GetNextConflictId()
         {
-            // 如果评估对象存在，计算现有冲突的最大ID并加1
+            // If evaluation object exists, calculate existing conflicts max ID and add 1
             if (Evaluation != null && Evaluation.Conflicts != null && Evaluation.Conflicts.Any())
             {
                 return Evaluation.Conflicts.Max(c => c.Id) + 1;
             }
             
-            // 否则从1开始
+            // Otherwise start from 1
             return 1;
         }
     }
-
-    
 }

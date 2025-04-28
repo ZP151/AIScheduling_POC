@@ -3,25 +3,27 @@
 namespace SmartSchedulingSystem.Scheduling.Algorithms.LS.Moves
 {
     /// <summary>
-    /// 表示局部搜索中的移动操作接口
+    /// Interface for all types of moves in local search
     /// </summary>
     public interface IMove
     {
         /// <summary>
-        /// 应用移动到指定解决方案
+        /// Apply the move to a solution
         /// </summary>
-        /// <param name="solution">要修改的解决方案</param>
-        /// <returns>修改后的解决方案的副本</returns>
+        /// <param name="solution">Current solution</param>
+        /// <returns>New solution after applying the move</returns>
         SchedulingSolution Apply(SchedulingSolution solution);
 
         /// <summary>
-        /// 获取移动的描述
+        /// Get move description
         /// </summary>
+        /// <returns>Description of the move</returns>
         string GetDescription();
 
         /// <summary>
-        /// 获取此移动涉及的课程分配ID
+        /// Get IDs of assignments affected by this move
         /// </summary>
+        /// <returns>Array of affected assignment IDs</returns>
         int[] GetAffectedAssignmentIds();
     }
 }

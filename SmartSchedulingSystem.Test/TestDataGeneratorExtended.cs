@@ -1,8 +1,5 @@
 ﻿using SmartSchedulingSystem.Scheduling.Constraints;
-using SmartSchedulingSystem.Scheduling.Constraints.Hard;
-using SmartSchedulingSystem.Scheduling.Constraints.PhysicalSoft;
-using SmartSchedulingSystem.Scheduling.Constraints.QualitySoft;
-using SmartSchedulingSystem.Scheduling.Constraints.Soft;
+
 using SmartSchedulingSystem.Scheduling.Models;
 using SmartSchedulingSystem.Scheduling.Utils;
 using System.Collections.Generic;
@@ -11,137 +8,104 @@ using System.Data;
 namespace SmartSchedulingSystem.Test
 {
     /// <summary>
-    /// 测试数据生成器扩展，添加约束初始化功能
+    /// Test data generator extension, adding constraint initialization functionality
     /// </summary>
-    public class TestDataGeneratorExtended
+    public static class TestDataGeneratorExtended
     {
-        private readonly TestDataGenerator _baseGenerator;
-
-        public TestDataGeneratorExtended(TestDataGenerator baseGenerator)
-        {
-            _baseGenerator = baseGenerator;
-        }
-
         /// <summary>
-        /// 生成测试排课问题，并添加必要的约束条件
+        /// Generate test scheduling problem with necessary constraints
         /// </summary>
-        public SchedulingProblem GenerateTestProblemWithConstraints(
-            int courseSectionCount = 20,
-            int teacherCount = 10,
-            int classroomCount = 15,
-            int timeSlotCount = 30)
+        public static SchedulingProblem GenerateTestProblemWithConstraints()
         {
-            // 生成基础问题数据
-            var problem = _baseGenerator.GenerateTestProblem(
-                courseSectionCount,
-                teacherCount,
-                classroomCount,
-                timeSlotCount);
+            // Generate base problem data
+            var problem = TestDataGenerator.GenerateTestProblem();
 
-            // 添加约束条件
-            problem.Constraints = InitializeConstraints(problem);
+            // Add constraints
+            InitializeConstraints(problem);
 
             return problem;
         }
 
         /// <summary>
-        /// 初始化约束列表
+        /// Initialize constraint list
         /// </summary>
-        private List<IConstraint> InitializeConstraints(SchedulingProblem problem)
+        private static void InitializeConstraints(SchedulingProblem problem)
         {
-            var constraints = new List<IConstraint>();
+            // 1. Add hard constraints
+            AddHardConstraints(problem);
 
-            // 1. 添加硬约束
-            AddHardConstraints(constraints, problem);
+            // 2. Add physical soft constraints
+            AddPhysicalSoftConstraints(problem);
 
-            // 2. 添加物理软约束
-            AddPhysicalSoftConstraints(constraints, problem);
-
-            // 3. 添加质量软约束
-            AddQualitySoftConstraints(constraints, problem);
-
-            return constraints;
+            // 3. Add quality soft constraints
+            AddQualitySoftConstraints(problem);
         }
 
         /// <summary>
-        /// 添加硬约束
+        /// Add hard constraints
         /// </summary>
-        private void AddHardConstraints(List<IConstraint> constraints, SchedulingProblem problem)
+        private static void AddHardConstraints(SchedulingProblem problem)
         {
-            // 教师冲突约束
-            constraints.Add(new TeacherConflictConstraint());
+            // Teacher conflict constraint
+            problem.Constraints.Add(new TeacherConflictConstraint());
 
-            // 教室冲突约束
-            constraints.Add(new ClassroomConflictConstraint());
+            // Classroom conflict constraint
+            problem.Constraints.Add(new ClassroomConflictConstraint());
 
-            // 教师可用性约束
-            var teacherAvailability = ConvertTeacherAvailabilities(problem.TeacherAvailabilities);
-            constraints.Add(new TeacherAvailabilityConstraint(teacherAvailability));
-
-            // 教室可用性约束
-            var classroomAvailability = ConvertClassroomAvailabilities(problem.ClassroomAvailabilities);
-            constraints.Add(new ClassroomAvailabilityConstraint(classroomAvailability));
-
-            // 教室容量约束
-            var classroomCapacities = GetClassroomCapacities(problem.Classrooms);
-            var expectedEnrollments = GetExpectedEnrollments(problem.CourseSections);
-            constraints.Add(new ClassroomCapacityConstraint(classroomCapacities, expectedEnrollments));
-
-            // 先修课程约束（简化版，假设没有先修课程）
-            var courseSectionMap = GetCourseSectionMap(problem.CourseSections);
-            constraints.Add(new PrerequisiteConstraint(new Dictionary<int, List<int>>(), courseSectionMap));
+            // Teacher availability constraint
+            problem.Constraints.Add(new TeacherAvailabilityConstraint());
         }
 
         /// <summary>
-        /// 添加物理软约束
+        /// Add physical soft constraints
         /// </summary>
-        private void AddPhysicalSoftConstraints(List<IConstraint> constraints, SchedulingProblem problem)
+        private static void AddPhysicalSoftConstraints(SchedulingProblem problem)
         {
-            // 教室类型匹配约束
+            // Classroom type matching constraint
             var courseSectionTypes = GetCourseSectionTypes(problem.CourseSections);
             var classroomTypes = GetClassroomTypes(problem.Classrooms);
 
-            // 设备需求约束
+            // Equipment requirement constraint
             var sectionRequiredEquipment = GetSectionRequiredEquipment(problem.CourseSections);
             var classroomEquipment = GetClassroomEquipment(problem.Classrooms);
-            constraints.Add(new EquipmentRequirementConstraint(sectionRequiredEquipment, classroomEquipment));
+            problem.Constraints.Add(new EquipmentRequirementConstraint(sectionRequiredEquipment, classroomEquipment));
 
-            // 时间可用性约束
+            // Time availability constraint
             var unavailablePeriods = new List<(DateTime Start, DateTime End, string Reason)>();
             var semesterDates = new Dictionary<int, (DateTime Start, DateTime End)>
             {
                 { problem.Id, (DateTime.Now.Date, DateTime.Now.Date.AddMonths(4)) }
             };
-            constraints.Add(new TimeAvailabilityConstraint(unavailablePeriods, semesterDates));
+            problem.Constraints.Add(new TimeAvailabilityConstraint(unavailablePeriods, semesterDates));
 
-            // 位置邻近性约束
+            // Location proximity constraint
             var teacherDepartmentIds = GetTeacherDepartmentIds(problem.Teachers);
             var buildingCampusIds = GetBuildingCampusIds(problem.Classrooms);
             var campusTravelTimes = GetCampusTravelTimes();
-            constraints.Add(new LocationProximityConstraint(teacherDepartmentIds, buildingCampusIds, campusTravelTimes));
+            problem.Constraints.Add(new LocationProximityConstraint(teacherDepartmentIds, buildingCampusIds, campusTravelTimes));
         }
 
         /// <summary>
-        /// 添加质量软约束
+        /// Add quality soft constraints
         /// </summary>
-        private void AddQualitySoftConstraints(List<IConstraint> constraints, SchedulingProblem problem)
+        private static void AddQualitySoftConstraints(SchedulingProblem problem)
         {
-            // 教师偏好约束
+            // Teacher preference constraint
             var teacherPreferences = ConvertTeacherPreferences(problem.TeacherAvailabilities);
-            constraints.Add(new TeacherPreferenceConstraint(teacherPreferences));
+            problem.Constraints.Add(new TeacherPreferenceConstraint(teacherPreferences));
 
-            // 教师工作量约束
+            // Teacher workload constraint
             var maxWeeklyHours = GetTeacherMaxWeeklyHours(problem.Teachers);
             var maxDailyHours = GetTeacherMaxDailyHours(problem.Teachers);
-            constraints.Add(new TeacherWorkloadConstraint(maxWeeklyHours, maxDailyHours));
+            problem.Constraints.Add(new TeacherWorkloadConstraint(maxWeeklyHours, maxDailyHours));
 
-            // 教师排课紧凑性约束
-            constraints.Add(new TeacherScheduleCompactnessConstraint());
+            // Teacher schedule compactness constraint
+            problem.Constraints.Add(new TeacherScheduleCompactnessConstraint());
         }
 
         #region Helper Methods for Constraint Initialization
 
-        private Dictionary<(int TeacherId, int TimeSlotId), bool> ConvertTeacherAvailabilities(
+        private static Dictionary<(int TeacherId, int TimeSlotId), bool> ConvertTeacherAvailabilities(
             List<TeacherAvailability> availabilities)
         {
             var result = new Dictionary<(int TeacherId, int TimeSlotId), bool>();
@@ -154,7 +118,7 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<(int ClassroomId, int TimeSlotId), bool> ConvertClassroomAvailabilities(
+        private static Dictionary<(int ClassroomId, int TimeSlotId), bool> ConvertClassroomAvailabilities(
             List<ClassroomAvailability> availabilities)
         {
             var result = new Dictionary<(int ClassroomId, int TimeSlotId), bool>();
@@ -167,32 +131,32 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<int, int> GetClassroomCapacities(List<ClassroomInfo> classrooms)
+        private static Dictionary<int, int> GetClassroomCapacities(List<ClassroomInfo> classrooms)
         {
             return classrooms.ToDictionary(c => c.Id, c => c.Capacity);
         }
 
-        private Dictionary<int, int> GetExpectedEnrollments(List<CourseSectionInfo> sections)
+        private static Dictionary<int, int> GetExpectedEnrollments(List<CourseSectionInfo> sections)
         {
             return sections.ToDictionary(s => s.Id, s => s.Enrollment);
         }
 
-        private Dictionary<int, int> GetCourseSectionMap(List<CourseSectionInfo> sections)
+        private static Dictionary<int, int> GetCourseSectionMap(List<CourseSectionInfo> sections)
         {
             return sections.ToDictionary(s => s.Id, s => s.CourseId);
         }
 
-        private Dictionary<int, string> GetCourseSectionTypes(List<CourseSectionInfo> sections)
+        private static Dictionary<int, string> GetCourseSectionTypes(List<CourseSectionInfo> sections)
         {
             return sections.ToDictionary(s => s.Id, s => s.CourseType);
         }
 
-        private Dictionary<int, string> GetClassroomTypes(List<ClassroomInfo> classrooms)
+        private static Dictionary<int, string> GetClassroomTypes(List<ClassroomInfo> classrooms)
         {
             return classrooms.ToDictionary(c => c.Id, c => c.Type);
         }
 
-        private Dictionary<int, List<string>> GetSectionRequiredEquipment(List<CourseSectionInfo> sections)
+        private static Dictionary<int, List<string>> GetSectionRequiredEquipment(List<CourseSectionInfo> sections)
         {
             var result = new Dictionary<int, List<string>>();
 
@@ -211,7 +175,7 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<int, List<string>> GetClassroomEquipment(List<ClassroomInfo> classrooms)
+        private static Dictionary<int, List<string>> GetClassroomEquipment(List<ClassroomInfo> classrooms)
         {
             var result = new Dictionary<int, List<string>>();
 
@@ -230,20 +194,20 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<int, int> GetTeacherDepartmentIds(List<TeacherInfo> teachers)
+        private static Dictionary<int, int> GetTeacherDepartmentIds(List<TeacherInfo> teachers)
         {
             return teachers.ToDictionary(t => t.Id, t => t.DepartmentId);
         }
 
-        private Dictionary<int, int> GetBuildingCampusIds(List<ClassroomInfo> classrooms)
+        private static Dictionary<int, int> GetBuildingCampusIds(List<ClassroomInfo> classrooms)
         {
-            // 假设每个教室都有校区ID属性
+            // Assume each classroom has a campus ID property
             return classrooms.ToDictionary(c => c.Id, c => c.CampusId);
         }
 
-        private Dictionary<(int, int), int> GetCampusTravelTimes()
+        private static Dictionary<(int, int), int> GetCampusTravelTimes()
         {
-            // 简化版：只有两个校区，相互间需要30分钟
+            // Simplified version: only two campuses, 30 minutes travel time between them
             var result = new Dictionary<(int, int), int>
             {
                 { (1, 2), 30 },
@@ -253,14 +217,14 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<(int TeacherId, int TimeSlotId), int> ConvertTeacherPreferences(
+        private static Dictionary<(int TeacherId, int TimeSlotId), int> ConvertTeacherPreferences(
             List<TeacherAvailability> availabilities)
         {
             var result = new Dictionary<(int TeacherId, int TimeSlotId), int>();
 
             foreach (var availability in availabilities)
             {
-                if (availability.IsAvailable) // 只记录可用时间的偏好
+                if (availability.IsAvailable) // Only record preferences for available time slots
                 {
                     result[(availability.TeacherId, availability.TimeSlotId)] = availability.PreferenceLevel;
                 }
@@ -269,12 +233,12 @@ namespace SmartSchedulingSystem.Test
             return result;
         }
 
-        private Dictionary<int, int> GetTeacherMaxWeeklyHours(List<TeacherInfo> teachers)
+        private static Dictionary<int, int> GetTeacherMaxWeeklyHours(List<TeacherInfo> teachers)
         {
             return teachers.ToDictionary(t => t.Id, t => t.MaxWeeklyHours);
         }
 
-        private Dictionary<int, int> GetTeacherMaxDailyHours(List<TeacherInfo> teachers)
+        private static Dictionary<int, int> GetTeacherMaxDailyHours(List<TeacherInfo> teachers)
         {
             return teachers.ToDictionary(t => t.Id, t => t.MaxDailyHours);
         }

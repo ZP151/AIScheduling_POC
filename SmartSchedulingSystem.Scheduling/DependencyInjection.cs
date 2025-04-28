@@ -14,33 +14,34 @@ using SmartSchedulingSystem.Scheduling.Utils;
 using SmartSchedulingSystem.Scheduling.Interfaces;
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace SmartSchedulingSystem.Scheduling
 {
     /// <summary>
-    /// 排课系统依赖注入配置
+    /// Scheduling system dependency injection configuration system dependency injection configuration
     /// </summary>
     public static class DependencyInjection
     {
         /// <summary>
-        /// 注册排课服务
+        /// Register scheduling services
         /// </summary>
         public static IServiceCollection AddSchedulingServices(this IServiceCollection services, Utils.SchedulingParameters parameters = null)
         {
-            // 使用默认参数或提供的参数
+            // Use default parameters or provided parameters
             parameters ??= new Utils.SchedulingParameters();
 
-            // 注册参数
+            // Register parameters
             services.AddSingleton(parameters);
 
-            // 注册核心组件
+            // Register core components
             services.AddSingleton<ConstraintManager>();
             services.AddSingleton<SolutionEvaluator>();
             services.AddSingleton<Algorithms.CP.SolutionConverter>();
             services.AddSingleton<Algorithms.Hybrid.SolutionDiversifier>();
             services.AddSingleton<ProblemAnalyzer>();
 
-            // 注册约束转换器
+            // Register constraint converters
             services.AddTransient<ICPConstraintConverter, TeacherConflictConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, ClassroomCapacityConstraintConverter>();
             services.AddTransient<ICPConstraintConverter, ClassroomConflictConstraintConverter>();
@@ -74,13 +75,13 @@ namespace SmartSchedulingSystem.Scheduling
                 [3] = new List<int> { 1, 2 },
                 [5] = new List<int> { 4 }
             });
-            // 注册CP模型构建器
+            // Register CP model builder
             services.AddTransient<CPModelBuilder>();
 
-            // 注册CP引擎
+            // Register CP engine
             services.AddTransient<CPScheduler>();
 
-            // 注册局部搜索组件
+            // Register local search components
             services.AddTransient<MoveGenerator>();
             services.AddTransient<IntelligentMoveSelector>();
             services.AddSingleton<SimulatedAnnealingController>();
@@ -88,34 +89,36 @@ namespace SmartSchedulingSystem.Scheduling
             services.AddTransient<ConstraintAnalyzer>();
             services.AddTransient<ParameterAdjuster>();
 
-            // 注册混合引擎
+            // Register hybrid engine
             services.AddTransient<CPLSScheduler>();
             services.AddTransient<EngineSelector>();
 
-            // 注册主引擎
+            // Register main engine
             services.AddTransient<SchedulingEngine>();
 
-            // 注册冲突解析器
+            // Register conflict resolver
             services.AddSingleton<ConflictResolver>();
-            // 注册冲突处理器
+            // Register conflict handler
             services.AddSingleton<IConflictHandler, TeacherConflictHandler>();
             services.AddSingleton<IConflictHandler, ClassroomConflictHandler>();
 
-            // 注册硬约束 - 修改为Singleton以避免生命周期冲突
+            // Register hard constraints - modified to Singleton to avoid lifecycle conflicts
             services.AddSingleton<IConstraint, TeacherConflictConstraint>();
             services.AddSingleton<IConstraint, ClassroomConflictConstraint>();
             services.AddSingleton<IConstraint, TeacherAvailabilityConstraint>();
             services.AddSingleton<IConstraint, ClassroomCapacityConstraint>();
             services.AddSingleton<IConstraint, ClassroomAvailabilityConstraint>();
 
-            // 注册物理软约束 - 修改为Singleton以避免生命周期冲突
+            // Register physical soft constraints - modified to Singleton to avoid lifecycle conflicts
             services.AddSingleton<IConstraint, EquipmentRequirementConstraint>();
             services.AddSingleton<IConstraint, ClassroomTypeMatchConstraint>();
+            services.AddSingleton<IConstraint, ResourceComplianceConstraint>();
 
-            // 注册质量软约束 - 修改为Singleton以避免生命周期冲突
+            // Register quality soft constraints - modified to Singleton to avoid lifecycle conflicts
             services.AddSingleton<IConstraint, TeacherPreferenceConstraint>();
             services.AddSingleton<IConstraint, TeacherWorkloadConstraint>();
             services.AddSingleton<IConstraint, TeacherScheduleCompactnessConstraint>();
+            services.AddSingleton<IConstraint, TeacherMobilityConstraint>();
 
             return services;
         }

@@ -90,10 +90,29 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     Message = "使用渐进式约束策略生成排课方案"
                 };
 
-                // 设置约束级别为Standard，启用Level2级别的约束
-                _constraintManager.SetConstraintApplicationLevel(ConstraintApplicationLevel.Standard);
+                // 默认设置为标准级别
+                ConstraintApplicationLevel constraintLevel = ConstraintApplicationLevel.Standard;
                 
-                _logger.LogInformation("使用CPScheduler的渐进式约束策略生成随机解，启用了Level2级别约束...");
+                // 根据参数决定使用哪个约束级别
+                if (parameters?.UseBasicConstraints == true)
+                {
+                    _logger.LogInformation("根据参数设置，仅使用Basic级别约束(仅Level1)...");
+                    constraintLevel = ConstraintApplicationLevel.Basic;
+                }
+                else if (parameters?.UseEnhancedConstraints == true)
+                {
+                    _logger.LogInformation("根据参数设置，启用Enhanced级别约束(包含Level3物理软约束)...");
+                    constraintLevel = ConstraintApplicationLevel.Enhanced;
+                }
+                else
+                {
+                    _logger.LogInformation("使用Standard级别约束(Level1+Level2)...");
+                    // 使用默认的Standard级别
+                }
+                
+                // 设置约束应用级别
+                _constraintManager.SetConstraintApplicationLevel(constraintLevel);
+                
                 var startTime = DateTime.Now;
                 
                 // 生成指定数量的解决方案，使用更新后的渐进式约束策略

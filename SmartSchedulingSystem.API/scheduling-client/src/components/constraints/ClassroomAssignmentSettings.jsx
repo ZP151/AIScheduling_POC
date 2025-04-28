@@ -24,13 +24,45 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const ClassroomAssignmentSettings = ({ courses, classrooms, weight, onUpdate }) => {
-  const [localWeight, setLocalWeight] = useState(weight);
-  
+  // Initialize state with default values
+  const [localWeight, setLocalWeight] = useState(weight || 0.7);
+  const [isActive, setIsActive] = useState(true);
+  const [feedback, setFeedback] = useState({ open: false, message: '', type: 'info' });
+
+  // Handle weight change
   const handleWeightChange = (event, newValue) => {
     setLocalWeight(newValue);
     onUpdate({
       weight: newValue
     });
+  };
+
+  // Handle active state change
+  const handleActiveChange = (event) => {
+    const newValue = event.target.checked;
+    setIsActive(newValue);
+    if (onUpdate) {
+      onUpdate({
+        active: newValue
+      });
+    }
+  };
+
+  // Show feedback message
+  const showFeedback = (message, type = 'info') => {
+    setFeedback({
+      open: true,
+      message,
+      type
+    });
+  };
+
+  // Close feedback message
+  const handleCloseFeedback = () => {
+    setFeedback(prev => ({
+      ...prev,
+      open: false
+    }));
   };
 
   return (

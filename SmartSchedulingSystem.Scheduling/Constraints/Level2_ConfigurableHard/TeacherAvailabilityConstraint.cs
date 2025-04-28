@@ -1,4 +1,4 @@
-﻿// 3. 教师可用性约束 - 硬约束
+﻿// Teacher availability constraint - Hard constraint
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,67 +10,67 @@ using SmartSchedulingSystem.Scheduling.Models;
 namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
 {
     /// <summary>
-    /// 教师可用性约束 - 教师只能在其可用时间段授课
+    /// Teacher availability constraint - Teachers can only teach during their available time slots
     /// </summary>
     public class TeacherAvailabilityConstraint : BaseConstraint, IConstraint
     {
         /// <summary>
-        /// 教师不可用时间字典(教师ID -> 不可用时间列表)
+        /// Dictionary of teacher unavailable times (teacher ID -> list of unavailable times)
         /// </summary>
         private readonly Dictionary<int, List<(DateTime Start, DateTime End, string Reason)>> _teacherUnavailableTimes;
         
         /// <summary>
-        /// 不可用时间段列表
+        /// List of unavailable time periods
         /// </summary>
         protected readonly List<(DateTime Start, DateTime End, string Reason)> UnavailablePeriods;
 
         /// <summary>
-        /// 学期日期字典 (问题ID -> 学期起止时间)
+        /// Dictionary of semester dates (problem ID -> semester start/end dates)
         /// </summary>
         protected readonly Dictionary<int, (DateTime Start, DateTime End)> SemesterDates;
 
         /// <summary>
-        /// 约束定义ID
+        /// Constraint definition ID
         /// </summary>
         public override string DefinitionId => ConstraintDefinitions.TeacherAvailability;
         
         /// <summary>
-        /// 约束ID
+        /// Constraint ID
         /// </summary>
         public override int Id => 202;
         
         /// <summary>
-        /// 约束名称
+        /// Constraint name
         /// </summary>
-        public override string Name { get; } = "教师可用性约束";
+        public override string Name { get; } = "Teacher Availability Constraint";
         
         /// <summary>
-        /// 约束描述
+        /// Constraint description
         /// </summary>
-        public override string Description { get; } = "教师只能在其可用时间段被安排课程";
+        public override string Description { get; } = "Teachers can only be assigned to courses during their available time slots";
         
         /// <summary>
-        /// 是否是硬约束
+        /// Whether this is a hard constraint
         /// </summary>
         public override bool IsHard => true;
         
         /// <summary>
-        /// 约束层级
+        /// Constraint hierarchy level
         /// </summary>
         public override ConstraintHierarchy Hierarchy => ConstraintHierarchy.Level2_ConfigurableHard;
         
         /// <summary>
-        /// 约束类别
+        /// Constraint category
         /// </summary>
         public override string Category => ConstraintCategory.TimeAllocation;
         
         /// <summary>
-        /// 关联的基本排课规则
+        /// Associated basic scheduling rule
         /// </summary>
         public override string BasicRule => BasicSchedulingRules.ResourceAvailability;
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         public TeacherAvailabilityConstraint() : base()
         {
@@ -80,11 +80,11 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
-        /// <param name="teacherUnavailableTimes">教师不可用时间字典</param>
-        /// <param name="unavailablePeriods">全局不可用时间段(如节假日)</param>
-        /// <param name="semesterDates">学期日期信息</param>
+        /// <param name="teacherUnavailableTimes">Dictionary of teacher unavailable times</param>
+        /// <param name="unavailablePeriods">Global unavailable periods (e.g., holidays)</param>
+        /// <param name="semesterDates">Semester date information</param>
         public TeacherAvailabilityConstraint(
             Dictionary<int, List<(DateTime Start, DateTime End, string Reason)>> teacherUnavailableTimes,
             List<(DateTime Start, DateTime End, string Reason)> unavailablePeriods,
@@ -96,12 +96,12 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 添加教师不可用时间
+        /// Add teacher unavailable time
         /// </summary>
-        /// <param name="teacherId">教师ID</param>
-        /// <param name="start">开始时间</param>
-        /// <param name="end">结束时间</param>
-        /// <param name="reason">原因</param>
+        /// <param name="teacherId">Teacher ID</param>
+        /// <param name="start">Start time</param>
+        /// <param name="end">End time</param>
+        /// <param name="reason">Reason</param>
         public void AddTeacherUnavailableTime(int teacherId, DateTime start, DateTime end, string reason)
         {
             if (!_teacherUnavailableTimes.ContainsKey(teacherId))
@@ -112,10 +112,10 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 评估约束
+        /// Evaluate constraint
         /// </summary>
-        /// <param name="solution">排课方案</param>
-        /// <returns>约束评估结果</returns>
+        /// <param name="solution">Scheduling solution</param>
+        /// <returns>Constraint evaluation result</returns>
         public override (double Score, List<SchedulingConflict> Conflicts) Evaluate(SchedulingSolution solution)
         {
             if (!IsValidSolution(solution))
@@ -125,17 +125,17 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
             
             var conflicts = new List<SchedulingConflict>();
             
-            // 遍历所有课程分配
+            // Iterate through all course assignments
             foreach (var assignment in solution.Assignments)
             {
                 int teacherId = assignment.TeacherId;
                 int timeSlotId = assignment.TimeSlotId;
                 
-                // 从问题定义中查找教师可用性
+                // Look up teacher availability from problem definition
                 var availability = solution.Problem.TeacherAvailabilities
                     .FirstOrDefault(ta => ta.TeacherId == teacherId && ta.TimeSlotId == timeSlotId);
                 
-                // 如果找到可用性记录且教师不可用
+                // If availability record found and teacher is not available
                 if (availability != null && !availability.IsAvailable)
                 {
                     conflicts.Add(new SchedulingConflict
@@ -153,7 +153,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
                 }
             }
             
-            // 计算约束满足度分数
+            // Calculate constraint satisfaction score
             double score = conflicts.Count == 0 ? 1.0 : 0.0;
             
             return (score, conflicts);
@@ -175,7 +175,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 检查两个时间段是否重叠
+        /// Check if two time periods overlap
         /// </summary>
         protected bool DoPeriodsOverlap(DateTime start1, DateTime end1, DateTime start2, DateTime end2)
         {
@@ -183,7 +183,7 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 检查特定时间段是否不可用
+        /// Check if specific time period is unavailable
         /// </summary>
         protected string CheckTimeAvailability(DateTime startTime, DateTime endTime)
         {
@@ -198,18 +198,18 @@ namespace SmartSchedulingSystem.Scheduling.Constraints.Level2_ConfigurableHard
         }
 
         /// <summary>
-        /// 从学期信息和周次计算具体日期
+        /// Calculate specific date from semester information and week
         /// </summary>
         protected DateTime? CalculateDate(int problemId, int week, int dayOfWeek)
         {
             if (!SemesterDates.TryGetValue(problemId, out var semesterDates))
                 return null;
 
-            // 计算当前周的开始日期
+            // Calculate start date of current week
             DateTime weekStartDate = semesterDates.Start.AddDays((week - 1) * 7);
             
-            // 计算具体的日期（根据星期几）
-            int dayOffset = dayOfWeek - 1; // 假设dayOfWeek从1开始，1=周一
+            // Calculate specific date (based on day of week)
+            int dayOffset = dayOfWeek - 1; // Assuming dayOfWeek starts from 1, 1=Monday
             return weekStartDate.AddDays(dayOffset);
         }
     }

@@ -30,12 +30,12 @@ const RequirementAnalyzer  = ({ onAddConstraints }) => {
       // Call LLM API for constraint analysis
       const response = await analyzeConstraints(input);
       
-      // 处理隐式约束，确保它们默认为软约束(Soft)
+      // Handle implicit constraints and make sure they are Soft by default.
       if (response.implicitConstraints && response.implicitConstraints.length > 0) {
         response.implicitConstraints = response.implicitConstraints.map(constraint => ({
           ...constraint,
-          type: 'Soft', // 强制将所有隐式约束设置为软约束
-          weight: constraint.weight || 0.7 // 如果没有权重，设置一个默认值
+          type: 'Soft', // Force all implicit constraints to be soft constraints
+          weight: constraint.weight || 0.7 // If no weight, set a default value
         }));
       }
       
@@ -135,7 +135,7 @@ const RequirementAnalyzer  = ({ onAddConstraints }) => {
             ))}
           </Box>
           
-          {/* 只有当隐式约束存在且不为空时才显示 */}
+          {/* Only show implicit constraints if they exist and are not empty */}
           {results.implicitConstraints && results.implicitConstraints.length > 0 && (
             <>
               <Typography variant="subtitle1" sx={{ mt: 3, display: 'flex', alignItems: 'center' }}>

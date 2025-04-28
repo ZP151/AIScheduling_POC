@@ -10,21 +10,21 @@ using System.Threading.Tasks;
 namespace SmartSchedulingSystem.Scheduling.Algorithms.CP
 {
     /// <summary>
-    /// 约束转换接口，用于将Domain约束转换为CP模型约束
+    /// Constraint conversion interface, used to convert Domain constraints to CP model constraints
     /// </summary>
     public interface ICPConstraintConverter
     {
         /// <summary>
-        /// 获取此约束转换器对应的约束级别
+        /// Get the constraint level corresponding to this constraint converter
         /// </summary>
         ConstraintApplicationLevel ConstraintLevel { get; }
 
         /// <summary>
-        /// 将约束添加到CP模型中
+        /// Add constraints to CP model
         /// </summary>
-        /// <param name="model">CP模型</param>
-        /// <param name="variables">变量字典</param>
-        /// <param name="problem">排课问题</param>
+        /// <param name="model">CP model</param>
+        /// <param name="variables">Variable dictionary</param>
+        /// <param name="problem">Scheduling problem</param>
         void AddToModel(CpModel model, Dictionary<string, IntVar> variables, SchedulingProblem problem);
     }
 }

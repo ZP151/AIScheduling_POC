@@ -1,0 +1,277 @@
+{
+  "semesterId": 1,
+  "courseSectionIds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "teacherIds": [1, 2, 3, 4],
+  "classroomIds": [1, 2, 3, 4],
+  "timeSlotIds": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "courses": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+  "teachers": [1, 2, 3, 4],
+  "classrooms": [1, 2, 3, 4],
+  "timeSlots": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+  "courseSectionObjects": [
+    {
+      "id": 1,
+      "courseCode": "CS101",
+      "courseName": "Computer Introduction",
+      "sectionCode": "A01",
+      "enrollment": 40
+    },
+    {
+      "id": 2,
+      "courseCode": "CS201",
+      "courseName": "Data Structures",
+      "sectionCode": "A01",
+      "enrollment": 35
+    },
+    {
+      "id": 3,
+      "courseCode": "CS301",
+      "courseName": "Algorithm Design",
+      "sectionCode": "A01",
+      "enrollment": 30
+    },
+    {
+      "id": 4,
+      "courseCode": "CS401",
+      "courseName": "Database Systems",
+      "sectionCode": "A01",
+      "enrollment": 25
+    },
+    {
+      "id": 5,
+      "courseCode": "CS501",
+      "courseName": "Operating Systems",
+      "sectionCode": "A01",
+      "enrollment": 30
+    },
+    {
+      "id": 6,
+      "courseCode": "CS601",
+      "courseName": "Software Engineering",
+      "sectionCode": "A01",
+      "enrollment": 35
+    },
+    {
+      "id": 7,
+      "courseCode": "CS701",
+      "courseName": "Artificial Intelligence",
+      "sectionCode": "A01",
+      "enrollment": 28
+    },
+    {
+      "id": 8,
+      "courseCode": "CS801",
+      "courseName": "Computer Networks",
+      "sectionCode": "A01",
+      "enrollment": 32
+    },
+    {
+      "id": 9,
+      "courseCode": "CS901",
+      "courseName": "Computer Graphics",
+      "sectionCode": "A01",
+      "enrollment": 26
+    },
+    {
+      "id": 10,
+      "courseCode": "CS1001",
+      "courseName": "Cloud Computing",
+      "sectionCode": "A01",
+      "enrollment": 22
+    }
+  ],
+  "teacherObjects": [
+    {
+      "id": 1,
+      "name": "Professor Zhang",
+      "title": "Professor",
+      "departmentId": 1
+    },
+    {
+      "id": 2,
+      "name": "Professor Li",
+      "title": "Associate Professor",
+      "departmentId": 1
+    },
+    {
+      "id": 3,
+      "name": "Professor Wang",
+      "title": "Professor",
+      "departmentId": 1
+    },
+    {
+      "id": 4,
+      "name": "Professor Liu",
+      "title": "Associate Professor",
+      "departmentId": 1
+    }
+  ],
+  "classroomObjects": [
+    {
+      "id": 1,
+      "name": "Room 101",
+      "building": "Main Building",
+      "capacity": 50,
+      "type": "Regular",
+      "hasComputers": false,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    },
+    {
+      "id": 2,
+      "name": "Room 201",
+      "building": "Main Building",
+      "capacity": 60,
+      "type": "Multimedia",
+      "hasComputers": true,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    },
+    {
+      "id": 3,
+      "name": "Room 301",
+      "building": "Science Building",
+      "capacity": 45,
+      "type": "Lab",
+      "hasComputers": true,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    },
+    {
+      "id": 4,
+      "name": "Room 401",
+      "building": "Science Building",
+      "capacity": 70,
+      "type": "Lecture Hall",
+      "hasComputers": false,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    }
+  ],
+  "timeSlotObjects": [
+    {
+      "id": 1,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 2,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 3,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "13:30",
+      "endTime": "15:10"
+    },
+    {
+      "id": 4,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "15:30",
+      "endTime": "17:10"
+    },
+    {
+      "id": 5,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 6,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 7,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "13:30",
+      "endTime": "15:10"
+    },
+    {
+      "id": 8,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "15:30",
+      "endTime": "17:10"
+    },
+    {
+      "id": 9,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 10,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 11,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "13:30",
+      "endTime": "15:10"
+    },
+    {
+      "id": 12,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "15:30",
+      "endTime": "17:10"
+    },
+    {
+      "id": 13,
+      "dayOfWeek": 4,
+      "dayName": "Thursday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 14,
+      "dayOfWeek": 4,
+      "dayName": "Thursday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 15,
+      "dayOfWeek": 4,
+      "dayName": "Thursday",
+      "startTime": "13:30",
+      "endTime": "15:10"
+    }
+  ],
+  "constraintSettings": [
+    {
+      "constraintId": 1,
+      "isActive": true,
+      "weight": 1.0
+    },
+    {
+      "constraintId": 2,
+      "isActive": true,
+      "weight": 1.0
+    },
+    {
+      "constraintId": 3,
+      "isActive": true,
+      "weight": 1.0
+    }
+  ],
+  "generateMultipleSolutions": true,
+  "solutionCount": 2
+} 

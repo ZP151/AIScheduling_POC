@@ -50,7 +50,7 @@ import {
   mockTimeSlots
 } from '../services/mockData';
 
-// 导入真实API服务
+// Import real API service
 import { generateScheduleApi, API_ENDPOINTS } from '../services/api';
 
 import RequirementAnalyzer  from './LLM/RequirementAnalyzer';
@@ -74,14 +74,14 @@ const ScheduleCoursesForm = ({
     teachers: [],
     classrooms: [],
 
-    // API端点选择
+    // API endpoint selection
     apiEndpointType: API_ENDPOINTS.TEST_MOCK,
 
      // Add these new organizational scope parameters
     campus: '',
     school: '',
     department: '',
-    subject: '',  // 新增
+    subject: '',  // New
     programme: '',
     // Add scheduling scope type
     schedulingScope: 'programme',  // Options: 'university', 'campus', 'school', 'department', 'programme', 'custom'
@@ -137,8 +137,8 @@ const ScheduleCoursesForm = ({
 
   // Add this state variable for debugging
   const [debugMode, setDebugMode] = useState({
-    disableMockFallback: false, // 禁用模拟回退，强制使用真实API
-    verboseLogging: false      // 启用详细日志记录
+    disableMockFallback: false, // Disable mock fallback, force using real API
+    verboseLogging: false      // Enable verbose logging
   });
 
   // Add this method to toggle debug options
@@ -149,7 +149,7 @@ const ScheduleCoursesForm = ({
     }));
   };
 
-  // 添加反馈消息的处理函数
+  // Add feedback message handler
   const showFeedback = (message, type = 'info') => {
     setFeedback({
       open: true,
@@ -167,9 +167,9 @@ const ScheduleCoursesForm = ({
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
-    console.log(`表单变更: ${name} = `, value);
+    console.log(`Form change: ${name} = `, value);
     
-    // 特殊处理组织单位字段的选择，清空相关的选择
+    // Special handling for organizational unit field selection, clear related selections
     if (name === 'campus') {
       setFormData({
         ...formData,
@@ -178,7 +178,7 @@ const ScheduleCoursesForm = ({
         department: '',
         subject: '',
         programme: '',
-        // 清空相关选择
+        // Clear related selections
         courses: [],
         teachers: [],
         classrooms: []
@@ -190,7 +190,7 @@ const ScheduleCoursesForm = ({
         department: '',
         subject: '',
         programme: '',
-        // 清空相关选择
+        // Clear related selections
         courses: [],
         teachers: []
       });
@@ -200,7 +200,7 @@ const ScheduleCoursesForm = ({
         [name]: value,
         subject: '',
         programme: '',
-        // 清空相关选择
+        // Clear related selections
         courses: [],
         teachers: []
       });
@@ -208,7 +208,7 @@ const ScheduleCoursesForm = ({
       setFormData({
         ...formData,
         [name]: value,
-        // 清空相关选择
+        // Clear related selections
         courses: [],
         teachers: []
       });
@@ -216,7 +216,7 @@ const ScheduleCoursesForm = ({
       setFormData({
         ...formData,
         [name]: value,
-        // 清空相关选择
+        // Clear related selections
         courses: []
       });
     } else {
@@ -226,9 +226,9 @@ const ScheduleCoursesForm = ({
       });
     }
     
-    // 当改变课程、教师或教室时，记录当前筛选后的列表
+    // When changing course, teacher or classroom, record the current filtered list
     if (['courses', 'teachers', 'classrooms'].includes(name)) {
-      console.log(`${name} 筛选后列表:`, getFilteredItems(name));
+      console.log(`${name} filtered list:`, getFilteredItems(name));
     }
   };
 
@@ -278,24 +278,24 @@ const ScheduleCoursesForm = ({
     }
   }, [formData.schedulingScope]);
 
-  // 添加一个新的useEffect钩子来处理初始化默认选择
+  // Add a new useEffect hook to handle initial default selections
   useEffect(() => {
-    // 组件首次加载时自动选择默认值
+    // Automatically select default values when component first loads
     if (formData.courses.length === 0 && formData.teachers.length === 0 && formData.classrooms.length === 0) {
-      console.log('初始化默认选择...');
+      console.log('Initializing default selections...');
       
-      // 默认选择第一个校区
+      // Default select first campus
       const defaultCampus = mockCampuses.length > 0 ? mockCampuses[0].id : '';
       
-      // 获取该校区下的第一个学院
+      // Get first school under this campus
       const campusSchools = mockSchools.filter(school => school.campusId === defaultCampus);
       const defaultSchool = campusSchools.length > 0 ? campusSchools[0].id : '';
       
-      // 获取该学院下的第一个系别
+      // Get first department under this school
       const schoolDepts = mockDepartments.filter(dept => dept.schoolId === defaultSchool);
       const defaultDept = schoolDepts.length > 0 ? schoolDepts[0].id : '';
       
-      // 更新formData
+      // Update formData
       setFormData(prev => {
         const newFormData = {
           ...prev,
@@ -307,39 +307,39 @@ const ScheduleCoursesForm = ({
         return newFormData;
       });
     }
-  }, []); // 仅在组件挂载时运行一次
+  }, []); // Only run once when component mounts
 
-  // 在组织单位选择更新后自动选择默认课程、教师和教室
+  // Automatically select default courses, teachers and classrooms after organizational unit selection updates
   useEffect(() => {
-    // 仅在有组织单位选择但没有课程、教师或教室选择时执行
+    // Only execute when there are organizational unit selections but no course, teacher or classroom selections
     if ((formData.campus || formData.school || formData.department) && 
         (formData.courses.length === 0 || formData.teachers.length === 0 || formData.classrooms.length === 0)) {
       
-      console.log('基于组织单位选择更新默认选择...');
+      console.log('Updating default selections based on organizational unit selection...');
       
-      // 获取可用项目
+      // Get available items
       const availableCourses = getFilteredItems('courses').map(c => c.id).slice(0, 3);
       const availableTeachers = getFilteredItems('teachers').map(t => t.id).slice(0, 2);
       const availableClassrooms = getFilteredItems('classrooms').map(c => c.id).slice(0, 2);
       
-      console.log('可用课程:', availableCourses);
-      console.log('可用教师:', availableTeachers);
-      console.log('可用教室:', availableClassrooms);
+      console.log('Available courses:', availableCourses);
+      console.log('Available teachers:', availableTeachers);
+      console.log('Available classrooms:', availableClassrooms);
       
-      // 检查是否有可用的选项
+      // Check if there are available options
       if (availableCourses.length === 0 && formData.courses.length === 0) {
-        showFeedback('当前筛选条件下没有可用课程', 'warning');
+        showFeedback('No available courses under current filter conditions', 'warning');
       }
       
       if (availableTeachers.length === 0 && formData.teachers.length === 0) {
-        showFeedback('当前筛选条件下没有可用教师', 'warning');
+        showFeedback('No available teachers under current filter conditions', 'warning');
       }
       
       if (availableClassrooms.length === 0 && formData.classrooms.length === 0) {
-        showFeedback('当前筛选条件下没有可用教室', 'warning');
+        showFeedback('No available classrooms under current filter conditions', 'warning');
       }
       
-      // 只更新尚未选择的项目
+      // Only update items that haven't been selected yet
       setFormData(current => ({
         ...current,
         courses: current.courses.length === 0 ? availableCourses : current.courses,
@@ -347,11 +347,11 @@ const ScheduleCoursesForm = ({
         classrooms: current.classrooms.length === 0 ? availableClassrooms : current.classrooms
       }));
     }
-  }, [formData.campus, formData.school, formData.department]); // 当组织单位选择变化时执行
+  }, [formData.campus, formData.school, formData.department]); // Execute when organizational unit selections change
 
   // Add this helper function to your component
   const getFilteredItems = (itemType) => {
-    // 获取当前的筛选条件
+    // Get current filter conditions
     const filterParams = {
       campus: formData.campus,
       school: formData.school,
@@ -360,140 +360,140 @@ const ScheduleCoursesForm = ({
       programme: formData.programme
     };
     
-    console.log(`筛选${itemType}，条件:`, filterParams);
+    console.log(`Filtering ${itemType}, conditions:`, filterParams);
     
     switch (itemType) {
       case 'courses':
         // Filter courses based on selected organizational units
         let filteredCourses = [...mockCourses];
         
-        // 优先按学科筛选
+        // Prioritize filtering by subject
         if (filterParams.subject) {
-          console.log(`按学科ID ${filterParams.subject} 筛选课程`);
+          console.log(`Filtering courses by subject ID ${filterParams.subject}`);
           filteredCourses = filteredCourses.filter(course => course.subjectId === filterParams.subject);
         } 
-        // 如果没有选择学科但选择了专业
+        // If no subject selected but programme selected
         else if (filterParams.programme) {
-          console.log(`按专业ID ${filterParams.programme} 筛选课程`);
-          // 假设课程有programmeId字段，如果没有，需要根据实际关联逻辑修改
+          console.log(`Filtering courses by programme ID ${filterParams.programme}`);
+          // Filtering courses by programme ID
           filteredCourses = filteredCourses.filter(course => course.programmeId === filterParams.programme);
         } 
-        // 如果没有选择学科和专业但选择了系别
+        // If no subject and programme selected but department selected
         else if (filterParams.department) {
-          console.log(`按系别ID ${filterParams.department} 筛选课程`);
-          // 根据系别筛选科目，然后筛选课程
+          console.log(`Filtering courses by department ID ${filterParams.department}`);
+          // Filter subjects by department, then filter courses
           const departmentSubjects = mockSubjects.filter(subject => subject.departmentId === filterParams.department);
           const subjectIds = departmentSubjects.map(subject => subject.id);
-          console.log(`系别 ${filterParams.department} 下的学科IDs:`, subjectIds);
+          console.log(`Subject IDs under department ${filterParams.department}:`, subjectIds);
           
           filteredCourses = filteredCourses.filter(course => 
             subjectIds.includes(course.subjectId)
           );
         } 
-        // 如果只选择了学院
+        // If only school selected
         else if (filterParams.school) {
-          console.log(`按学院ID ${filterParams.school} 筛选课程`);
-          // 获取学院下所有系别
+          console.log(`Filtering courses by school ID ${filterParams.school}`);
+          // Get all departments under this school
           const schoolDepts = mockDepartments.filter(dept => dept.schoolId === filterParams.school);
           const deptIds = schoolDepts.map(dept => dept.id);
-          console.log(`学院 ${filterParams.school} 下的系别IDs:`, deptIds);
+          console.log(`Department IDs under school ${filterParams.school}:`, deptIds);
           
-          // 获取这些系别下的所有学科
+          // Get all subjects under these departments
           const deptSubjects = mockSubjects.filter(subject => 
             deptIds.includes(subject.departmentId)
           );
           const subjectIds = deptSubjects.map(subject => subject.id);
-          console.log(`学院 ${filterParams.school} 下的学科IDs:`, subjectIds);
+          console.log(`Subject IDs under school ${filterParams.school}:`, subjectIds);
           
           filteredCourses = filteredCourses.filter(course => 
             subjectIds.includes(course.subjectId)
           );
         } 
-        // 如果只选择了校区
+        // If only campus selected
         else if (filterParams.campus) {
-          console.log(`按校区ID ${filterParams.campus} 筛选课程`);
-          // 获取校区下所有学院
+          console.log(`Filtering courses by campus ID ${filterParams.campus}`);
+          // Get all schools under this campus
           const campusSchools = mockSchools.filter(school => school.campusId === filterParams.campus);
           const schoolIds = campusSchools.map(school => school.id);
-          console.log(`校区 ${filterParams.campus} 下的学院IDs:`, schoolIds);
+          console.log(`School IDs under campus ${filterParams.campus}:`, schoolIds);
           
-          // 获取这些学院下的所有系别
+          // Get all departments under these schools
           const schoolDepts = mockDepartments.filter(dept => 
             schoolIds.includes(dept.schoolId)
           );
           const deptIds = schoolDepts.map(dept => dept.id);
-          console.log(`校区 ${filterParams.campus} 下的系别IDs:`, deptIds);
+          console.log(`Department IDs under campus ${filterParams.campus}:`, deptIds);
           
-          // 获取这些系别下的所有学科
+          // Get all subjects under these departments
           const deptSubjects = mockSubjects.filter(subject => 
             deptIds.includes(subject.departmentId)
           );
           const subjectIds = deptSubjects.map(subject => subject.id);
-          console.log(`校区 ${filterParams.campus} 下的学科IDs:`, subjectIds);
+          console.log(`Subject IDs under campus ${filterParams.campus}:`, subjectIds);
           
           filteredCourses = filteredCourses.filter(course => 
             subjectIds.includes(course.subjectId)
           );
         }
         
-        console.log(`筛选后的课程数量: ${filteredCourses.length}`);
+        console.log(`Number of filtered courses: ${filteredCourses.length}`);
         return filteredCourses;
         
       case 'teachers':
         // Filter teachers based on selected organizational units
         let filteredTeachers = [...mockTeachers];
         
-        // 优先按学科筛选
+        // Prioritize filtering by subject
         if (filterParams.subject) {
-          console.log(`按学科ID ${filterParams.subject} 筛选教师`);
+          console.log(`Filtering teachers by subject ID ${filterParams.subject}`);
           const eligibleTeacherIds = mockTeacherSubjects
             .filter(ts => ts.subjectId === filterParams.subject)
             .map(ts => ts.teacherId);
           
-          console.log(`可教授学科 ${filterParams.subject} 的教师IDs:`, eligibleTeacherIds);
+          console.log(`Teachers who can teach subject ${filterParams.subject}:`, eligibleTeacherIds);
           
           filteredTeachers = filteredTeachers.filter(teacher => 
             eligibleTeacherIds.includes(teacher.id)
           );
         } 
-        // 如果没有选择学科但选择了系别
+        // If no subject selected but department selected
         else if (filterParams.department) {
-          console.log(`按系别ID ${filterParams.department} 筛选教师`);
+          console.log(`Filtering teachers by department ID ${filterParams.department}`);
           filteredTeachers = filteredTeachers.filter(teacher => teacher.departmentId === filterParams.department);
         } 
-        // 如果没有选择学科和系别但选择了学院
+        // If no subject and department selected but school selected
         else if (filterParams.school) {
-          console.log(`按学院ID ${filterParams.school} 筛选教师`);
-          // 获取学院下所有系别
+          console.log(`Filtering teachers by school ID ${filterParams.school}`);
+          // Get all departments under this school
           const schoolDepts = mockDepartments.filter(dept => dept.schoolId === filterParams.school);
           const deptIds = schoolDepts.map(dept => dept.id);
-          console.log(`学院 ${filterParams.school} 下的系别IDs:`, deptIds);
+          console.log(`Department IDs under school ${filterParams.school}:`, deptIds);
           
           filteredTeachers = filteredTeachers.filter(teacher => 
             deptIds.includes(teacher.departmentId)
           );
         } 
-        // 如果只选择了校区
+        // If only campus selected
         else if (filterParams.campus) {
-          console.log(`按校区ID ${filterParams.campus} 筛选教师`);
-          // 获取校区下所有学院
+          console.log(`Filtering teachers by campus ID ${filterParams.campus}`);
+          // Get all schools under this campus
           const campusSchools = mockSchools.filter(school => school.campusId === filterParams.campus);
           const schoolIds = campusSchools.map(school => school.id);
-          console.log(`校区 ${filterParams.campus} 下的学院IDs:`, schoolIds);
+          console.log(`School IDs under campus ${filterParams.campus}:`, schoolIds);
           
-          // 获取这些学院下的所有系别
+          // Get all departments under these schools
           const schoolDepts = mockDepartments.filter(dept => 
             schoolIds.includes(dept.schoolId)
           );
           const deptIds = schoolDepts.map(dept => dept.id);
-          console.log(`校区 ${filterParams.campus} 下的系别IDs:`, deptIds);
+          console.log(`Department IDs under campus ${filterParams.campus}:`, deptIds);
           
           filteredTeachers = filteredTeachers.filter(teacher => 
             deptIds.includes(teacher.departmentId)
           );
         }
         
-        console.log(`筛选后的教师数量: ${filteredTeachers.length}`);
+        console.log(`Number of filtered teachers: ${filteredTeachers.length}`);
         return filteredTeachers;
         
       case 'classrooms':
@@ -501,15 +501,15 @@ const ScheduleCoursesForm = ({
         let filteredClassrooms = [...mockClassrooms];
         
         if (filterParams.campus) {
-          console.log(`按校区ID ${filterParams.campus} 筛选教室`);
+          console.log(`Filtering classrooms by campus ID ${filterParams.campus}`);
           filteredClassrooms = filteredClassrooms.filter(classroom => classroom.campusId === filterParams.campus);
         }
         
-        console.log(`筛选后的教室数量: ${filteredClassrooms.length}`);
+        console.log(`Number of filtered classrooms: ${filteredClassrooms.length}`);
         return filteredClassrooms;
         
       default:
-        console.log(`未知的筛选类型: ${itemType}`);
+        console.log(`Unknown filter type: ${itemType}`);
         return [];
     }
   };
@@ -546,25 +546,25 @@ const ScheduleCoursesForm = ({
 
   // In ScheduleCoursesForm.jsx, update handleGenerateSchedule function
   const handleGenerateSchedule = () => {
-    // 验证数据
+    // Validate data
     if (!formData.semester) {
         showFeedback('Please select a semester', 'error');
       return;
     }
     
-    // 确保至少选择了一个课程
+    // Ensure at least one course is selected
     if (!formData.courses || formData.courses.length === 0) {
         showFeedback('Please select at least one course', 'error');
       return;
     }
     
-    // 确保至少选择了一个教师
+    // Ensure at least one teacher is selected
     if (!formData.teachers || formData.teachers.length === 0) {
         showFeedback('Please select at least one teacher', 'error');
       return;
     }
     
-    // 确保至少选择了一个教室
+    // Ensure at least one classroom is selected
     if (!formData.classrooms || formData.classrooms.length === 0) {
         showFeedback('Please select at least one classroom', 'error');
       return;
@@ -573,21 +573,21 @@ const ScheduleCoursesForm = ({
     setIsGenerating(true);
       showFeedback('The scheduling program is being generated, please wait...', 'info');
     
-    // 准备约束设置
+    // Prepare constraint settings
     const constraintSettings = formData.constraintSettings || [];
 
-    // 准备API请求数据 - 确保与DTO格式匹配
+    // Prepare API request data - ensure it matches DTO format
     const apiRequestData = {
-      // 基本数据
+      // Basic data
       semester: formData.semester,
-      courses: formData.courses || [],  // 将在API中转换为courseSectionIds
-      teachers: formData.teachers || [], // 将在API中转换为teacherIds
-      classrooms: formData.classrooms || [], // 将在API中转换为classroomIds
+      courses: formData.courses || [],  // Will be converted to courseSectionIds in API
+      teachers: formData.teachers || [], // Will be converted to teacherIds in API
+      classrooms: formData.classrooms || [], // Will be converted to classroomIds in API
       
-      // API端点类型
+      // API endpoint type
       apiEndpointType: formData.apiEndpointType,
       
-      // 组织单位数据
+      // Organizational unit data
       campus: formData.campus || null,
       school: formData.school || null,
       department: formData.department || null,
@@ -595,14 +595,14 @@ const ScheduleCoursesForm = ({
       programme: formData.programme || null,
       schedulingScope: formData.schedulingScope || 'programme',
       
-      // 约束和调度参数
+      // Constraints and scheduling parameters
       constraintSettings,
       
-      // 多方案生成参数
+      // Multiple solution generation parameters
       generateMultipleSolutions: true,
       solutionCount: 3,
       
-      // 系统参数（来自props）
+      // System parameters (from props)
       useAI: systemParameters?.useAI || false,
       facultyWorkloadBalance: systemParameters?.facultyWorkloadBalance || 0.8,
       studentScheduleCompactness: systemParameters?.studentScheduleCompactness || 0.7,
@@ -612,7 +612,7 @@ const ScheduleCoursesForm = ({
       preferredClassroomProximity: systemParameters?.preferredClassroomProximity || 0.5,
       classroomTypeMatchingWeight: systemParameters?.classroomTypeMatchingWeight || 0.7,
       
-      // 其他选项
+      // Other options
       allowCrossSchoolEnrollment: systemParameters?.allowCrossSchoolEnrollment || true,
       allowCrossDepartmentTeaching: systemParameters?.allowCrossDepartmentTeaching || true,
       prioritizeHomeBuildings: systemParameters?.prioritizeHomeBuildings || true,
@@ -622,35 +622,35 @@ const ScheduleCoursesForm = ({
       enableMultiCampusConstraints: systemParameters?.enableMultiCampusConstraints || true,
       holidayExclusions: systemParameters?.holidayExclusions || true,
       
-      // 调试参数
+      // Debug parameters
       _debug: debugMode
     };
     
-    console.log('发送排课请求数据:', apiRequestData);
+    console.log('Sending scheduling request data:', apiRequestData);
     
-    // 调用API
+    // Call API
     generateScheduleApi(apiRequestData)
       .then(result => {
         setIsGenerating(false);
-        console.log('收到排课结果:', result);
+        console.log('Received scheduling result:', result);
         
-        // 检查是否有错误信息
+        // Check for error messages
         if (result.errorMessage) {
-          showFeedback(`排课方案生成部分成功: ${result.errorMessage}`, 'warning');
+          showFeedback(`Schedule generation partially successful: ${result.errorMessage}`, 'warning');
         } else {
-          showFeedback('排课方案生成成功!', 'success');
+          showFeedback('Schedule generation successful!', 'success');
         }
         
         if (onScheduleGenerated) {
-          // 将结果传递给父组件
+          // Pass result to parent component
           onScheduleGenerated(result);
         }
       })
       .catch(error => {
-        console.error('生成排课方案失败:', error);
+        console.error('Failed to generate schedule:', error);
         setIsGenerating(false);
-        // 显示错误提示给用户
-        showFeedback(`生成排课方案失败: ${error.message || '未知错误'}`, 'error');
+        // Show error message to user
+        showFeedback(`Failed to generate schedule: ${error.message || 'Unknown error'}`, 'error');
       });
   };
   
@@ -948,7 +948,7 @@ const ScheduleCoursesForm = ({
         </AccordionDetails>
       </Accordion>
       
-      {/* API端点选择 - 单独放置 */}
+      {/* API endpoint selection - Separate placement */}
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
         <Grid container spacing={2}>
           <Grid item xs={12}>

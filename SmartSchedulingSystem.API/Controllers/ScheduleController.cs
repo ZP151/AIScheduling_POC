@@ -768,9 +768,6 @@ namespace SmartSchedulingSystem.API.Controllers
                     ResourceTypes = new List<string>(), // Will be added below
                     PreferredRoomTypes = new List<string>(), // Will be added below
                     RequiredCapacity = course.Enrollment,
-                    RequiresComputers = courseType == "Computer Science",
-                    RequiresProjector = true, // Most courses need a projector
-                    RequiresLaboratoryEquipment = courseType == "Physics" || courseType == "Chemistry",
                     ResourceMatchingWeight = 0.8
                 });
                 

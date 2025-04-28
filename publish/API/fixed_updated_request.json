@@ -1,0 +1,133 @@
+{
+  "semesterId": 1,
+  "courseSectionIds": [1, 2, 3],
+  "teacherIds": [1, 2],
+  "classroomIds": [1, 2],
+  "timeSlotIds": [1, 2, 3, 4, 5, 6],
+  "courses": [1, 2, 3],
+  "teachers": [1, 2],
+  "classrooms": [1, 2],
+  "timeSlots": [1, 2, 3, 4, 5, 6],
+  "courseSectionObjects": [
+    {
+      "id": 1,
+      "courseCode": "CS101",
+      "courseName": "Computer Introduction",
+      "sectionCode": "A01",
+      "enrollment": 40
+    },
+    {
+      "id": 2,
+      "courseCode": "CS201",
+      "courseName": "Data Structures",
+      "sectionCode": "A01",
+      "enrollment": 35
+    },
+    {
+      "id": 3,
+      "courseCode": "CS301",
+      "courseName": "Algorithm Design",
+      "sectionCode": "A01",
+      "enrollment": 30
+    }
+  ],
+  "teacherObjects": [
+    {
+      "id": 1,
+      "name": "Professor Zhang",
+      "title": "Professor",
+      "departmentId": 1
+    },
+    {
+      "id": 2,
+      "name": "Professor Li",
+      "title": "Associate Professor",
+      "departmentId": 1
+    }
+  ],
+  "classroomObjects": [
+    {
+      "id": 1,
+      "name": "Room 101",
+      "building": "Main Building",
+      "capacity": 50,
+      "type": "Regular",
+      "hasComputers": false,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    },
+    {
+      "id": 2,
+      "name": "Room 201",
+      "building": "Main Building",
+      "capacity": 60,
+      "type": "Multimedia",
+      "hasComputers": true,
+      "hasProjector": true,
+      "campusName": "Main Campus"
+    }
+  ],
+  "timeSlotObjects": [
+    {
+      "id": 1,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 2,
+      "dayOfWeek": 1,
+      "dayName": "Monday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 3,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 4,
+      "dayOfWeek": 2,
+      "dayName": "Tuesday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    },
+    {
+      "id": 5,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "08:00",
+      "endTime": "09:40"
+    },
+    {
+      "id": 6,
+      "dayOfWeek": 3,
+      "dayName": "Wednesday",
+      "startTime": "10:00",
+      "endTime": "11:40"
+    }
+  ],
+  "constraintSettings": [
+    {
+      "constraintId": 1,
+      "isActive": true,
+      "weight": 1.0
+    },
+    {
+      "constraintId": 2,
+      "isActive": true,
+      "weight": 1.0
+    },
+    {
+      "constraintId": 3,
+      "isActive": true,
+      "weight": 1.0
+    }
+  ],
+  "generateMultipleSolutions": true,
+  "solutionCount": 3
+} 

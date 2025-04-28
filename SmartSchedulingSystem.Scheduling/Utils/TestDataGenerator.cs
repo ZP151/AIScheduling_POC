@@ -7,20 +7,20 @@ using System.Linq;
 namespace SmartSchedulingSystem.Scheduling.Utils
 {
     /// <summary>
-    /// 用于生成测试数据的工具类
+    /// Tool class for generating test data
     /// </summary>
     public class TestDataGenerator
     {
         private readonly Random _random = new Random();
 
         /// <summary>
-        /// 生成测试排课问题
+        /// Generate test scheduling problem
         /// </summary>
-        /// <param name="courseSectionCount">课程班级数量</param>
-        /// <param name="teacherCount">教师数量</param>
-        /// <param name="classroomCount">教室数量</param>
-        /// <param name="timeSlotCount">时间槽数量</param>
-        /// <returns>测试排课问题</returns>
+        /// <param name="courseSectionCount">Number of course sections</param>
+        /// <param name="teacherCount">Number of teachers</param>
+        /// <param name="classroomCount">Number of classrooms</param>
+        /// <param name="timeSlotCount">Number of time slots</param>
+        /// <returns>Test scheduling problem</returns>
         public SchedulingProblem GenerateTestProblem(
             int courseSectionCount = 20,
             int teacherCount = 10,
@@ -42,26 +42,26 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 Prerequisites = new List<CoursePrerequisite>()
             };
 
-            // 1. 生成时间槽 - 确保时间槽足够多
+            // 1. Generate time slots - ensure enough time slots
             GenerateTimeSlots(problem, Math.Max(courseSectionCount, timeSlotCount));
 
-            // 2. 生成教室 - 确保容量足够
+            // 2. Generate classrooms - ensure capacity is sufficient
             GenerateClassrooms(problem, classroomCount);
 
-            // 3. 生成教师
+            // 3. Generate teachers
             GenerateTeachers(problem, teacherCount);
 
-            // 4. 生成课程班级 - 确保班级大小合理
+            // 4. Generate course sections - ensure reasonable class size
             GenerateCourseSectionsRealistic(problem, courseSectionCount);
 
-            // 5. 创建更现实的教师课程偏好：每位教师只教1-3门课，每门课有1-3位教师
+            // 5. Create more realistic teacher course preferences: each teacher teaches 1-3 courses, each course has 1-3 teachers
             CreateRealisticTeacherPreferences(problem);
-            Console.WriteLine($"生成了 {problem.TeacherCoursePreferences.Count} 个教师课程偏好");
+            Console.WriteLine($"Generated {problem.TeacherCoursePreferences.Count} teacher course preferences");
 
-            // 6. 添加少量不可用时间段
+            // 6. Add limited unavailable times
             AddLimitedUnavailableTimes(problem);
-            Console.WriteLine($"生成了 {problem.TeacherAvailabilities.Count} 个教师不可用时间段");
-            Console.WriteLine($"生成了 {problem.ClassroomAvailabilities.Count} 个教室不可用时间段");
+            Console.WriteLine($"Generated {problem.TeacherAvailabilities.Count} teacher unavailable times");
+            Console.WriteLine($"Generated {problem.ClassroomAvailabilities.Count} classroom unavailable times");
 
 
             return problem;
@@ -71,10 +71,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             var timeSlots = new List<TimeSlotInfo>();
             int slotId = 1;
 
-            // 周一到周五
+            // Monday to Friday
             for (int day = 1; day <= 5; day++) // Monday to Friday
             {
-                // 上午 8:00 - 10:00
+                // morning 8:00 - 10:00
                 timeSlots.Add(new TimeSlotInfo
                 {
                     Id = slotId++,
@@ -84,7 +84,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     EndTime = new TimeSpan(10, 0, 0)
                 });
 
-                // 上午 10:00 - 12:00
+                // morning 10:00 - 12:00
                 timeSlots.Add(new TimeSlotInfo
                 {
                     Id = slotId++,
@@ -94,7 +94,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     EndTime = new TimeSpan(12, 0, 0)
                 });
 
-                // 下午 14:00 - 16:00
+                // afternoon 14:00 - 16:00
                 timeSlots.Add(new TimeSlotInfo
                 {
                     Id = slotId++,
@@ -104,7 +104,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     EndTime = new TimeSpan(16, 0, 0)
                 });
 
-                // 晚上 19:00 - 21:00
+                // evening 19:00 - 21:00
                 timeSlots.Add(new TimeSlotInfo
                 {
                     Id = slotId++,
@@ -131,12 +131,12 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             };
         }
         /// <summary>
-        /// 生成测试时间槽
+        /// Generate test time slots
         /// </summary>
-        // 生成合理的时间槽
+        // Generate reasonable time slots
         private void GenerateTimeSlots(SchedulingProblem problem, int count)
         {
-            // 每天5个时间段，一周5天
+            // 5 time slots per day, 5 days a week
             int slotsPerDay = 5;
             int maxDays = 5;
 
@@ -151,23 +151,23 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                     switch (slot)
                     {
-                        case 0: // 上午第一节
+                        case 0: // morning first slot
                             startTime = new TimeSpan(8, 0, 0);
                             endTime = new TimeSpan(9, 30, 0);
                             break;
-                        case 1: // 上午第二节
+                        case 1: // morning second slotng second slot
                             startTime = new TimeSpan(10, 0, 0);
                             endTime = new TimeSpan(11, 30, 0);
                             break;
-                        case 2: // 下午第一节
+                        case 2: // afternoon first slot
                             startTime = new TimeSpan(13, 0, 0);
                             endTime = new TimeSpan(14, 30, 0);
                             break;
-                        case 3: // 下午第二节
+                        case 3: // afternoon second slot
                             startTime = new TimeSpan(15, 0, 0);
                             endTime = new TimeSpan(16, 30, 0);
                             break;
-                        case 4: // 晚上
+                        case 4: // evening slot
                             startTime = new TimeSpan(18, 30, 0);
                             endTime = new TimeSpan(20, 0, 0);
                             break;
@@ -193,38 +193,38 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
 
         /// <summary>
-        /// 生成测试教室
+        /// Generate test classrooms
         /// </summary>
         private void GenerateClassrooms(SchedulingProblem problem, int count)
         {
-            // 不同类型、不同容量的教室
+            // different types, different capacities
             string[] types = { "Regular", "Computer", "Lab", "Lecture" };
-            string[] buildings = { "A楼", "B楼", "C楼", "实验楼", "图书馆" };
+            string[] buildings = { "A Building", "B Building", "C Building", "Experiment Building", "Library" };
 
             for (int i = 1; i <= count; i++)
             {
                 string type = types[_random.Next(types.Length)];
                 string building = buildings[_random.Next(buildings.Length)];
 
-                // 根据教室类型设置合理的容量
+                // set reasonable capacity based on classroom type
                 int capacity;
                 bool hasComputers = false;
-                bool hasProjector = _random.NextDouble() > 0.2; // 80%有投影仪
+                bool hasProjector = _random.NextDouble() > 0.2; // 80% have projector
 
                 switch (type)
                 {
                     case "Regular":
-                        capacity = _random.Next(30, 61); // 30-60人
+                        capacity = _random.Next(30, 61); // 30-60 people
                         break;
                     case "Computer":
-                        capacity = _random.Next(20, 41); // 20-40人
+                        capacity = _random.Next(20, 41); // 20-40 people
                         hasComputers = true;
                         break;
                     case "Lab":
-                        capacity = _random.Next(20, 36); // 20-35人
+                        capacity = _random.Next(20, 36); // 20-35 people
                         break;
                     case "Lecture":
-                        capacity = _random.Next(80, 201); // 80-200人
+                        capacity = _random.Next(80, 201); // 80-200 people
                         break;
                     default:
                         capacity = _random.Next(30, 61);
@@ -236,8 +236,8 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     Id = i,
                     Name = $"{building}-{100 + i}",
                     Building = building,
-                    CampusId = _random.Next(1, 3), // 1或2，表示主校区或分校区
-                    CampusName = _random.Next(1, 3) == 1 ? "主校区" : "分校区",
+                    CampusId = _random.Next(1, 3), // 1 or 2, representing main campus or branch campus
+                    CampusName = _random.Next(1, 3) == 1 ? "Main Campus" : "Branch Campus",
                     Capacity = capacity,
                     Type = type,
                     HasComputers = hasComputers,
@@ -247,17 +247,17 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         }
 
         /// <summary>
-        /// 生成教室设备列表
+        /// Generate classroom equipment list
         /// </summary>
         private string GenerateEquipment(string roomType)
         {
             var equipment = new List<string>();
 
-            // 基本设备
+            // basic equipment
             if (_random.NextDouble() > 0.1) equipment.Add("Whiteboard");
             if (_random.NextDouble() > 0.2) equipment.Add("Projector");
 
-            // 根据教室类型添加特殊设备
+            // add special equipment based on classroom type
             switch (roomType)
             {
                 case "Computer":
@@ -282,9 +282,9 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void GenerateTeachers(SchedulingProblem problem, int count)
         {
-            string[] surnames = { "张", "王", "李", "赵", "刘", "陈", "杨", "黄", "周", "吴", "郑", "马", "孙", "朱", "胡" };
-            string[] titles = { "教授", "副教授", "讲师", "助教" };
-            string[] departments = { "计算机科学", "数学", "物理", "工程", "经济", "管理", "外语" };
+            string[] surnames = { "Zhang", "Wang", "Li", "Zhao", "Liu", "Chen", "Yang", "Huang", "Zhou", "Wu", "Zheng", "Ma", "Sun", "Zhu", "Hu" };
+            string[] titles = { "Professor", "Associate Professor", "Lecturer", "Assistant" };
+            string[] departments = { "Computer Science", "Mathematics", "Physics", "Engineering", "Economics", "Management", "Foreign Languages" };
 
             for (int i = 1; i <= count; i++)
             {
@@ -292,33 +292,33 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 string title = titles[_random.Next(titles.Length)];
                 int departmentId = _random.Next(1, departments.Length + 1);
 
-                // 根据职称设置合理的工作负荷
+                // set reasonable workload based on title
                 int maxWeeklyHours, maxDailyHours, maxConsecutiveHours;
 
                 switch (title)
                 {
-                    case "教授":
-                        maxWeeklyHours = _random.Next(10, 17); // 10-16小时
+                    case "Professor":
+                        maxWeeklyHours = _random.Next(10, 17); // 10-16 hours
                         maxDailyHours = 6;
                         maxConsecutiveHours = 4;
                         break;
-                    case "副教授":
-                        maxWeeklyHours = _random.Next(12, 19); // 12-18小时
+                    case "Associate Professor":
+                        maxWeeklyHours = _random.Next(12, 19); // 12-18 hours
                         maxDailyHours = 6;
                         maxConsecutiveHours = 4;
                         break;
-                    case "讲师":
-                        maxWeeklyHours = _random.Next(14, 21); // 14-20小时
+                    case "Lecturer":
+                        maxWeeklyHours = _random.Next(14, 21); // 14-20 hours
                         maxDailyHours = 8;
                         maxConsecutiveHours = 6;
                         break;
-                    case "助教":
-                        maxWeeklyHours = _random.Next(16, 23); // 16-22小时
+                    case "Assistant":
+                        maxWeeklyHours = _random.Next(16, 23); // 16-22 hours
                         maxDailyHours = 8;
                         maxConsecutiveHours = 6;
                         break;
                     default:
-                        maxWeeklyHours = _random.Next(12, 21); // 12-20小时
+                        maxWeeklyHours = _random.Next(12, 21); // 12-20 hours
                         maxDailyHours = 6;
                         maxConsecutiveHours = 4;
                         break;
@@ -338,24 +338,24 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             }
         }
 
-        // 生成课程班级，确保班级大小合理
+        // generate course sections, ensure class size is reasonable
         private void GenerateCourseSectionsRealistic(SchedulingProblem problem, int count)
         {
             string[] subjects = { "CS", "MATH", "PHYS", "ENG", "ECON", "MGT", "LANG" };
-            string[] courseTypes = { "Regular", "Computer", "Lab", "Regular" }; // 普通课程更常见
+            string[] courseTypes = { "Regular", "Computer", "Lab", "Regular" }; // regular courses are more common
 
             Dictionary<string, string[]> subjectCourses = new Dictionary<string, string[]>
             {
-                { "CS", new[] { "程序设计", "数据结构", "算法", "数据库", "计算机网络", "操作系统", "软件工程", "人工智能" } },
-                { "MATH", new[] { "高等数学", "线性代数", "概率论", "离散数学", "数值分析", "统计学", "运筹学" } },
-                { "PHYS", new[] { "力学", "电磁学", "热学", "光学", "原子物理", "量子力学", "相对论" } },
-                { "ENG", new[] { "工程力学", "材料力学", "电路原理", "信号与系统", "自动控制", "微电子技术" } },
-                { "ECON", new[] { "微观经济学", "宏观经济学", "计量经济学", "金融学", "国际贸易", "财政学" } },
-                { "MGT", new[] { "管理学原理", "市场营销", "人力资源", "财务管理", "战略管理", "运营管理" } },
-                { "LANG", new[] { "英语", "日语", "德语", "法语", "俄语", "西班牙语", "汉语" } }
+                { "CS", new[] { "Programming", "Data Structures", "Algorithms", "Database", "Computer Networks", "Operating Systems", "Software Engineering", "Artificial Intelligence" } },
+                { "MATH", new[] { "Advanced Mathematics", "Linear Algebra", "Probability Theory", "Discrete Mathematics", "Numerical Analysis", "Statistics", "Operations Research" } },
+                { "PHYS", new[] { "Mechanics", "Electromagnetics", "Thermodynamics", "Optics", "Atomic Physics", "Quantum Mechanics", "Relativity" } },
+                { "ENG", new[] { "Engineering Mechanics", "Material Mechanics", "Circuit Theory", "Signals and Systems", "Automatic Control", "Microelectronics" } },
+                { "ECON", new[] { "Microeconomics", "Macroeconomics", "Econometrics", "Finance", "International Trade", "Public Finance" } },
+                { "MGT", new[] { "Management Principles", "Marketing", "Human Resources", "Financial Management", "Strategic Management", "Operations Management" } },
+                { "LANG", new[] { "English", "Japanese", "German", "French", "Russian", "Spanish", "Chinese" } }
             };
 
-            // 为每门课程生成1-3个班级
+            // generate 1-3 classes for each course
             int sectionId = 1;
             int courseId = 1;
 
@@ -369,29 +369,29 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 int courseNumber = 100 + courseId;
                 string courseCode = $"{subject}{courseNumber}";
 
-                // 确定此课程有几个班级
-                int sectionCount = Math.Min(_random.Next(1, 4), count - sectionId + 1); // 1-3个班级，但不超过剩余数量
+                // determine how many classes this course has
+                int sectionCount = Math.Min(_random.Next(1, 4), count - sectionId + 1); // 1-3 classes, but not more than remaining count
 
                 for (int section = 0; section < sectionCount; section++)
                 {
                     char sectionChar = (char)('A' + section);
 
-                    // 根据课程类型设置班级大小
+                    // set class size based on course type
                     int enrollment;
                     string requiredRoomType;
 
                     switch (courseType)
                     {
                         case "Regular":
-                            enrollment = _random.Next(20, 61); // 20-60人
+                            enrollment = _random.Next(20, 61); // 20-60 people
                             requiredRoomType = "Regular";
                             break;
                         case "Computer":
-                            enrollment = _random.Next(15, 31); // 15-30人
+                            enrollment = _random.Next(15, 31); // 15-30 people
                             requiredRoomType = "Computer";
                             break;
                         case "Lab":
-                            enrollment = _random.Next(10, 26); // 10-25人
+                            enrollment = _random.Next(10, 26); // 10-25 people
                             requiredRoomType = "Lab";
                             break;
                         default:
@@ -411,7 +411,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                         Hours = 6,
                         Enrollment = enrollment,
                         DepartmentId = _random.Next(1, 5),
-                        DepartmentName = "学院" + _random.Next(1, 5),
+                        DepartmentName = "Department " + _random.Next(1, 5),
                         CourseType = courseType,
                         RequiredRoomType = requiredRoomType
                     });
@@ -426,25 +426,25 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void CreateRealisticTeacherPreferences(SchedulingProblem problem)
         {
-            // 清除现有偏好
+            // Clear existing preferences
             problem.TeacherCoursePreferences.Clear();
 
-            // 获取所有不同的课程ID
+            // Get all distinct course IDs
             var distinctCourseIds = problem.CourseSections
                 .Select(s => s.CourseId)
                 .Distinct()
                 .ToList();
 
-            // 为每门课程分配1-3位教师
+            // Assign 1-3 teachers for each course
             foreach (var courseId in distinctCourseIds)
             {
-                // 获取课程信息
+                // Get course information
                 var course = problem.CourseSections.First(s => s.CourseId == courseId);
 
-                // 确定这门课需要几位教师
-                int teacherCount = _random.Next(1, 4); // 1-3位教师
+                // Determine how many teachers needed for this course
+                int teacherCount = _random.Next(1, 4); // 1-3 teachers
 
-                // 随机选择教师
+                // Randomly select teachers
                 var selectedTeachers = problem.Teachers
                     .OrderBy(x => _random.Next())
                     .Take(teacherCount)
@@ -452,26 +452,26 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                 foreach (var teacher in selectedTeachers)
                 {
-                    // 添加偏好，设置较高的能力值和偏好值
+                    // Add preference with high proficiency and preference values
                     problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
                     {
                         TeacherId = teacher.Id,
                         CourseId = courseId,
-                        ProficiencyLevel = _random.Next(3, 6), // 3-5，确保有资格
-                        PreferenceLevel = _random.Next(3, 6)   // 3-5，确保有较高偏好
+                        ProficiencyLevel = _random.Next(3, 6), // 3-5, ensure qualified
+                        PreferenceLevel = _random.Next(3, 6)   // 3-5, ensure high preference
                     });
                 }
             }
 
-            // 检查是否有教师没有分配课程
+            // Check if any teachers have no courses assigned
             var teachersWithoutCourses = problem.Teachers
                 .Where(t => !problem.TeacherCoursePreferences.Any(p => p.TeacherId == t.Id))
                 .ToList();
 
-            // 为没有课程的教师随机分配1-2门课
+            // Assign 1-2 courses to teachers without any courses
             foreach (var teacher in teachersWithoutCourses)
             {
-                int courseCount = _random.Next(1, 3); // 1-2门课
+                int courseCount = _random.Next(1, 3); // 1-2 courses
 
                 var coursesToAssign = distinctCourseIds
                     .OrderBy(x => _random.Next())
@@ -489,7 +489,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 }
             }
 
-            // 检查限制：确保每位教师最多教授3门不同课程
+            // Check constraint: ensure each teacher teaches at most 3 different courses
             foreach (var teacher in problem.Teachers)
             {
                 var teacherCourses = problem.TeacherCoursePreferences
@@ -500,7 +500,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                 if (teacherCourses.Count > 3)
                 {
-                    // 如果超过3门，随机删除多余的课程
+                    // If more than 3 courses, randomly remove excess courses
                     var coursesToKeep = teacherCourses
                         .OrderBy(x => _random.Next())
                         .Take(3)
@@ -519,14 +519,14 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         }
         private void AddLimitedUnavailableTimes(SchedulingProblem problem)
         {
-            // 清除现有的可用性设置
+            // Clear existing availability settings
             problem.TeacherAvailabilities.Clear();
             problem.ClassroomAvailabilities.Clear();
 
-            // 1. 为教师添加少量不可用时间段
+            // 1. Add a few unavailable time slots for teachers
             foreach (var teacher in problem.Teachers)
             {
-                // 每个教师有1-2个不可用时间段
+                // Each teacher has 1-2 unavailable time slots
                 int unavailableCount = _random.Next(1, 3);
 
                 var unavailableSlots = problem.TimeSlots
@@ -546,10 +546,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 }
             }
 
-            // 2. 为教室添加少量不可用时间段
+            // 2. Add a few unavailable time slots for classrooms
             foreach (var classroom in problem.Classrooms)
             {
-                // 教室有0-1个不可用时间段
+                // Each classroom has 0-1 unavailable time slots
                 int unavailableCount = _random.Next(2) == 0 ? 1 : 0;
 
                 if (unavailableCount > 0)
@@ -563,24 +563,24 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                         ClassroomId = classroom.Id,
                         TimeSlotId = unavailableSlot.Id,
                         IsAvailable = false,
-                        UnavailableReason = _random.Next(2) == 0 ? "维护" : "预留"
+                        UnavailableReason = _random.Next(2) == 0 ? "Maintenance" : "Reserved"
                     });
                 }
             }
 
-            // 检查：确保我们不会添加太多约束导致问题无解
+            // Check: ensure we don't add too many constraints that make the problem unsolvable
             EnsureFeasibility(problem);
         }
 
         /// <summary>
-        /// 确保问题的可行性，避免添加太多导致无解的约束
+        /// Ensure problem feasibility by avoiding too many constraints that could make it unsolvable
         /// </summary>
         private void EnsureFeasibility(SchedulingProblem problem)
         {
-            // 简单检查：确保每门课程至少有一种可行的安排方式
+            // Simple check: ensure each course has at least one possible arrangement
             foreach (var section in problem.CourseSections)
             {
-                // 1. 找出可以教授这门课的教师
+                // 1. Find qualified teachers for this course
                 var qualifiedTeachers = problem.TeacherCoursePreferences
                     .Where(p => p.CourseId == section.CourseId)
                     .Select(p => p.TeacherId)
@@ -588,7 +588,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                 if (qualifiedTeachers.Count == 0)
                 {
-                    // 如果没有教师可以教，随机选择一位教师并添加偏好
+                    // If no qualified teachers, randomly select one and add preference
                     var randomTeacher = problem.Teachers[_random.Next(problem.Teachers.Count)];
 
                     problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
@@ -602,7 +602,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     qualifiedTeachers.Add(randomTeacher.Id);
                 }
 
-                // 2. 找出适合这门课的教室
+                // 2. Find suitable classrooms for this course
                 var suitableRooms = problem.Classrooms
                     .Where(r => r.Capacity >= section.Enrollment &&
                                (string.IsNullOrEmpty(section.RequiredRoomType) ||
@@ -613,7 +613,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                 if (suitableRooms.Count == 0)
                 {
-                    // 如果没有合适的教室，修改一个教室使其适合
+                    // If no suitable rooms, modify one to make it suitable
                     var largestRoom = problem.Classrooms
                         .OrderByDescending(r => r.Capacity)
                         .First();
@@ -630,7 +630,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     suitableRooms.Add(largestRoom.Id);
                 }
 
-                // 3. 确保每位合格教师在每个合适教室至少有一个可用时间段
+                // 3. Ensure each qualified teacher has at least one available time slot in each suitable classroom
                 foreach (var teacherId in qualifiedTeachers)
                 {
                     var unavailableTimeSlots = problem.TeacherAvailabilities
@@ -640,10 +640,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                     if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
                     {
-                        // 如果教师所有时间都不可用，移除一些不可用性约束
+                        // If teacher has no available times, remove some unavailability constraints
                         var availabilitiesToRemove = problem.TeacherAvailabilities
                             .Where(a => a.TeacherId == teacherId)
-                            .Take(problem.TeacherAvailabilities.Count - 3) // 确保至少有3个时间段可用
+                            .Take(problem.TeacherAvailabilities.Count - 3) // Ensure at least 3 time slots available
                             .ToList();
 
                         foreach (var a in availabilitiesToRemove)
@@ -662,10 +662,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
                     if (unavailableTimeSlots.Count >= problem.TimeSlots.Count)
                     {
-                        // 如果教室所有时间都不可用，移除一些不可用性约束
+                        // If classroom has no available times, remove some unavailability constraints
                         var availabilitiesToRemove = problem.ClassroomAvailabilities
                             .Where(a => a.ClassroomId == roomId)
-                            .Take(problem.ClassroomAvailabilities.Count - 3) // 确保至少有3个时间段可用
+                            .Take(problem.ClassroomAvailabilities.Count - 3) // Ensure at least 3 time slots available
                             .ToList();
 
                         foreach (var a in availabilitiesToRemove)
@@ -679,10 +679,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void GenerateTeacherAvailabilities(SchedulingProblem problem)
         {
-            // 默认教师在所有时间段都可用，只需要生成不可用时间段
+            // By default, teachers are available at all time slots, only need to generate unavailable time slots
             foreach (var teacher in problem.Teachers)
             {
-                // 随机选择0-3个不可用时间段
+                // Randomly select 0-3 unavailable time slots
                 int unavailableCount = _random.Next(4);
                 var unavailableSlots = problem.TimeSlots
                     .OrderBy(x => _random.Next())
@@ -700,7 +700,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     });
                 }
 
-                // 随机选择1-2个高偏好时间段
+                // Randomly select 1-2 high preference time slots
                 int preferredCount = _random.Next(1, 3);
                 var preferredSlots = problem.TimeSlots
                     .Except(unavailableSlots)
@@ -715,27 +715,27 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                         TeacherId = teacher.Id,
                         TimeSlotId = slot.Id,
                         IsAvailable = true,
-                        PreferenceLevel = 5 // 最高偏好
+                        PreferenceLevel = 5 // Highest preference
                     });
                 }
             }
         }
-        // 确保每门课程至少有一位合格的教师
+        // Ensure each course has at least one qualified teacher
         private void EnsureQualifiedTeachersForAllCourses(SchedulingProblem problem)
         {
-            // 清除任何可能存在的教师课程偏好
+            // Clear any existing teacher course preferences
             problem.TeacherCoursePreferences.Clear();
 
-            // 获取所有不同的课程ID
+            // Get all distinct course IDs
             var distinctCourseIds = problem.CourseSections
                 .Select(s => s.CourseId)
                 .Distinct()
                 .ToList();
 
-            // 对每门课程，确保至少有两位教师有资格教授
+            // For each course, ensure at least two teachers are qualified to teach
             foreach (var courseId in distinctCourseIds)
             {
-                // 选择至少两位教师（或全部如果教师总数少于2）
+                // Select at least two teachers (or all if total teachers less than 2)
                 int minTeachers = Math.Min(2, problem.Teachers.Count);
                 int teacherCount = _random.Next(minTeachers, problem.Teachers.Count + 1);
                 var selectedTeachers = problem.Teachers
@@ -749,53 +749,53 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     {
                         TeacherId = teacher.Id,
                         CourseId = courseId,
-                        ProficiencyLevel = _random.Next(3, 6), // 3-5，确保有资格
-                        PreferenceLevel = _random.Next(3, 6)   // 3-5，确保有较高偏好
+                        ProficiencyLevel = _random.Next(3, 6), // 3-5, ensure qualified
+                        PreferenceLevel = _random.Next(3, 6)   // 3-5, ensure high preference
                     });
                 }
             }
 
-            // 额外添加一些随机偏好，增加测试数据的多样性
+            // Add some additional random preferences to increase test data diversity
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var courseId in distinctCourseIds)
                 {
-                    // 如果已经添加过此组合，跳过
+                    // Skip if combination already exists
                     if (problem.TeacherCoursePreferences.Any(p =>
                         p.TeacherId == teacher.Id && p.CourseId == courseId))
                     {
                         continue;
                     }
 
-                    // 随机添加一些额外的偏好
-                    if (_random.NextDouble() < 0.3) // 30%的概率添加
+                    // Randomly add some additional preferences
+                    if (_random.NextDouble() < 0.3) // 30% chance to add
                     {
                         problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
                         {
                             TeacherId = teacher.Id,
                             CourseId = courseId,
-                            ProficiencyLevel = _random.Next(1, 6), // 1-5，包括不太合格的
-                            PreferenceLevel = _random.Next(1, 6)   // 1-5，包括低偏好的
+                            ProficiencyLevel = _random.Next(1, 6), // 1-5, including less qualified
+                            PreferenceLevel = _random.Next(1, 6)   // 1-5, including low preferences
                         });
                     }
                 }
             }
         }
-        // 限制不可用时间段数量，确保每个资源至少有足够的可用时间
+        // Limit the number of unavailable time slots to ensure each resource has enough available time
         private void LimitUnavailabilityPeriods(SchedulingProblem problem)
         {
-            // 清除现有的可用性设置
+            // Clear existing availability settings
             problem.TeacherAvailabilities.Clear();
             problem.ClassroomAvailabilities.Clear();
 
-            // 计算每个资源最多可以有多少不可用时段
+            // Calculate each resource can have maximum unavailable time slots
             int maxUnavailablePerTeacher = Math.Max(1, problem.TimeSlots.Count / 10);
             int maxUnavailablePerClassroom = Math.Max(1, problem.TimeSlots.Count / 20);
 
-            // 为教师添加少量不可用时间段
+            // Add some unavailable time slots for teachers
             foreach (var teacher in problem.Teachers)
             {
-                // 随机选择少量不可用时间段
+                // Randomly select some unavailable time slots
                 int unavailableCount = _random.Next(maxUnavailablePerTeacher + 1);
                 var unavailableSlots = problem.TimeSlots
                     .OrderBy(x => _random.Next())
@@ -813,8 +813,8 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     });
                 }
 
-                // 随机添加一些高偏好时间段
-                int preferredCount = _random.Next(1, 4); // 1-3个高偏好时段
+                // Randomly add some high preference time slots
+                int preferredCount = _random.Next(1, 4); // 1-3 high preference time slots
                 var preferredSlots = problem.TimeSlots
                     .Except(unavailableSlots)
                     .OrderBy(x => _random.Next())
@@ -828,15 +828,15 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                         TeacherId = teacher.Id,
                         TimeSlotId = slot.Id,
                         IsAvailable = true,
-                        PreferenceLevel = 5 // 最高偏好
+                        PreferenceLevel = 5 // Highest preference
                     });
                 }
             }
 
-            // 为教室添加少量不可用时间段
+            // Add some unavailable time slots for classrooms
             foreach (var classroom in problem.Classrooms)
             {
-                // 随机选择少量不可用时间段
+                // Randomly select some unavailable time slots
                 int unavailableCount = _random.Next(maxUnavailablePerClassroom + 1);
                 var unavailableSlots = problem.TimeSlots
                     .OrderBy(x => _random.Next())
@@ -856,14 +856,14 @@ namespace SmartSchedulingSystem.Scheduling.Utils
             }
         }
 
-        // 生成安全的先修课程关系（避免同一学期内的相互依赖）
+        // Generate safe prerequisite relationships (avoid mutual dependencies within the same semester)
         private void GenerateSafePrerequisites(SchedulingProblem problem)
         {
-            // 为简单起见，在测试数据中不添加先修课程约束
+            // For simplicity, do not add prerequisite course constraints in test data
             problem.Prerequisites.Clear();
 
-            // 如果需要添加一些简单的先修关系，可以采用以下方法
-            // 但要确保这些关系不会导致循环依赖
+            // If you need to add some simple prerequisite relationships, you can use the following method
+            // But ensure these relationships do not cause circular dependencies
             /*
             var courseIds = problem.CourseSections
                 .Select(s => s.CourseId)
@@ -873,12 +873,12 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
             if (courseIds.Count >= 3)
             {
-                // 只为第三门及以后的课程添加先修关系
-                // 并确保先修课程的ID总是小于当前课程
+                // Only add prerequisites for third and subsequent courses
+                // And ensure prerequisite course ID is always less than current course
                 for (int i = 2; i < Math.Min(5, courseIds.Count); i++)
                 {
                     int courseId = courseIds[i];
-                    int prereqId = courseIds[i - 2]; // 确保有足够距离，避免冲突
+                    int prereqId = courseIds[i - 2]; // Ensure enough distance to avoid conflicts
 
                     problem.Prerequisites.Add(new CoursePrerequisite
                     {
@@ -891,10 +891,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
         }
         private void GenerateClassroomAvailabilities(SchedulingProblem problem)
         {
-            // 默认教室在所有时间段都可用，只需要生成不可用时间段
+            // By default, classrooms are available at all time slots, only need to generate unavailable time slots
             foreach (var classroom in problem.Classrooms)
             {   
-                // 随机选择0-2个不可用时间段
+                // Randomly select 0-2 unavailable time slots
                 int unavailableCount = _random.Next(3);
                 var unavailableSlots = problem.TimeSlots
                     .OrderBy(x => _random.Next())
@@ -916,30 +916,30 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void GeneratePrerequisites(SchedulingProblem problem)
         {
-            // 获取所有不同的课程ID
+            // Get all distinct course IDs
             var courseIds = problem.CourseSections
                 .Select(s => s.CourseId)
                 .Distinct()
                 .OrderBy(id => id)
                 .ToList();
 
-            // 只有多于一门课程时才能设置先修关系
+            // Only add prerequisite relationships when there are more than one course
             if (courseIds.Count > 1)
             {
-                // 随机生成1-3个先修关系
+                // Randomly generate 1-3 prerequisite relationships
                 int prereqCount = Math.Min(_random.Next(1, 4), courseIds.Count - 1);
 
                 for (int i = 0; i < prereqCount; i++)
                 {
-                    // 随机选择一门后续课程
+                    // Randomly select a subsequent course
                     int laterCourseIndex = _random.Next(1, courseIds.Count);
                     int laterCourseId = courseIds[laterCourseIndex];
 
-                    // 选择一门先修课程(必须是ID较小的课程)
+                    // Select a prerequisite course (must be ID less than current course)
                     int prereqCourseIndex = _random.Next(laterCourseIndex);
                     int prereqCourseId = courseIds[prereqCourseIndex];
 
-                    // 添加先修关系
+                    // Add prerequisite relationship
                     problem.Prerequisites.Add(new CoursePrerequisite
                     {
                         CourseId = laterCourseId,
@@ -951,13 +951,13 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         private void GenerateConstraints(SchedulingProblem problem)
         {
-            // 在实际使用时，约束是通过依赖注入提供的，这里只是示例
-            // 实现位于DependencyInjection.cs中注册
+            // In actual use, constraints are provided through dependency injection, this is just an example
+            // Implementation located in DependencyInjection.cs in registered
         }
 
        
 
-        // 用于生成测试解决方案
+        // Used to generate test solutions
         public SchedulingSolution CreateTestSolution(SchedulingProblem problem = null)
         {
             problem ??= GenerateTestProblem();
@@ -973,15 +973,15 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 Assignments = new List<SchedulingAssignment>()
             };
 
-            // 为每个课程班级创建随机分配
+            // Create random assignments for each course section
             int assignmentId = 1;
             foreach (var section in problem.CourseSections)
             {
-                // 随机选择时间槽、教室和教师
+                // Randomly select time slot, classroom, and teacher
                 var timeSlot = problem.TimeSlots.OrderBy(x => _random.Next()).FirstOrDefault();
                 var classroom = problem.Classrooms.OrderBy(x => _random.Next()).FirstOrDefault();
 
-                // 选择有资格教授此课程的教师
+                // Select qualified teachers for this course
                 var qualifiedTeachers = problem.TeacherCoursePreferences
                     .Where(p => p.CourseId == section.CourseId)
                     .Select(p => p.TeacherId)
@@ -1016,7 +1016,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
 
         public SchedulingProblem CreateSimpleValidProblem()
         {
-            // 创建基本问题结构
+            // Create basic problem structure
             var problem = new SchedulingProblem
             {
                 Id = 1,
@@ -1032,7 +1032,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 Prerequisites = new List<CoursePrerequisite>()
             };
 
-            // 创建时间槽 (3天×2时段=6个时间槽)
+            // Create time slots (3 days × 2 periods = 6 time slots)
             for (int day = 1; day <= 3; day++)
             {
                 for (int slot = 0; slot < 2; slot++)
@@ -1051,7 +1051,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 }
             }
 
-            // 创建教室 (2个教室)
+            // Create classrooms (2 classrooms)
             for (int i = 1; i <= 2; i++)
             {
                 problem.Classrooms.Add(new ClassroomInfo
@@ -1061,14 +1061,14 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     Building = "Main Building",
                     CampusId = 1,
                     CampusName = "Main Campus",
-                    Capacity = 30 + (i - 1) * 10, // 第一个教室容量30人，第二个教室容量40人
+                    Capacity = 30 + (i - 1) * 10, // First classroom capacity 30 people, second classroom capacity 40 people
                     Type = "Regular",
                     HasComputers = false,
                     HasProjector = true
                 });
             }
 
-            // 创建教师 (2位教师)
+            // Create teachers (2 teachers)
             for (int i = 1; i <= 2; i++)
             {
                 problem.Teachers.Add(new TeacherInfo
@@ -1084,7 +1084,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 });
             }
 
-            // 创建课程班级 (3个课程班级)
+            // Create course sections (3 course sections)
             int[] enrollments = { 25, 35, 20 };
             for (int i = 1; i <= 3; i++)
             {
@@ -1105,7 +1105,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 });
             }
 
-            // 添加教师课程偏好 (确保每位教师都能教授所有课程)
+            // Add teacher course preferences (ensure each teacher can teach all courses)
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var course in problem.CourseSections)
@@ -1114,36 +1114,36 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     {
                         TeacherId = teacher.Id,
                         CourseId = course.CourseId,
-                        ProficiencyLevel = 5, // 高能力值
-                        PreferenceLevel = 4   // 高偏好
+                        ProficiencyLevel = 5, // High ability value
+                        PreferenceLevel = 4   // High preference
                     });
                 }
             }
 
-            // 确保所有教师在所有时间都可用
+            // Ensure all teachers are available at all times
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    // 不需要显式添加可用记录，默认都视为可用
+                    // No need to explicitly add available record, default to be available
                 }
             }
 
-            // 确保所有教室在所有时间都可用
+            // Ensure all classrooms are available at all times
             foreach (var classroom in problem.Classrooms)
             {
                 foreach (var timeSlot in problem.TimeSlots)
                 {
-                    // 不需要显式添加可用记录，默认都视为可用
+                    // No need to explicitly add available record, default to be available
                 }
             }
 
             return problem;
         }
-        // 添加到TestDataGenerator类中
+        // Add to TestDataGenerator class
         public SchedulingProblem CreateGuaranteedFeasibleProblem()
         {
-            // 创建基本问题结构
+            // Create basic problem structure
             var problem = new SchedulingProblem
             {
                 Id = 1,
@@ -1157,10 +1157,10 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 TeacherAvailabilities = new List<TeacherAvailability>(),
                 ClassroomAvailabilities = new List<ClassroomAvailability>(),
                 Prerequisites = new List<CoursePrerequisite>(),
-                Constraints = new List<IConstraint>() // 初始化为空以避免NullReferenceException
+                Constraints = new List<IConstraint>() // Initialize as empty to avoid NullReferenceException
             };
 
-            // 创建1个时间槽
+            // Create 1 time slot
             problem.TimeSlots.Add(new TimeSlotInfo
             {
                 Id = 1,
@@ -1170,7 +1170,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 EndTime = new TimeSpan(9, 30, 0)
             });
 
-            // 创建1个教室
+            // Create 1 classroom
             problem.Classrooms.Add(new ClassroomInfo
             {
                 Id = 1,
@@ -1178,13 +1178,13 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 Building = "Building A",
                 CampusId = 1,
                 CampusName = "Main Campus",
-                Capacity = 100, // 确保足够大
+                Capacity = 100, // Ensure enough large
                 Type = "Regular",
                 HasComputers = true,
                 HasProjector = true
             });
 
-            // 创建1位教师
+            // Create 1 teacher
             problem.Teachers.Add(new TeacherInfo
             {
                 Id = 1,
@@ -1197,7 +1197,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 MaxConsecutiveHours = 4
             });
 
-            // 创建1个课程班级
+            // Create 1 course section
             problem.CourseSections.Add(new CourseSectionInfo
             {
                 Id = 1,
@@ -1214,20 +1214,20 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 RequiredRoomType = "Regular"
             });
 
-            // 添加教师课程偏好
+            // Add teacher course preferences
             problem.TeacherCoursePreferences.Add(new TeacherCoursePreference
             {
                 TeacherId = 1,
                 CourseId = 1,
-                ProficiencyLevel = 5, // 最高能力值
-                PreferenceLevel = 5   // 最高偏好
+                ProficiencyLevel = 5, // Highest ability value
+                PreferenceLevel = 5   // Highest preference
             });
 
             return problem;
         }
         public SchedulingProblem CreateDebugFeasibleProblem()
         {
-            // 创建基本问题结构
+            // Create basic problem structure
             var problem = new SchedulingProblem
             {
                 Id = 1,
@@ -1244,7 +1244,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 Constraints = new List<IConstraint>()
             };
 
-            // 创建3个时间槽 (每天1个)
+            // Create 3 time slots (1 per day)
             for (int day = 1; day <= 3; day++)
             {
                 problem.TimeSlots.Add(new TimeSlotInfo
@@ -1257,7 +1257,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 });
             }
 
-            // 创建3个足够大的教室 
+            // Create 3 large enough classrooms 
             for (int i = 1; i <= 3; i++)
             {
                 problem.Classrooms.Add(new ClassroomInfo
@@ -1267,14 +1267,14 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     Building = "Main Building",
                     CampusId = 1,
                     CampusName = "Main Campus",
-                    Capacity = 100, // 确保足够大容量
+                    Capacity = 100, // Ensure enough large capacity
                     Type = "Regular",
                     HasComputers = true,
                     HasProjector = true
                 });
             }
 
-            // 创建3位教师
+            // Create 3 teachers
             for (int i = 1; i <= 3; i++)
             {
                 problem.Teachers.Add(new TeacherInfo
@@ -1290,7 +1290,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 });
             }
 
-            // 创建3个课程班级，确保课程ID和班级ID一致 (简化调试)
+            // Create 3 course sections, ensure course ID and section ID are consistent (simplified debugging)
             for (int i = 1; i <= 3; i++)
             {
                 problem.CourseSections.Add(new CourseSectionInfo
@@ -1302,7 +1302,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     SectionCode = $"CS10{i}-A",
                     Credits = 3,
                     Hours = 6,
-                    Enrollment = 30, // 低于所有教室容量
+                    Enrollment = 30, // Below all classroom capacity
                     DepartmentId = 1,
                     DepartmentName = "Computer Science",
                     CourseType = "Regular",
@@ -1310,7 +1310,7 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                 });
             }
 
-            // 添加教师课程偏好 - 每位教师可以教授所有课程，能力值和偏好都是最高的
+            // Add teacher course preferences - Each teacher can teach all courses, ability value and preference are highest
             foreach (var teacher in problem.Teachers)
             {
                 foreach (var course in problem.CourseSections)
@@ -1319,19 +1319,19 @@ namespace SmartSchedulingSystem.Scheduling.Utils
                     {
                         TeacherId = teacher.Id,
                         CourseId = course.CourseId,
-                        ProficiencyLevel = 5, // 最高能力值
-                        PreferenceLevel = 5   // 最高偏好
+                        ProficiencyLevel = 5, // Highest ability value
+                        PreferenceLevel = 5   // Highest preference
                     });
                 }
             }
 
-            // 确保没有不可用的教师时间段
-            // (不添加任何TeacherAvailability记录，默认为所有时间都可用)
+            // Ensure no unavailable teacher time slots
+            // (No TeacherAvailability record added, default to be available at all times)
 
-            // 确保没有不可用的教室时间段
-            // (不添加任何ClassroomAvailability记录，默认为所有时间都可用)
+            // Ensure no unavailable classroom time slots
+            // (No ClassroomAvailability record added, default to be available at all times)
 
-            // 不添加任何先修课程关系，避免不必要的复杂性
+            // No prerequisite relationship added to avoid unnecessary complexity
 
             return problem;
         }

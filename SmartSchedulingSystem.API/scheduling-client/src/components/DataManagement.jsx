@@ -95,7 +95,7 @@ const DataManagement = ({
   // Parameter management state
   const [localParameters, setLocalParameters] = useState({...parameters});
   
-  // 约束管理预览状态
+  // Constraint Management Preview Status
   const [constraintPreview, setConstraintPreview] = useState({
     isLoading: false,
     classroomAssignmentReady: false,
@@ -104,14 +104,14 @@ const DataManagement = ({
     error: null
   });
   
-  // 在现有状态变量后添加
+  // Add after existing state variables
   const [newPresetDialog, setNewPresetDialog] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [newPresetDesc, setNewPresetDesc] = useState('');
   
   const [parametersModified, setParametersModified] = useState(false);
 
-  // 添加教室和设备管理相关状态
+  // Add classroom and equipment management related state
   const [selectedClassroom, setSelectedClassroom] = useState(null);
   const [classroomEditDialog, setClassroomEditDialog] = useState(false);
   const [classroomEquipmentList, setClassroomEquipmentList] = useState([]);
@@ -121,7 +121,7 @@ const DataManagement = ({
     status: 'Good'
   });
   
-  // 添加编辑教室状态 - 移除建筑和校区字段的编辑权限
+  // Add edit classroom state - remove building and campus field edit permissions
   const [editingClassroom, setEditingClassroom] = useState({
     name: '',
     capacity: 0,
@@ -129,7 +129,7 @@ const DataManagement = ({
     features: []
   });
   
-  // 添加课程教室类型匹配相关状态
+  // Add course classroom type matching related state
   const [selectedCourse, setSelectedCourse] = useState(mockCourses[0]?.id || '');
   const [selectedRoomType, setSelectedRoomType] = useState('');
   const [requiredFeatures, setRequiredFeatures] = useState([]);
@@ -144,26 +144,26 @@ const DataManagement = ({
     setConstraintSubTab(initialConstraintSubTab);
   }, [initialConstraintSubTab]);
   
-  // 当选择课程时更新教室类型和设备要求
+  // Update classroom type and equipment requirements when course is selected
   useEffect(() => {
     if (selectedCourse && constraintSubTab === 2) {
-      // 获取课程信息
+      // Get course information
       const course = mockCourses.find(c => c.id === selectedCourse);
       if (course) {
-        // 获取课程类型
+        // Get course type
         const courseSubject = mockCourseSubjectTypes.find(cs => cs.subjectId === course.subjectId);
         const courseType = courseSubject?.courseType || '';
         
-        // 在matchRoomTypeMatching中查找该课程类型的推荐教室类型和设备
+        // Find recommended classroom types and equipment for this course type in matchRoomTypeMatching
         const matching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
         
         if (matching) {
-          // 设置默认教室类型为推荐的第一个类型
+          // Set default classroom type to the first recommended type
           setSelectedRoomType(matching.preferredRoomTypes[0] || '');
-          // 设置需要的设备
+          // Set required features
           setRequiredFeatures(matching.requiredFeatures || []);
           
-          // 查找匹配的教室
+          // Find matching classrooms
           updateMatchingClassrooms(matching.preferredRoomTypes[0], matching.requiredFeatures);
         } else {
           setSelectedRoomType('');
@@ -174,7 +174,7 @@ const DataManagement = ({
     }
   }, [selectedCourse, constraintSubTab]);
   
-  // 当教室类型或设备需求改变时更新匹配的教室
+  // When classroom type or equipment requirements change, update matching classrooms
   const updateMatchingClassrooms = (roomType, features) => {
     if (!roomType && !features) {
       setMatchingClassrooms([]);
@@ -183,34 +183,34 @@ const DataManagement = ({
     
     let filtered = [...mockClassrooms];
     
-    // 按教室类型筛选
+    // Filter by classroom type
     if (roomType && roomType !== 'any') {
       filtered = filtered.filter(room => room.type === roomType);
     }
     
-    // 按必要设备筛选
+    // Filter by necessary equipment
     if (features && features.length > 0) {
       filtered = filtered.filter(room => {
-        // 检查教室是否拥有所有必要设备
+        // Check if the classroom has all necessary equipment
         return features.every(feature => 
           room.features && room.features.includes(feature)
         );
       });
     }
     
-    // 计算匹配分数
+    // Calculate matching score
     filtered = filtered.map(room => {
-      // 如果教室类型完全匹配，分数更高
+      // If classroom type fully matches, higher score
       const typeScore = room.type === roomType ? 1.0 : 0.5;
       
-      // 计算设备匹配率
+      // Calculate equipment matching rate
       let featureScore = 1.0;
       if (features && features.length > 0) {
         const matchedFeatures = features.filter(f => room.features.includes(f)).length;
         featureScore = matchedFeatures / features.length;
       }
       
-      // 综合分数 (简单加权平均)
+      // Composite score (simple weighted average)
       const totalScore = (typeScore * 0.6) + (featureScore * 0.4);
       
       return {
@@ -219,7 +219,7 @@ const DataManagement = ({
       };
     });
     
-    // 按匹配分数排序
+    // Sort by matching score
     filtered.sort((a, b) => b.matchScore - a.matchScore);
     
     setMatchingClassrooms(filtered);
@@ -239,9 +239,9 @@ const DataManagement = ({
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
     
-    // 当切换到约束管理选项卡时，预加载教室分配测试数据
+    // When switching to constraint management tab, preload classroom assignment test data
     if (newValue === 1) {
-      // 重置约束管理预览状态
+      // Reset constraint management preview status
       setConstraintPreview({
         isLoading: false,
         classroomAssignmentReady: false,
@@ -274,12 +274,12 @@ const DataManagement = ({
         ...prev,
         [param]: value
       };
-      // 检查参数是否与原始参数不同
+      // Check if parameters are different from original parameters
       setParametersModified(JSON.stringify(newParams) !== JSON.stringify(parameters));
       return newParams;
     });
   };
-  // 添加在其他处理函数后
+  // Add after other processing functions
   const saveCurrentAsPreset = () => {
     if (newPresetName.trim() === '') return;
     
@@ -297,12 +297,12 @@ const DataManagement = ({
     setNewPresetDesc('');
   };
 
-  // 修改教室选择处理函数
+  // Modify classroom selection processing function
   const handleClassroomSelect = (classroomId) => {
     const classroom = mockClassrooms.find(c => c.id === classroomId);
     setSelectedClassroom(classroom);
     
-    // 只在设备管理标签页加载设备列表
+    // Only load equipment list on equipment management tab
     if (resourceSubTab === 2) {
       const equipment = mockClassroomEquipment.filter(
         item => item.classroomId === classroomId
@@ -311,7 +311,7 @@ const DataManagement = ({
     }
   };
   
-  // 添加教室编辑函数
+  // Add classroom edit function
   const handleClassroomEdit = (classroomId) => {
     const classroom = mockClassrooms.find(c => c.id === classroomId);
     if (classroom) {
@@ -326,9 +326,9 @@ const DataManagement = ({
     }
   };
   
-  // 添加教室更新函数
+  // Add classroom update function
   const handleClassroomUpdate = () => {
-    // 更新教室信息逻辑
+    // Update classroom information logic
     alert(`Classroom ${editingClassroom.name} information has been updated`);
     setClassroomEditDialog(false);
   };
@@ -345,14 +345,14 @@ const DataManagement = ({
   };
   
   const handleEquipmentUpdate = () => {
-    // 更新设备信息逻辑
+    // Update Device Information Logic
     alert(`Equipment ${selectedEquipment.id} has been updated`);
     setSelectedEquipment(null);
   };
 
-  // 教室分配测试函数
+  // Classroom assignment test function
   const handleClassroomAssignmentTest = () => {
-    // 使用模拟数据示例，后期可替换为真实API调用
+    // Use mock data example, later replace with real API call
     setConstraintPreview({
       ...constraintPreview,
       isLoading: true,
@@ -360,31 +360,31 @@ const DataManagement = ({
       error: null
     });
     
-    // 收集选定的课程进行测试
+    // Collect selected courses for testing
     const coursesToTest = [selectedCourse].filter(Boolean);
     
     if (coursesToTest.length === 0) {
       setConstraintPreview({
         ...constraintPreview,
         isLoading: false,
-        error: "请选择至少一个课程进行测试"
+        error: "Please select at least one course for testing"
       });
       return;
     }
     
-    // 模拟API调用延迟
+    // Simulate API call delay
     setTimeout(() => {
       try {
-        // 这里应调用assignClassroomsApi函数，但由于它可能尚未实现，我们使用模拟数据
+        // This should call the assignClassroomsApi function, but it may not be implemented yet, so we use mock data
         const testResults = coursesToTest.map(courseId => {
           const course = mockCourses.find(c => c.id === courseId);
           const subject = mockCourseSubjectTypes.find(cs => cs.subjectId === course?.subjectId);
           const courseType = subject?.courseType || '';
           
-          // 获取匹配的教室类型信息
+          // Get matching classroom type information
           const matching = mockCourseRoomTypeMatching.find(m => m.courseType === courseType);
           
-          // 找到合适的教室
+          // Find suitable classroom
           const suitableRoom = matchingClassrooms.length > 0 ? 
             matchingClassrooms[0] : 
             mockClassrooms.find(r => r.type === (matching?.preferredRoomTypes[0] || ''));
@@ -395,7 +395,7 @@ const DataManagement = ({
             matchScore: suitableRoom ? 
               (suitableRoom.type === selectedRoomType ? 0.95 : 0.75) : 0,
             roomName: suitableRoom ? 
-              `${suitableRoom.building}-${suitableRoom.name}` : '未找到合适教室',
+              `${suitableRoom.building}-${suitableRoom.name}` : 'No suitable classroom found',
             conflict: !suitableRoom
           };
         });
@@ -411,18 +411,18 @@ const DataManagement = ({
         setConstraintPreview({
           ...constraintPreview,
           isLoading: false,
-          error: error.message || "执行教室分配测试时发生错误"
+          error: error.message || "Error occurred during classroom assignment test"
         });
       }
     }, 1500);
   };
 
-  // 约束管理子选项卡切换函数
+  // Constraint management sub-tab switch function
   const handleConstraintSubTabChange = (event, newValue) => {
     setConstraintSubTab(newValue);
   };
 
-  // 渲染教室分配测试结果
+  // Render classroom assignment test results
   const renderClassroomAssignmentPreview = () => {
     if (constraintPreview.error) {
       return (
@@ -1213,7 +1213,7 @@ const DataManagement = ({
                         color="primary"
                         onClick={() => {
                           // 保存当前的课程-教室类型偏好设置
-                          alert('课程教室类型偏好已保存');
+                          alert('Course classroom type preferences have been saved');
                         }}
                       >
                         Save Preferences
