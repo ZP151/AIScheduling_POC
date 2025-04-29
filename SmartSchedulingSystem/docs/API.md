@@ -4,6 +4,58 @@
 
 Smart Scheduling System API provides interfaces for generating and managing course schedules. This document includes API descriptions, debugging/deployment information, and implementation status.
 
+## Setup and Port Configuration
+
+### Development Environment Setup
+
+When setting up the project for development after cloning the repository, the system is configured to use the following ports:
+
+1. **Frontend (React)**: http://localhost:3001
+   - Located in the `/SmartSchedulingSystem.API/scheuduling-client` directory
+   - Start with `npm start` from the scheuduling-client directory
+
+2. **.NET Backend API**: http://localhost:5192
+   - Located in the  `/SmartSchedulingSystem.API`
+   - Start with `dotnet run` 
+   - Swagger available at http://localhost:5192/swagger
+
+3. **Python Service (FastAPI)**: http://localhost:8080
+   - Located in the  `/llm_backend` 
+   - Start with `uvicorn llm_api:app --reload --port 8080` from the llm_backend directory
+   - OpenAPI documentation available at http://localhost:8080/docs
+
+### Production Deployment
+
+When deploying to production using the `run-and-build` scripts, the ports are configured differently:
+
+1. **Frontend**: http://localhost:3000
+   - Built and served by the .NET backend in production mode
+
+2. **.NET Backend API**: http://localhost:5001
+   - Acts as the main entry point for all services
+   - Handles authentication, API requests, and serves the frontend
+   - Communicates with the Python service internally
+
+3. **Python Service**: Not directly exposed
+   - Deployed as an internal service
+   - Communication managed by the .NET backend
+
+### .NET Backend Configuration
+
+The .NET backend is configured to:
+1. Serve the API endpoints at the specified port
+2. Serve the built React app (in production)
+3. Proxy API requests to the Python service when needed
+4. Handle authentication and authorization
+
+### Cross-Origin Resource Sharing (CORS)
+
+In development mode, CORS is configured to allow:
+- Frontend (React): http://localhost:3001
+- Python Service: http://localhost:8080
+
+In production, CORS settings are determined by the `SCHEDULING_CORS_ORIGINS` environment variable.
+
 ## Service URLs
 
 ### Development Environment
@@ -207,77 +259,6 @@ sort: Field to sort by
 order: Sort order (asc/desc)
 ```
 
-## Setup and Port Configuration
-
-### Development Environment Setup
-
-When setting up the project for development after cloning the repository, the system is configured to use the following ports:
-
-1. **Frontend (React)**: http://localhost:3001
-   - Located in the `/SmartSchedulingSystem.API/scheuduling-client` directory
-   - Start with `npm start` from the scheuduling-client directory
-
-2. **.NET Backend API**: http://localhost:5192
-   - Located in the root directory `/SmartSchedulingSystem.API`
-   - Start with `dotnet run` from the root directory
-   - Swagger available at http://localhost:5192/swagger
-
-3. **Python Service (FastAPI)**: http://localhost:8080
-   - Located in the `/PythonService` directory
-   - Start with `uvicorn main:app --reload --port 8080` from the PythonService directory
-   - OpenAPI documentation available at http://localhost:8080/docs
-
-### Production Deployment
-
-When deploying to production using the `run-and-build` scripts, the ports are configured differently:
-
-1. **Frontend**: http://localhost:3000
-   - Built and served by the .NET backend in production mode
-
-2. **.NET Backend API**: http://localhost:5001
-   - Acts as the main entry point for all services
-   - Handles authentication, API requests, and serves the frontend
-   - Communicates with the Python service internally
-
-3. **Python Service**: Not directly exposed
-   - Deployed as an internal service
-   - Communication managed by the .NET backend
-
-### Deployment Scripts
-
-```bash
-# Deploy everything (from project root)
-./run-and-build.sh
-
-# Deploy only the backend (from project root)
-./run-and-build.sh --backend-only
-
-# Deploy only the frontend (from project root)
-./run-and-build.sh --frontend-only
-```
-
-For Windows environments, use the equivalent `.bat` scripts:
-
-```
-run-and-build.bat [--backend-only|--frontend-only]
-```
-
-### .NET Backend Configuration
-
-The .NET backend is configured to:
-1. Serve the API endpoints at the specified port
-2. Serve the built React app (in production)
-3. Proxy API requests to the Python service when needed
-4. Handle authentication and authorization
-
-### Cross-Origin Resource Sharing (CORS)
-
-In development mode, CORS is configured to allow:
-- Frontend (React): http://localhost:3001
-- Python Service: http://localhost:8080
-
-In production, CORS settings are determined by the `SCHEDULING_CORS_ORIGINS` environment variable.
-
 ## Implementation Status Summary
 
 | Feature | Status | Planned Version |
@@ -327,12 +308,7 @@ The following environment variables can be used to override default configuratio
    - This may be due to authentication not being fully implemented yet
    - Check if the endpoint requires authentication
 
-2. **How long does schedule generation take?**
-   - Basic generation: ~5-10 seconds
-   - Advanced generation: ~15-30 seconds
-   - Enhanced generation: ~30-90 seconds (depends on constraint number and data scale)
-
-3. **How to handle performance issues?**
+2. **How to handle performance issues?**
    - Reduce number of enabled constraints
    - Adjust algorithm parameters (reduce iteration count)
    - Process data in batches
