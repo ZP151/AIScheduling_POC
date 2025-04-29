@@ -7,174 +7,174 @@ using System.Collections.Generic;
 namespace SmartSchedulingSystem.Scheduling.Interfaces
 {
     /// <summary>
-    /// 约束管理器接口
+    /// Constraint manager interface
     /// </summary>
     public interface IConstraintManager
     {
-        #region 约束管理方法
+        #region Constraint management methods
 
         /// <summary>
-        /// 注册约束
+        /// Register constraint
         /// </summary>
-        /// <param name="constraint">要注册的约束</param>
+        /// <param name="constraint">Constraint to register</param>
         void RegisterConstraint(IConstraint constraint);
 
         /// <summary>
-        /// 批量注册约束
+        /// Batch register constraints
         /// </summary>
-        /// <param name="constraints">要注册的约束集合</param>
+        /// <param name="constraints">Constraints to register</param>
         void RegisterConstraints(IEnumerable<IConstraint> constraints);
 
         /// <summary>
-        /// 添加约束
+        /// Add constraint
         /// </summary>
-        /// <param name="constraint">要添加的约束</param>
+        /// <param name="constraint">Constraint to add</param>
         void AddConstraint(IConstraint constraint);
 
         /// <summary>
-        /// 移除约束
+        /// Remove constraint
         /// </summary>
-        /// <param name="id">约束ID</param>
+        /// <param name="id">Constraint ID</param>
         void RemoveConstraint(string id);
 
         /// <summary>
-        /// 停用约束
+        /// Deactivate constraint
         /// </summary>
-        /// <param name="constraintId">约束ID</param>
+        /// <param name="constraintId">Constraint ID</param>
         void DeactivateConstraint(int constraintId);
 
         /// <summary>
-        /// 启用约束
+        /// Activate constraint
         /// </summary>
-        /// <param name="constraintId">约束ID</param>
+        /// <param name="constraintId">Constraint ID</param>
         void ActivateConstraint(int constraintId);
 
         /// <summary>
-        /// 更新约束权重
+        /// Update constraint weight
         /// </summary>
-        /// <param name="constraintId">约束ID</param>
-        /// <param name="weight">新权重</param>
+        /// <param name="constraintId">Constraint ID</param>
+        /// <param name="weight">New weight</param>
         void UpdateConstraintWeight(int constraintId, double weight);
 
         /// <summary>
-        /// 启用或禁用简化约束集合
+        /// Enable or disable simplified constraint set
         /// </summary>
-        /// <param name="useSimplified">是否使用简化约束集合</param>
+        /// <param name="useSimplified">Whether to use simplified constraint set</param>
         void UseSimplifiedConstraints(bool useSimplified = true);
 
         /// <summary>
-        /// 设置约束应用级别
+        /// Set constraint application level
         /// </summary>
-        /// <param name="level">约束应用级别</param>
+        /// <param name="level">Constraint application level</param>
         void SetConstraintApplicationLevel(ConstraintApplicationLevel level);
 
         /// <summary>
-        /// 获取当前约束应用级别
+        /// Get current constraint application level
         /// </summary>
-        /// <returns>约束应用级别</returns>
+        /// <returns>Constraint application level</returns>
         ConstraintApplicationLevel GetCurrentApplicationLevel();
 
         /// <summary>
-        /// 加载约束配置
+        /// Load constraint configuration
         /// </summary>
-        /// <param name="constraintIds">要加载的约束ID列表</param>
-        /// <param name="parameters">排课参数</param>
+        /// <param name="constraintIds">List of constraint IDs to load</param>
+        /// <param name="parameters">Scheduling parameters</param>
         void LoadConstraintConfiguration(List<string> constraintIds, SchedulingParameters parameters);
 
         #endregion
 
-        #region 约束查询方法
+        #region Constraint query methods
 
         /// <summary>
-        /// 获取所有约束
+        /// Get all constraints
         /// </summary>
-        /// <returns>约束列表</returns>
+        /// <returns>List of constraints</returns>
         List<IConstraint> GetAllConstraints();
 
         /// <summary>
-        /// 获取所有硬约束
+        /// Get all hard constraints
         /// </summary>
-        /// <returns>硬约束列表</returns>
+        /// <returns>List of hard constraints</returns>
         List<IConstraint> GetHardConstraints();
 
         /// <summary>
-        /// 获取所有软约束
+        /// Get all soft constraints
         /// </summary>
-        /// <returns>软约束列表</returns>
+        /// <returns>List of soft constraints</returns>
         List<IConstraint> GetSoftConstraints();
 
         /// <summary>
-        /// 通过数字ID查找约束
+        /// Find constraint by numeric ID
         /// </summary>
-        /// <param name="id">约束ID</param>
-        /// <returns>约束</returns>
+        /// <param name="id">Constraint ID</param>
+        /// <returns>Constraint</returns>
         IConstraint FindConstraint(int id);
 
         /// <summary>
-        /// 通过字符串ID获取约束
+        /// Get constraint by string ID
         /// </summary>
-        /// <param name="id">约束ID</param>
-        /// <returns>约束</returns>
+        /// <param name="id">Constraint ID</param>
+        /// <returns>Constraint</returns>
         IConstraint GetConstraintById(string id);
 
         /// <summary>
-        /// 通过定义ID查找约束
+        /// Find constraint by definition ID
         /// </summary>
-        /// <param name="definitionId">定义ID</param>
-        /// <returns>约束</returns>
+        /// <param name="definitionId">Definition ID</param>
+        /// <returns>Constraint</returns>
         IConstraint FindConstraintByDefinitionId(string definitionId);
 
         /// <summary>
-        /// 按基本规则获取约束
+        /// Get constraints by basic rule
         /// </summary>
-        /// <param name="basicRule">基本规则</param>
-        /// <returns>满足基本规则的约束列表</returns>
+        /// <param name="basicRule">Basic rule</param>
+        /// <returns>List of constraints satisfying the basic rule</returns>
         List<IConstraint> GetConstraintsByBasicRule(string basicRule);
 
         /// <summary>
-        /// 按层级获取约束
+        /// Get constraints by hierarchy
         /// </summary>
-        /// <param name="hierarchy">约束层级</param>
-        /// <returns>满足层级的约束列表</returns>
+        /// <param name="hierarchy">Constraint hierarchy</param>
+        /// <returns>List of constraints satisfying the hierarchy</returns>
         List<IConstraint> GetConstraintsByHierarchy(ConstraintHierarchy hierarchy);
 
         /// <summary>
-        /// 获取活跃的约束
+        /// Get active constraints
         /// </summary>
-        /// <param name="level">约束应用级别</param>
-        /// <returns>活跃约束列表</returns>
+        /// <param name="level">Constraint application level</param>
+        /// <returns>List of active constraints</returns>
         List<IConstraint> GetActiveConstraints(ConstraintApplicationLevel level);
 
         #endregion
 
-        #region 约束评估方法
+        #region Constraint evaluation methods
 
         /// <summary>
-        /// 评估所有约束
+        /// Evaluate all constraints
         /// </summary>
-        /// <param name="solution">排课解决方案</param>
-        /// <returns>评估结果</returns>
+        /// <param name="solution">Scheduling solution</param>
+        /// <returns>Evaluation result</returns>
         SchedulingEvaluation EvaluateConstraints(SchedulingSolution solution);
 
         /// <summary>
-        /// 评估硬约束
+        /// Evaluate hard constraints
         /// </summary>
-        /// <param name="solution">排课解决方案</param>
-        /// <returns>评估结果</returns>
+        /// <param name="solution">Scheduling solution</param>
+        /// <returns>Evaluation result</returns>
         List<ConstraintEvaluation> EvaluateHardConstraints(SchedulingSolution solution);
 
         /// <summary>
-        /// 评估软约束
+        /// Evaluate soft constraints
         /// </summary>
-        /// <param name="solution">排课解决方案</param>
-        /// <returns>评估结果</returns>
+        /// <param name="solution">Scheduling solution</param>
+        /// <returns>Evaluation result</returns>
         List<ConstraintEvaluation> EvaluateSoftConstraints(SchedulingSolution solution);
 
         /// <summary>
-        /// 计算冲突
+        /// Calculate conflicts
         /// </summary>
-        /// <param name="solution">排课解决方案</param>
-        /// <returns>冲突列表</returns>
+        /// <param name="solution">Scheduling solution</param>
+        /// <returns>List of conflicts</returns>
         List<SchedulingConflict> CalculateConflicts(SchedulingSolution solution);
 
         #endregion

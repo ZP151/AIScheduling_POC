@@ -36,7 +36,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         {
             var options = new List<ConflictResolutionOption>();
 
-            // 获取冲突涉及的课程分配
+            // Access to course assignments involved in the conflict
             var involvedSectionIds = conflict.InvolvedEntities.TryGetValue("Sections", out var sections)
                 ? sections
                 : new List<int>();
@@ -47,24 +47,24 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             if (involvedSectionIds.Count < 2 || involvedClassroomIds.Count < 1)
             {
-                _logger.LogWarning("教室冲突信息不完整，无法生成解决方案");
+                _logger.LogWarning("Incomplete classroom conflict information, cannot generate solution");
                 return options;
             }
 
-            // 获取相关分配
+            // Get related assignments
             var assignments = solution.Assignments
                 .Where(a => involvedSectionIds.Contains(a.SectionId))
                 .ToList();
 
             if (assignments.Count < 2)
             {
-                _logger.LogWarning("未找到冲突相关的分配");
+                _logger.LogWarning("No related assignments found");
                 return options;
             }
 
             foreach (var assignment in assignments)
             {
-                // 1. 生成替代教室移动
+                // 1. Generate alternative classroom moves
                 var availableRooms = _moveGenerator.GenerateValidMoves(
                     solution, assignment)
                     .OfType<RoomMove>()
@@ -74,24 +74,24 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 {
                     var roomMove = (RoomMove)move;
 
-                    // 获取新教室信息
+                    // Get new classroom information
                     var newRoom = solution.Problem?.Classrooms
                         .FirstOrDefault(r => r.Id == roomMove.NewClassroomId);
 
                     if (newRoom == null)
                         continue;
 
-                    // 创建解决方案选项
+                    // Create solution option
                     var option = new ConflictResolutionOption
                     {
                         Id = options.Count + 1,
                         ConflictId = conflict.Id,
-                        Description = $"将课程 {assignment.SectionCode} 移动到教室 {newRoom.Name}",
-                        Compatibility = 90, // 很高兼容性
+                        Description = $"Move course {assignment.SectionCode} to classroom {newRoom.Name}",
+                        Compatibility = 90, // Very high compatibility
                         Impacts = new List<string>
                         {
-                            "改变课程所在教室",
-                            "可能影响教学设备可用性"
+                            "Change the classroom where the course is held",
+                            "May affect the availability of teaching equipment"
                         },
                         Actions = new List<ResolutionAction>
                         {
@@ -106,7 +106,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
                     options.Add(option);
 
-                    // 限制选项数量
+                    // Limit the number of options
                     if (options.Count >= 5)
                         break;
                 }
@@ -114,7 +114,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 if (options.Count >= 5)
                     break;
 
-                // 2. 生成时间移动
+                // 2. Generate time moves
                 var timeMovesOptions = _moveGenerator.GenerateValidMoves(
                     solution, assignment)
                     .OfType<TimeMove>()
@@ -125,24 +125,24 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 {
                     var timeMove = (TimeMove)move;
 
-                    // 获取新时间槽信息
+                    // Get new time slot information
                     var newTimeSlot = solution.Problem?.TimeSlots
                         .FirstOrDefault(t => t.Id == timeMove.NewTimeSlotId);
 
                     if (newTimeSlot == null)
                         continue;
 
-                    // 创建解决方案选项
+                    // Create solution option
                     var option = new ConflictResolutionOption
                     {
                         Id = options.Count + 1,
                         ConflictId = conflict.Id,
-                        Description = $"将课程 {assignment.SectionCode} 调整到 {newTimeSlot.DayName} {newTimeSlot.StartTime}-{newTimeSlot.EndTime}",
-                        Compatibility = 70, // 中等兼容性
+                        Description = $"Adjust course {assignment.SectionCode} to {newTimeSlot.DayName} {newTimeSlot.StartTime}-{newTimeSlot.EndTime}",
+                        Compatibility = 70, // Medium compatibility
                         Impacts = new List<string>
                         {
-                            "改变课程时间",
-                            "可能影响学生和教师安排"
+                            "Change the course time",
+                            "May affect student and teacher arrangements"
                         },
                         Actions = new List<ResolutionAction>
                         {
@@ -159,7 +159,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
                     options.Add(option);
 
-                    // 限制选项数量
+                    // Limit the number of options
                     if (options.Count >= 8)
                         break;
                 }
@@ -168,23 +168,23 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     break;
             }
 
-            // 3. 如果有两个相关分配，考虑交换操作
+            // 3. If there are two related assignments, consider swap operations
             if (assignments.Count >= 2)
             {
                 var assignment1 = assignments[0];
                 var assignment2 = assignments[1];
 
-                // 创建教室交换选项
+                // Create classroom swap options
                 var swapOption = new ConflictResolutionOption
                 {
                     Id = options.Count + 1,
                     ConflictId = conflict.Id,
-                    Description = $"交换课程 {assignment1.SectionCode} 和 {assignment2.SectionCode} 的时间",
+                    Description = $"Swap the time of courses {assignment1.SectionCode} and {assignment2.SectionCode}",
                     Compatibility = 85,
                     Impacts = new List<string>
                     {
-                        "两门课程时间互换",
-                        "避免改变教室分配"
+                        "Swap the time of two courses",
+                        "Avoid changing classroom assignments"
                     },
                     Actions = new List<ResolutionAction>
                     {
@@ -213,10 +213,10 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (solution == null)
                 throw new ArgumentNullException(nameof(solution));
 
-            // 创建解决方案的副本
+            // Create a copy of the solution
             var resolvedSolution = solution.Clone();
 
-            // 应用所有解决操作
+            // Apply all resolution actions
             foreach (var action in option.Actions)
             {
                 action.Execute(resolvedSolution);
@@ -238,7 +238,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             var resolvedSolution = solution.Clone();
 
-            // 按冲突严重程度排序
+            // Sort conflicts by severity
             var sortedConflicts = conflicts
                 .OrderByDescending(c => c.Severity)
                 .ThenByDescending(c => c.InvolvedEntities?.GetValueOrDefault("Sections")?.Count ?? 0)
@@ -246,15 +246,15 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
             foreach (var conflict in sortedConflicts)
             {
-                // 为每个冲突生成解决选项
+                // Generate resolution options for each conflict
                 var options = await GetResolutionOptionsAsync(conflict, resolvedSolution, cancellationToken);
 
-                // 选择最佳选项
+                // Select the best option
                 var bestOption = SelectBestOption(options, resolvedSolution);
 
                 if (bestOption != null)
                 {
-                    // 应用解决方案
+                    // Apply the solution
                     resolvedSolution = await ApplyResolutionAsync(bestOption, resolvedSolution, cancellationToken);
                 }
             }
@@ -269,30 +269,30 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (options == null || !options.Any())
                 return null;
 
-            // 为每个选项评分
+            // Score each option
             var scoredOptions = new List<(ConflictResolutionOption Option, double Score)>();
 
             foreach (var option in options)
             {
-                // 克隆解决方案
+                // Clone the solution
                 var tempSolution = solution.Clone();
 
-                // 应用选项
+                // Apply the option
                 foreach (var action in option.Actions)
                 {
                     action.Execute(tempSolution);
                 }
 
-                // 评估解决方案
+                // Evaluate the solution
                 double score = _evaluator.Evaluate(tempSolution).Score;
 
-                // 考虑选项兼容性的权重
+                // Consider the weight of option compatibility
                 score = score * 0.8 + (option.Compatibility / 100.0) * 0.2;
 
                 scoredOptions.Add((option, score));
             }
 
-            // 返回评分最高的选项
+            // Return the option with the highest score
             return scoredOptions
                 .OrderByDescending(so => so.Score)
                 .FirstOrDefault()

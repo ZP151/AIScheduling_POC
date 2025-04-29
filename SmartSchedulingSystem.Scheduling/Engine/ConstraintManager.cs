@@ -11,33 +11,33 @@ using Microsoft.Extensions.Logging;
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
     /// <summary>
-    /// 约束应用级别，控制在算法中应用约束的程度
+    /// Constraint application level, controlling the degree of constraint application in the algorithm
     /// </summary>
     public enum ConstraintApplicationLevel
     {
         /// <summary>
-        /// 基本级别 - 包含所有不可变硬约束（对应Level1_CoreHard）
+        /// Basic level - includes all immutable hard constraints (corresponding to Level1_CoreHard)
         /// </summary>
         Basic = 0,
         
         /// <summary>
-        /// 标准级别 - 包含核心硬约束和可配置硬约束（对应Level1_CoreHard和Level2_ConfigurableHard）
+        /// Standard level - contains core hard constraints and configurable hard constraints (corresponding to Level1_CoreHard and Level2_ConfigurableHard)
         /// </summary>
         Standard = 1,
         
         /// <summary>
-        /// 增强级别 - 包含硬约束和物理软约束（对应Level1~3）
+        /// Enhanced level - includes hard constraints and physical soft constraints (corresponding to Level1~3)
         /// </summary>
         Enhanced = 2,
         
         /// <summary>
-        /// 完整级别 - 包含所有约束，包括质量软约束（对应Level1~4）
+        /// Complete level - includes all constraints, including quality soft constraints (corresponding to Level1~4)
         /// </summary>
         Complete = 3
     }
 
     /// <summary>
-    /// 约束管理器，负责管理所有排课约束
+    /// Constraint manager, responsible for managing all scheduling constraints
     /// </summary>
     public class ConstraintManager : IConstraintManager
     {
@@ -50,14 +50,14 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         private readonly Dictionary<string, List<IConstraint>> _constraintsByBasicRule = new Dictionary<string, List<IConstraint>>();
 
         /// <summary>
-        /// 构造函数
+        /// Constructor
         /// </summary>
         public ConstraintManager(IEnumerable<IConstraint> constraints, ILogger<ConstraintManager> logger)
         {
             _constraints = constraints?.ToList() ?? new List<IConstraint>();
             _logger = logger;
             
-            // 初始化字典
+            // Initialize dictionaries
             foreach (var constraint in _constraints)
             {
                 if (constraint.Id > 0)
@@ -81,28 +81,28 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
             }
             
-            // 默认使用简化约束集合
+            // Use the Simplified Constraints collection by default
             UseSimplifiedConstraints(true);
         }
 
         /// <summary>
-        /// 设置约束应用级别
+        /// Set the constraint application level
         /// </summary>
         public void SetConstraintApplicationLevel(ConstraintApplicationLevel level)
         {
             _constraintLevel = level;
-            _logger.LogInformation($"约束应用级别设置为: {level}");
+            _logger.LogInformation($"Constraint application level set to: {level}");
             
-            // 根据新的应用级别自动调整约束的启用状态
+            // Automatically adjust the activation status of constraints based on the new application level
             ApplyConstraintLevel();
         }
         
         /// <summary>
-        /// 根据当前约束级别应用对应的约束
+        /// Apply the corresponding constraints based on the current constraint level
         /// </summary>
         private void ApplyConstraintLevel()
         {
-            // 先禁用所有约束
+            // Disable all constraints first
             foreach (var constraint in _constraints)
             {
                 constraint.IsActive = false;
@@ -111,27 +111,27 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             switch (_constraintLevel)
             {
                 case ConstraintApplicationLevel.Basic:
-                    // 基本级别：启用所有Level1_CoreHard约束
+                    // Basic level: Enable all Level1_CoreHard constraints
                     foreach (var constraint in _constraints.Where(c => c.Hierarchy == ConstraintHierarchy.Level1_CoreHard))
                     {
                         constraint.IsActive = true;
                     }
-                    _logger.LogInformation("应用基本级别约束 - 启用所有核心硬约束");
+                    _logger.LogInformation("Applying base level constraints - Enable all core hard constraints");;
                     break;
                     
                 case ConstraintApplicationLevel.Standard:
-                    // 标准级别：启用Level1_CoreHard和Level2_ConfigurableHard约束
+                    // Standard level: Enable Level1_CoreHard and Level2_ConfigurableHard constraints
                     foreach (var constraint in _constraints.Where(c => 
                         c.Hierarchy == ConstraintHierarchy.Level1_CoreHard || 
                         c.Hierarchy == ConstraintHierarchy.Level2_ConfigurableHard))
                     {
                         constraint.IsActive = true;
                     }
-                    _logger.LogInformation("应用标准级别约束 - 启用所有核心和可配置硬约束");
+                    _logger.LogInformation("Applying standard level constraints - Enable all core and configurable hard constraints");;
                     break;
                     
                 case ConstraintApplicationLevel.Enhanced:
-                    // 增强级别：启用所有Level1~3约束
+                    // Enhanced level: Enable all Level1~3 constraints
                     foreach (var constraint in _constraints.Where(c => 
                         c.Hierarchy == ConstraintHierarchy.Level1_CoreHard || 
                         c.Hierarchy == ConstraintHierarchy.Level2_ConfigurableHard ||
@@ -139,24 +139,24 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     {
                         constraint.IsActive = true;
                     }
-                    _logger.LogInformation("应用增强级别约束 - 启用所有硬约束和物理软约束");
+                    _logger.LogInformation("Applying enhanced level constraints - Enable all hard constraints and physical soft constraints");
                     break;
                     
                 case ConstraintApplicationLevel.Complete:
-                    // 完整级别：启用所有约束
+                    // Complete level: Enable all constraints
                     foreach (var constraint in _constraints)
                     {
                         constraint.IsActive = true;
                     }
-                    _logger.LogInformation("应用完整级别约束 - 启用所有约束");
+                    _logger.LogInformation("Applying complete level constraints - Enable all constraints");
                     break;
             }
             
-            _logger.LogInformation($"当前启用的约束数量: {_constraints.Count(c => c.IsActive)}/{_constraints.Count}");
+            _logger.LogInformation($"Current number of enabled constraints: {_constraints.Count(c => c.IsActive)}/{_constraints.Count}");
         }
 
         /// <summary>
-        /// 获取当前约束应用级别
+        /// Get the current constraint application level
         /// </summary>
         public ConstraintApplicationLevel GetCurrentApplicationLevel()
         {
@@ -164,7 +164,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 获取所有约束
+        /// Get all constraints
         /// </summary>
         public List<IConstraint> GetAllConstraints()
         {
@@ -172,7 +172,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 获取所有硬约束
+        /// Get all hard constraints
         /// </summary>
         public List<IConstraint> GetHardConstraints()
         {
@@ -180,7 +180,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 获取所有软约束
+        /// Get all soft constraints
         /// </summary>
         public List<IConstraint> GetSoftConstraints()
         {
@@ -188,7 +188,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 根据约束定义ID查找约束
+        /// Get constraint by constraint definition ID
         /// </summary>
         public IConstraint GetConstraintById(string id)
         {
@@ -196,7 +196,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 添加约束
+        /// Add constraint
         /// </summary>
         public void AddConstraint(IConstraint constraint)
         {
@@ -227,12 +227,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     _constraintsByBasicRule[constraint.BasicRule].Add(constraint);
                 }
                 
-                _logger.LogInformation($"已添加约束: {constraint.Name}");
+                _logger.LogInformation($"Constraint added: {constraint.Name}");
             }
         }
 
         /// <summary>
-        /// 移除约束
+        /// Remove constraint
         /// </summary>
         public void RemoveConstraint(string id)
         {
@@ -257,12 +257,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     constraints.Remove(constraint);
                 }
                 
-                _logger.LogInformation($"已移除约束: {constraint.Name}");
+                _logger.LogInformation($"Constraint removed: {constraint.Name}");
             }
         }
 
         /// <summary>
-        /// 评估所有约束
+        /// Evaluate all constraints
         /// </summary>
         public SchedulingEvaluation EvaluateConstraints(SchedulingSolution solution)
         {
@@ -274,18 +274,18 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 Conflicts = new List<SchedulingConflict>()
             };
 
-            // 只评估激活的约束
+            // Only evaluate active constraints
             var activeConstraints = _constraints.Where(c => c.IsActive).ToList();
             
-            // 评估硬约束
+            // Evaluate hard constraints
             var hardConstraintEvaluations = EvaluateHardConstraints(solution);
             evaluation.HardConstraintEvaluations.AddRange(hardConstraintEvaluations);
             
-            // 评估软约束
+            // Evaluate soft constraints
             var softConstraintEvaluations = EvaluateSoftConstraints(solution);
             evaluation.SoftConstraintEvaluations.AddRange(softConstraintEvaluations);
             
-            // 收集所有冲突
+            // Collect all conflicts
             foreach (var hardEval in hardConstraintEvaluations)
             {
                 if (hardEval.Conflicts != null && hardEval.Conflicts.Any())
@@ -302,7 +302,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
             }
 
-            // 计算总得分
+            // Calculate total score
             evaluation.HardConstraintsSatisfied = hardConstraintEvaluations.All(e => e.Satisfied);
             evaluation.IsFeasible = evaluation.HardConstraintsSatisfied;
             
@@ -314,7 +314,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 ? softConstraintEvaluations.Average(e => e.Score) 
                 : 1.0;
 
-            // 如果有硬约束不满足，总分为0
+            // If there are hard constraints not satisfied, the total score is 0
             evaluation.Score = evaluation.IsFeasible ? 
                 (evaluation.HardConstraintsSatisfactionLevel * 0.7 + evaluation.SoftConstraintsSatisfactionLevel * 0.3) : 0.0;
 
@@ -322,13 +322,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估硬约束
+        /// Evaluate hard constraints
         /// </summary>
         public List<ConstraintEvaluation> EvaluateHardConstraints(SchedulingSolution solution)
         {
             var result = new List<ConstraintEvaluation>();
             
-            // 只评估激活的硬约束
+            // Only evaluate active hard constraints
             var hardConstraints = _constraints.Where(c => c.IsActive && c.IsHard).ToList();
             
             foreach (var constraint in hardConstraints)
@@ -346,7 +346,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估硬约束 {constraint.Name} 时出错");
+                    _logger.LogError(ex, $"Error evaluating hard constraint {constraint.Name}");
                     result.Add(new ConstraintEvaluation
                     {
                         Constraint = constraint,
@@ -357,7 +357,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                             {
                                 ConstraintId = constraint.Id,
                                 Type = SchedulingConflictType.ConstraintEvaluationError,
-                                Description = $"评估约束 {constraint.Name} 时发生错误: {ex.Message}",
+                                Description = $"Error evaluating constraint {constraint.Name}: {ex.Message}",
                                 Severity = ConflictSeverity.Critical
                             }
                         }
@@ -369,13 +369,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估软约束
+        /// Evaluate soft constraints
         /// </summary>
         public List<ConstraintEvaluation> EvaluateSoftConstraints(SchedulingSolution solution)
         {
             var result = new List<ConstraintEvaluation>();
             
-            // 只评估激活的软约束
+            // Only evaluate active soft constraints
             var softConstraints = _constraints.Where(c => c.IsActive && !c.IsHard).ToList();
             
             foreach (var constraint in softConstraints)
@@ -393,7 +393,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估软约束 {constraint.Name} 时出错");
+                    _logger.LogError(ex, $"Error evaluating soft constraint {constraint.Name}");
                     result.Add(new ConstraintEvaluation
                     {
                         Constraint = constraint,
@@ -404,7 +404,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                             {
                                 ConstraintId = constraint.Id,
                                 Type = SchedulingConflictType.ConstraintEvaluationError,
-                                Description = $"评估约束 {constraint.Name} 时发生错误: {ex.Message}",
+                                Description = $"Error evaluating constraint {constraint.Name}: {ex.Message}",
                                 Severity = ConflictSeverity.Moderate
                             }
                         }
@@ -416,13 +416,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 计算冲突
+        /// Calculate conflicts
         /// </summary>
         public List<SchedulingConflict> CalculateConflicts(SchedulingSolution solution)
         {
             var conflicts = new List<SchedulingConflict>();
             
-            // 评估所有约束并收集冲突
+            // Evaluate all constraints and collect conflicts
             var activeConstraints = _constraints.Where(c => c.IsActive).ToList();
             
             foreach (var constraint in activeConstraints)
@@ -437,12 +437,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"计算约束 {constraint.Name} 的冲突时出错");
+                    _logger.LogError(ex, $"Error calculating conflicts for constraint {constraint.Name}");
                     conflicts.Add(new SchedulingConflict
                     {
                         ConstraintId = constraint.Id,
                         Type = SchedulingConflictType.ConstraintEvaluationError,
-                        Description = $"计算约束 {constraint.Name} 的冲突时发生错误: {ex.Message}",
+                        Description = $"Error calculating conflicts for constraint {constraint.Name}: {ex.Message}",
                         Severity = constraint.IsHard ? ConflictSeverity.Critical : ConflictSeverity.Moderate
                     });
                 }
@@ -452,7 +452,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 获取指定等级的约束
+        /// Get constraints by hierarchy
         /// </summary>
         public List<IConstraint> GetConstraintsByHierarchy(ConstraintHierarchy hierarchy)
         {
@@ -460,7 +460,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 根据基本规则获取约束
+        /// Get constraints by basic rule
         /// </summary>
         public List<IConstraint> GetConstraintsByBasicRule(string basicRule)
         {
@@ -473,7 +473,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 根据ID查找约束
+        /// Get constraint by ID
         /// </summary>
         public IConstraint FindConstraint(int id)
         {
@@ -481,7 +481,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 根据约束定义ID查找约束
+        /// Get constraint by constraint definition ID
         /// </summary>
         public IConstraint FindConstraintByDefinitionId(string definitionId)
         {
@@ -489,7 +489,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 启用或禁用简化约束集合
+        /// Enable or disable simplified constraint set
         /// </summary>
         public void UseSimplifiedConstraints(bool useSimplified = true)
         {
@@ -497,28 +497,28 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             
             if (useSimplified)
             {
-                _logger.LogInformation("启用简化约束集合，只保留Level1_CoreHard级别的核心硬约束");
+                _logger.LogInformation("Enable simplified constraint set, only keep Level1_CoreHard level core hard constraints");
                 
-                // 设置约束级别为Basic
+                // Set constraint level to Basic
                 _constraintLevel = ConstraintApplicationLevel.Basic;
                 
-                // 应用约束级别
+                // Apply constraint level
                 ApplyConstraintLevel();
             }
             else
             {
-                _logger.LogInformation("恢复完整约束集合");
+                _logger.LogInformation("Restore full constraint set");
                 
-                // 设置约束级别为Complete
+                // Set constraint level to Complete
                 _constraintLevel = ConstraintApplicationLevel.Complete;
                 
-                // 应用约束级别
+                // Apply constraint level
                 ApplyConstraintLevel();
             }
         }
 
         /// <summary>
-        /// 注册约束
+        /// Register constraint
         /// </summary>
         public void RegisterConstraint(IConstraint constraint)
         {
@@ -526,7 +526,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 注册多个约束
+        /// Register multiple constraints
         /// </summary>
         public void RegisterConstraints(IEnumerable<IConstraint> constraints)
         {
@@ -537,7 +537,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 禁用约束
+        /// Disable constraint
         /// </summary>
         public void DeactivateConstraint(int constraintId)
         {
@@ -545,12 +545,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (constraint != null)
             {
                 constraint.IsActive = false;
-                _logger.LogInformation($"已禁用约束: {constraint.Name}");
+                _logger.LogInformation($"Constraint {constraint.Name} disabled");
             }
         }
 
         /// <summary>
-        /// 启用约束
+        /// Activate constraint
         /// </summary>
         public void ActivateConstraint(int constraintId)
         {
@@ -558,12 +558,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (constraint != null)
             {
                 constraint.IsActive = true;
-                _logger.LogInformation($"已启用约束: {constraint.Name}");
+                _logger.LogInformation($"Constraint {constraint.Name} activated");
             }
         }
 
         /// <summary>
-        /// 更新约束权重
+        /// Update constraint weight
         /// </summary>
         public void UpdateConstraintWeight(int constraintId, double weight)
         {
@@ -571,16 +571,16 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (constraint != null && !constraint.IsHard)
             {
                 constraint.Weight = Math.Clamp(weight, 0.0, 1.0);
-                _logger.LogInformation($"已更新约束 {constraint.Name} 的权重为 {weight}");
+                _logger.LogInformation($"Constraint {constraint.Name} weight updated to {weight}");
             }
         }
 
         /// <summary>
-        /// 获取当前活动的约束
+        /// Get current active constraints
         /// </summary>
         public List<IConstraint> GetActiveConstraints(ConstraintApplicationLevel level)
         {
-            // 根据请求的级别返回不同的约束集合
+            // Return different constraint collections based on the requested level
             switch (level)
             {
                 case ConstraintApplicationLevel.Basic:
@@ -610,45 +610,45 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 加载约束配置
+        /// Load constraint configuration
         /// </summary>
         public void LoadConstraintConfiguration(List<string> constraintIds, SchedulingParameters parameters)
         {
             if (constraintIds == null || !constraintIds.Any())
             {
-                _logger.LogWarning("没有提供约束ID列表，将使用默认配置");
+                _logger.LogWarning("No constraint ID list provided, using default configuration");
                 return;
             }
 
-            _logger.LogInformation($"加载约束配置，共 {constraintIds.Count} 个约束");
+            _logger.LogInformation($"Load constraint configuration, {constraintIds.Count} constraints");
             
-            // 先禁用所有约束
+            // Disable all constraints first
             foreach (var constraint in _constraints)
             {
                 constraint.IsActive = false;
             }
             
-            // 启用指定ID的约束
+            // Activate constraints by specified IDs
             foreach (var id in constraintIds)
             {
                 var constraint = FindConstraintByDefinitionId(id);
                 if (constraint != null)
                 {
                     constraint.IsActive = true;
-                    _logger.LogInformation($"已启用约束: {constraint.Name}");
+                    _logger.LogInformation($"Constraint {constraint.Name} activated");
                 }
                 else
                 {
-                    _logger.LogWarning($"未找到ID为 {id} 的约束");
+                    _logger.LogWarning($"Constraint with ID {id} not found");
                 }
             }
             
-            // 如果提供了排课参数，可以用于进一步配置约束
+            // If scheduling parameters are provided, can be used to further configure constraints
             if (parameters != null)
             {
-                _logger.LogInformation("使用排课参数配置约束");
+                _logger.LogInformation("Use scheduling parameters to configure constraints");
                 
-                // 这里根据需要添加特定参数的配置逻辑
+                // Add specific parameter configuration logic as needed
                 if (parameters.UseBasicConstraints)
                 {
                     _constraintLevel = ConstraintApplicationLevel.Basic;
@@ -661,7 +661,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     ApplyConstraintLevel();
                 }
                 
-                // 根据需要处理其他参数
+                // Add specific parameter configuration logic as needed
             }
         }
     }

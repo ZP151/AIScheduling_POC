@@ -1,14 +1,14 @@
 import React, { useState,useEffect  } from 'react';
 import { Container, Typography, Paper, Box, Tabs, Tab } from '@mui/material';
-import ScheduleCoursesForm from './components/ScheduleCoursesForm';
-import ScheduleExamsForm from './components/ScheduleExamsForm';
-import ScheduleResults from './components/ScheduleResults';
-import DataManagement from './components/DataManagement';
-import ScheduleHistory from './components/ScheduleHistory';
+import ScheduleCoursesForm from './UI/MainModules/ScheduleCoursesForm';
+import ScheduleExamsForm from './UI/MainModules/ScheduleExamsForm';
+import ScheduleResults from './UI/MainModules/ScheduleResults';
+import DataManagement from './UI/MainModules/DataManagement';
+import ScheduleHistory from './UI/MainModules/ScheduleHistory';
 import './styles.css';
-import IntelligentAssistant from './components/LLM/IntelligentAssistant';
+import IntelligentAssistant from './UI/AIFeatures/IntelligentAssistant';
 // Import example scheduling data
-import { mockScheduleResults } from './services/mockData';
+import { mockScheduleResults } from './Services/mockData';
 
 function App() {
   const [tabValue, setTabValue] = useState(0);

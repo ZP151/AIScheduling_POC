@@ -9,7 +9,7 @@ using SmartSchedulingSystem.Scheduling.Utils;
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
     /// <summary>
-    /// 解决方案评估器接口
+    /// Solution evaluator interface
     /// </summary>
     public interface ISolutionEvaluator
     {
@@ -17,7 +17,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
     }
 
     /// <summary>
-    /// 评估排课解决方案的类
+    /// Class for evaluating scheduling solutions
     /// </summary>
     public class SolutionEvaluator : ISolutionEvaluator
     {
@@ -25,7 +25,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         private readonly ConstraintManager _constraintManager;
         private readonly Utils.SchedulingParameters _parameters;
 
-        // 缓存评估结果，减少重复计算
+        // Cache evaluation results to reduce duplicate calculations
         private readonly Dictionary<int, Dictionary<int, double>> _constraintScoreCache = new Dictionary<int, Dictionary<int, double>>();
 
         public SolutionEvaluator(
@@ -39,7 +39,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估解决方案，返回0-1分数（1为最佳）
+        /// Evaluate solution, return 0-1 score (1 is best)
         /// </summary>
         public SchedulingEvaluation Evaluate(SchedulingSolution solution)
         {
@@ -55,16 +55,16 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             };
             try
             {
-                // 检查缓存
+                // Check cache
                 if (solution.Id > 0 && _constraintScoreCache.TryGetValue(solution.Id, out var cachedScores))
                 {
-                    // 如果所有约束都有缓存，直接返回
+                    // If all constraints have cached scores, return immediately
                     int totalConstraints = _constraintManager.GetAllConstraints().Count;
                     if (cachedScores.Count == totalConstraints)
                     {
                         double hardScore = EvaluateHardConstraintsFromCache(cachedScores);
 
-                        // 如果不满足硬约束，直接返回负无穷
+                        // If hard constraints are not satisfied, return negative infinity
                         if (hardScore < 1.0)
                         {
                             evaluation.IsFeasible = false;
@@ -72,7 +72,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                             return evaluation;
                         }
 
-                        // 计算软约束评分
+                        // Calculate soft constraint score
                         double softScore = EvaluateSoftConstraintsFromCache(cachedScores);
                         evaluation.IsFeasible = true;
                         evaluation.Score = softScore;
@@ -80,10 +80,10 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     }
                 }
 
-                // 如果没有完整缓存，重新计算
+                // If not all constraints have cached scores, recalculate
                 double hardConstraintScore = EvaluateHardConstraints(solution);
 
-                // 如果违反任何硬约束，返回负无穷大分数
+                // If any hard constraint is violated, return negative infinity score
                 if (hardConstraintScore < 1.0)
                 {
                     evaluation.IsFeasible = false;
@@ -91,17 +91,17 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     return evaluation;
                 }
 
-                // 评估软约束
+                // Evaluate soft constraints
                 double physicalSoftScore = EvaluatePhysicalSoftConstraints(solution);
                 double qualitySoftScore = EvaluateQualitySoftConstraints(solution);
 
-                // 加权组合得分
+                // Weighted combination score
                 double softConstraintScore =
                     (_parameters.PhysicalSoftConstraintWeight * physicalSoftScore) +
                     (_parameters.QualitySoftConstraintWeight * qualitySoftScore);
 
-                _logger.LogDebug($"评分: 硬约束={hardConstraintScore:F4}, 物理软约束={physicalSoftScore:F4}, " +
-                               $"质量软约束={qualitySoftScore:F4}, 总分={softConstraintScore:F4}");
+                _logger.LogDebug($"Score: hard constraint={hardConstraintScore:F4}, physical soft constraint={physicalSoftScore:F4}, " +
+                               $"quality soft constraint={qualitySoftScore:F4}, total score={softConstraintScore:F4}");
 
                 evaluation.IsFeasible = true;
                 evaluation.HardConstraintsSatisfactionLevel = hardConstraintScore;
@@ -111,7 +111,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "评估解决方案时出错");
+                _logger.LogError(ex, "Error evaluating solution");
                 evaluation.IsFeasible = false;
                 evaluation.Score = double.NegativeInfinity;
                 return evaluation;
@@ -119,36 +119,36 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估硬约束
+        /// Evaluate hard constraints
         /// </summary>
         public double EvaluateHardConstraints(SchedulingSolution solution)
         {
             var hardConstraints = _constraintManager.GetHardConstraints();
 
             if (hardConstraints.Count == 0)
-                return 1.0; // 没有硬约束，视为满足
+                return 1.0; // No hard constraints,is regarded as satisfying
 
-            // 检查是否所有硬约束都满足
+            // Check if all hard constraints are satisfied
             foreach (var constraint in hardConstraints)
             {
                 try
                 {
                     var (score, conflicts) = constraint.Evaluate(solution);
 
-                    // 缓存结果
+                    // Cache result
                     if (solution.Id > 0)
                     {
                         CacheConstraintScore(solution.Id, constraint.Id, score);
                     }
 
-                    // 如果任一硬约束不满足，整体不满足
+                    // If any hard constraint is not satisfied, the overall solution is not satisfied
                     if (score < 1.0)
                     {
-                        _logger.LogDebug($"硬约束'{constraint.Name}'不满足，得分={score:F4}");
+                        _logger.LogDebug($"Hard constraint '{constraint.Name}' is not satisfied, score={score:F4}");
 
                         if (conflicts != null && conflicts.Any())
                         {
-                            _logger.LogDebug($"冲突：{conflicts.First().Description}");
+                            _logger.LogDebug($"Conflict: {conflicts.First().Description}");
                         }
 
                         return 0.0;
@@ -156,27 +156,27 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估硬约束'{constraint.Name}'时出错");
-                    return 0.0; // 出错视为约束不满足
+                    _logger.LogError(ex, $"Error evaluating hard constraint '{constraint.Name}'");
+                    return 0.0; // Error视为约束不满足
                 }
             }
 
-            return 1.0; // 所有硬约束都满足
+            return 1.0; // All hard constraints are satisfied
         }
         /// <summary>
-        /// 综合评估所有软约束
+        /// Evaluate all soft constraints
         /// </summary>
         public double EvaluateSoftConstraints(SchedulingSolution solution)
         {
             double physicalSoftScore = EvaluatePhysicalSoftConstraints(solution);
             double qualitySoftScore = EvaluateQualitySoftConstraints(solution);
 
-            // 使用参数配置的权重计算综合软约束得分
+            // Calculate combined soft constraint score using parameter weights
             return (_parameters.PhysicalSoftConstraintWeight * physicalSoftScore) +
                    (_parameters.QualitySoftConstraintWeight * qualitySoftScore);
         }
         /// <summary>
-        /// 评估物理软约束
+        /// Evaluate physical soft constraints
         /// </summary>
         public double EvaluatePhysicalSoftConstraints(SchedulingSolution solution)
         {
@@ -185,13 +185,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 .ToList();
 
             if (physicalSoftConstraints.Count == 0)
-                return 1.0; // 没有物理软约束，视为满分
+                return 1.0; // No physical soft constraints, regarded as满分
 
             double totalScore = 0;
             double totalWeight = physicalSoftConstraints.Sum(c => c.Weight);
 
             if (totalWeight == 0)
-                return 1.0; // 权重总和为0，视为满分
+                return 1.0; // Total weight is 0, regarded as满分
 
             foreach (var constraint in physicalSoftConstraints)
             {
@@ -199,7 +199,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 {
                     var (score, conflicts) = constraint.Evaluate(solution);
 
-                    // 缓存结果
+                    // Cache result
                     if (solution.Id > 0)
                     {
                         CacheConstraintScore(solution.Id, constraint.Id, score);
@@ -207,14 +207,14 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
                     totalScore += score * constraint.Weight;
 
-                    _logger.LogDebug($"物理软约束'{constraint.Name}'得分={score:F4}，" +
-                                   $"权重={constraint.Weight:F2}，" +
-                                   $"冲突数={conflicts?.Count ?? 0}");
+                    _logger.LogDebug($"Physical soft constraint '{constraint.Name}' score={score:F4}," +
+                                   $"weight={constraint.Weight:F2}," +
+                                   $"conflict count={conflicts?.Count ?? 0}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估物理软约束'{constraint.Name}'时出错");
-                    // 出错时该约束得0分
+                    _logger.LogError(ex, $"Error evaluating physical soft constraint '{constraint.Name}'");
+                    // Error scores 0 points for considering the constraint
                 }
             }
 
@@ -223,7 +223,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估质量软约束
+        /// Evaluate quality soft constraints
         /// </summary>
         public double EvaluateQualitySoftConstraints(SchedulingSolution solution)
         {
@@ -232,13 +232,13 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 .ToList();
 
             if (qualitySoftConstraints.Count == 0)
-                return 1.0; // 没有质量软约束，视为满分
+                return 1.0; // No soft constraints on quality, considered a perfect score
 
             double totalScore = 0;
             double totalWeight = qualitySoftConstraints.Sum(c => c.Weight);
 
             if (totalWeight == 0)
-                return 1.0; // 权重总和为0，视为满分
+                return 1.0; // Total weight is 0, regarded as满分
 
             foreach (var constraint in qualitySoftConstraints)
             {
@@ -246,7 +246,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 {
                     var (score, conflicts) = constraint.Evaluate(solution);
 
-                    // 缓存结果
+                    // Cache result
                     if (solution.Id > 0)
                     {
                         CacheConstraintScore(solution.Id, constraint.Id, score);
@@ -254,14 +254,14 @@ namespace SmartSchedulingSystem.Scheduling.Engine
 
                     totalScore += score * constraint.Weight;
 
-                    _logger.LogDebug($"质量软约束'{constraint.Name}'得分={score:F4}，" +
-                                   $"权重={constraint.Weight:F2}，" +
-                                   $"冲突数={conflicts?.Count ?? 0}");
+                    _logger.LogDebug($"Quality soft constraint '{constraint.Name}' score={score:F4}," +
+                                   $"weight={constraint.Weight:F2}," +
+                                   $"conflict count={conflicts?.Count ?? 0}");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估质量软约束'{constraint.Name}'时出错");
-                    // 出错时该约束得0分
+                    _logger.LogError(ex, $"Error evaluating quality soft constraint '{constraint.Name}'");
+                    // Error scores 0 points for considering the constraint
                 }
             }
 
@@ -270,14 +270,14 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 从缓存评估硬约束
+        /// Evaluate hard constraints from cache
         /// </summary>
         private double EvaluateHardConstraintsFromCache(Dictionary<int, double> cachedScores)
         {
             var hardConstraints = _constraintManager.GetHardConstraints();
 
             if (hardConstraints.Count == 0)
-                return 1.0; // 没有硬约束，视为满足
+                return 1.0; // No hard constraints, regarded as satisfying
 
             foreach (var constraint in hardConstraints)
             {
@@ -285,21 +285,21 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 {
                     if (score < 1.0)
                     {
-                        return 0.0; // 有硬约束不满足
+                        return 0.0; // There is a hard constraint not satisfied
                     }
                 }
                 else
                 {
-                    // 缓存中缺少约束评分，视为不满足
+                    // Cache missing constraint score, regarded as not satisfied
                     return 0.0;
                 }
             }
 
-            return 1.0; // 所有硬约束都满足
+            return 1.0; // All hard constraints are satisfied
         }
 
         /// <summary>
-        /// 从缓存评估软约束
+        /// Evaluate soft constraints from cache
         /// </summary>
         private double EvaluateSoftConstraintsFromCache(Dictionary<int, double> cachedScores)
         {
@@ -311,7 +311,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 .Where(c => c.Hierarchy == ConstraintHierarchy.Level4_QualitySoft)
                 .ToList();
 
-            // 计算物理软约束得分
+            // Calculate physical soft constraint score
             double physicalTotalScore = 0;
             double physicalTotalWeight = physicalSoftConstraints.Sum(c => c.Weight);
 
@@ -323,12 +323,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 else
                 {
-                    // 缓存中缺少约束评分，认为得分为0
+                    // Cache missing constraint score, regarded as 0 points
                     physicalTotalScore += 0;
                 }
             }
 
-            // 计算质量软约束得分
+            // Calculate quality soft constraint score
             double qualityTotalScore = 0;
             double qualityTotalWeight = qualitySoftConstraints.Sum(c => c.Weight);
 
@@ -340,12 +340,12 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 else
                 {
-                    // 缓存中缺少约束评分，认为得分为0
+                    // Cache missing constraint score, regarded as 0 points
                     qualityTotalScore += 0;
                 }
             }
 
-            // 如果没有约束，返回1.0
+            // If there are no constraints, return 1.0
             double physicalSoftScore = physicalTotalWeight > 0
                 ? physicalTotalScore / physicalTotalWeight
                 : 1.0;
@@ -354,36 +354,36 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 ? qualityTotalScore / qualityTotalWeight
                 : 1.0;
 
-            // 加权组合得分
+            // Weighted combination score
             return (_parameters.PhysicalSoftConstraintWeight * physicalSoftScore) +
                    (_parameters.QualitySoftConstraintWeight * qualitySoftScore);
         }
         /// <summary>
-        /// 缓存约束评分
+        /// Cache constraint score
         /// </summary>
-        /// <param name="solutionId">解决方案ID</param>
-        /// <param name="constraintId">约束ID</param>
-        /// <param name="score">约束得分</param>
+        /// <param name="solutionId">Solution ID</param>
+        /// <param name="constraintId">Constraint ID</param>
+        /// <param name="score">Constraint score</param>
         private void CacheConstraintScore(int solutionId, int constraintId, double score)
         {
-            // 如果解决方案ID无效，不进行缓存
+            // If solution ID is invalid, do not cache
             if (solutionId <= 0)
                 return;
 
-            // 确保字典中存在该解决方案的缓存
+            // Ensure the dictionary contains the solution cache
             if (!_constraintScoreCache.ContainsKey(solutionId))
             {
                 _constraintScoreCache[solutionId] = new Dictionary<int, double>();
             }
 
-            // 缓存约束得分
+            // Cache constraint score
             _constraintScoreCache[solutionId][constraintId] = score;
 
-            // 可选：限制缓存大小，防止内存泄漏
-            // 这里简单地限制最多缓存100个解决方案
+            // Optional: Limit cache size to prevent memory leaks
+            // Here we simply limit the maximum cache size to 100 solutions
             if (_constraintScoreCache.Count > 100)
             {
-                // 移除最早的缓存
+                // Remove the oldest cache
                 var oldestSolutionId = _constraintScoreCache.Keys.Min();
                 _constraintScoreCache.Remove(oldestSolutionId);
             }
@@ -424,7 +424,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 获取指定层级的软约束
+        /// Get soft constraints by hierarchy level
         /// </summary>
         private List<IConstraint> GetSoftConstraintsByHierarchy(ConstraintHierarchy hierarchy)
         {
@@ -434,22 +434,22 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         }
 
         /// <summary>
-        /// 评估并返回软约束评估结果
+        /// Evaluate and return soft constraint evaluations
         /// </summary>
         private List<ConstraintEvaluation> EvaluateAndGetSoftConstraintEvaluations(SchedulingSolution solution)
         {
             var evaluations = new List<ConstraintEvaluation>();
             
-            // 获取活跃的软约束
+            // Get active soft constraints
             var softConstraints = _constraintManager.GetSoftConstraints()
                 .Where(c => c.IsActive)
                 .ToList();
             
-            // 按约束层级分组评估
+            // Evaluate by constraint hierarchy
             var physicalSoftConstraints = softConstraints.Where(c => c.Hierarchy == ConstraintHierarchy.Level3_PhysicalSoft).ToList();
             var qualitySoftConstraints = softConstraints.Where(c => c.Hierarchy == ConstraintHierarchy.Level4_QualitySoft).ToList();
             
-            // 评估物理软约束
+            // Evaluate physical soft constraints
             foreach (var constraint in physicalSoftConstraints)
             {
                 try
@@ -467,11 +467,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估约束 {constraint.Name} 时出错");
+                    _logger.LogError(ex, $"Error evaluating constraint {constraint.Name}");
                 }
             }
             
-            // 评估质量软约束
+            // Evaluate quality soft constraints
             foreach (var constraint in qualitySoftConstraints)
             {
                 try
@@ -489,7 +489,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"评估约束 {constraint.Name} 时出错");
+                    _logger.LogError(ex, $"Error evaluating constraint {constraint.Name}");
                 }
             }
             

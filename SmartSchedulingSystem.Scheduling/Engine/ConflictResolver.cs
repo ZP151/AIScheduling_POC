@@ -9,47 +9,47 @@ using SmartSchedulingSystem.Scheduling.Engine;
 namespace SmartSchedulingSystem.Scheduling.Engine
 {
     /// <summary>
-    /// 冲突解决策略枚举
+    /// Enumeration of conflict resolution strategies
     /// </summary>
     public enum ConflictResolutionStrategy
     {
         /// <summary>
-        /// 自动：让系统自动选择最佳解决方案
+        /// Auto: Let the system automatically select the best solution
         /// </summary>
         Auto,
         
         /// <summary>
-        /// 重分配教师：为发生冲突的课程分配不同的教师
+        /// ReassignTeacher: Reassign different teachers for courses involved in conflicts
         /// </summary>
         ReassignTeacher,
         
         /// <summary>
-        /// 重分配教室：为发生冲突的课程分配不同的教室
+        /// ReassignClassroom: Reassign different classrooms for courses involved in conflicts
         /// </summary>
         ReassignClassroom,
         
         /// <summary>
-        /// 重分配时间：为发生冲突的课程分配不同的时间段
+        /// ReassignTime: Reassign different time slots for courses involved in conflicts
         /// </summary>
         ReassignTime,
         
         /// <summary>
-        /// 忽略冲突：接受冲突，不做任何修改
+        /// IgnoreConflict: Accept conflicts and make no modifications
         /// </summary>
         IgnoreConflict,
         
         /// <summary>
-        /// 顺序处理：按照优先级顺序逐个处理冲突
+        /// Sequential: Process conflicts in order of priority
         /// </summary>
         Sequential,
         
         /// <summary>
-        /// 整体处理：考虑所有冲突的相互影响进行处理
+        /// Holistic: Consider the mutual impact of all conflicts
         /// </summary>
         Holistic,
         
         /// <summary>
-        /// 混合处理：结合顺序和整体处理的优点
+        /// Hybrid: Combine the advantages of sequential and holistic processing
         /// </summary>
         Hybrid
     }
@@ -69,7 +69,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
     }
 
     /// <summary>
-    /// 冲突解决器 - 负责处理和解决排课中的冲突
+    /// Conflict resolver - responsible for handling and resolving conflicts in scheduling
     /// </summary>
     public class ConflictResolver : IConflictResolver
     {
@@ -82,7 +82,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
         {
             _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
 
-            // 注册各种冲突处理器
+            // Register various conflict handlers
             _conflictHandlers = conflictHandlers?.ToDictionary(h => h.ConflictType)
                               ?? throw new ArgumentNullException(nameof(conflictHandlers));
         }
@@ -96,10 +96,10 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (solution == null) throw new ArgumentNullException(nameof(solution));
             if (conflicts == null) throw new ArgumentNullException(nameof(conflicts));
 
-            // 创建解决方案的副本
+            // Create a copy of the solution
             var resolvedSolution = solution.Clone();
 
-            // 按严重程度排序冲突
+            // Sort conflicts by severity
             var sortedConflicts = conflicts
                 .OrderByDescending(c => c.Severity)
                 .ToList();
@@ -107,11 +107,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (!sortedConflicts.Any())
                 return resolvedSolution;
 
-            // 根据策略处理冲突
+            // Process conflicts based on strategy
             switch (strategy)
             {
                 case ConflictResolutionStrategy.Sequential:
-                    // 逐个解决冲突
+                    // Solve conflicts one by one
                     foreach (var conflict in sortedConflicts)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -120,11 +120,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                         {
                             var options = await handler.GetResolutionOptionsAsync(conflict, resolvedSolution, cancellationToken);
 
-                            // 选择最佳选项
+                            // Select the best option
                             var bestOption = SelectBestOption(options, resolvedSolution);
                             if (bestOption != null)
                             {
-                                // 应用解决方案
+                                // Apply the solution
                                 resolvedSolution = await handler.ApplyResolutionAsync(bestOption, resolvedSolution, cancellationToken);
                             }
                         }
@@ -132,8 +132,8 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     break;
 
                 case ConflictResolutionStrategy.Holistic:
-                    // 全局优化冲突解决方案
-                    // 这种方法考虑冲突之间的相互影响
+                    // Global optimization of conflict solutions
+                    // This method considers the mutual impact of conflicts
                     var groupedConflicts = sortedConflicts.GroupBy(c => c.Type).ToDictionary(g => g.Key, g => g.ToList());
 
                     foreach (var group in groupedConflicts)
@@ -148,11 +148,11 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                     break;
 
                 case ConflictResolutionStrategy.Hybrid:
-                    // 先处理关键冲突，然后批量处理剩余冲突
+                    // First handle critical conflicts, then batch process remaining conflicts
                     var criticalConflicts = sortedConflicts.Where(c => c.Severity == ConflictSeverity.Critical).ToList();
                     var nonCriticalConflicts = sortedConflicts.Where(c => c.Severity != ConflictSeverity.Critical).ToList();
 
-                    // 先单独处理关键冲突
+                    // First handle critical conflicts, then batch process remaining conflicts
                     foreach (var conflict in criticalConflicts)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -169,7 +169,7 @@ namespace SmartSchedulingSystem.Scheduling.Engine
                         }
                     }
 
-                    // 然后批量处理剩余冲突
+                    // Then batch process remaining conflicts
                     var remainingGroups = nonCriticalConflicts.GroupBy(c => c.Type).ToDictionary(g => g.Key, g => g.ToList());
 
                     foreach (var group in remainingGroups)
@@ -221,33 +221,33 @@ namespace SmartSchedulingSystem.Scheduling.Engine
             if (options == null || !options.Any())
                 return null;
 
-            // 评估每个选项，计算应用后的解决方案得分
+            // Evaluate each option, calculate the score of the solution after application
             var scoredOptions = new List<(ConflictResolutionOption Option, double Score)>();
 
             foreach (var option in options)
             {
-                // 应用选项到解决方案的副本
+                // Apply the option to a copy of the solution
                 var tempSolution = currentSolution.Clone();
 
-                // 修改解决方案（根据选项描述）
+                // Modify the solution (based on the option description)
                 option.Apply(tempSolution);
 
-                // 评估修改后的解决方案
+                // Evaluate the modified solution
                 var evaluation = _evaluator.Evaluate(tempSolution);
 
-                // 仅考虑可行的方案
+                // Only consider feasible solutions
                 if (evaluation.IsFeasible)
                 {
                     scoredOptions.Add((option, evaluation.Score));
                 }
             }
 
-            // 返回得分最高的选项
+            // Return the option with the highest score
             return scoredOptions.OrderByDescending(o => o.Score).FirstOrDefault().Option;
         }
     }
 
-    // 冲突处理器接口
+    // Conflict handler interface
     public interface IConflictHandler
     {
         SchedulingConflictType ConflictType { get; }
