@@ -1,0 +1,1891 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\cpscheduler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\cpscheduler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\schedulingengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\schedulingengine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\solutionevaluator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\solutionevaluator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingproblem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingproblem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\schedulerequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\schedulerequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingevaluation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingevaluation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingconflict.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingconflict.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingassignment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingassignment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\globalconstraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\globalconstraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\constraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\constraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\conflictresolver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\conflictresolver.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\classroomconflicthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\classroomconflicthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\engine\\teacherconflicthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\engine\\teacherconflicthandler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teacherpreferenceconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teacherpreferenceconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level1_corehard\\teacherconflictconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level1_corehard\\teacherconflictconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level1_corehard\\classroomconflictconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level1_corehard\\classroomconflictconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\abstract\\baseconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\abstract\\baseconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\abstract\\iconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\abstract\\iconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\resourcecomplianceconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\resourcecomplianceconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\controllers\\schedulecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\controllers\\schedulecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\simulatedannealingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\simulatedannealingcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\utils\\schedulingparameters.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\utils\\schedulingparameters.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\cpmodelbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\cpmodelbuilder.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\classroomtypematchconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\classroomtypematchconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\timeslotdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\timeslotdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\controllers\\testcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\controllers\\testcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teacherschedulecompactnessconstraint .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teacherschedulecompactnessconstraint .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teachermobilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level4_qualitysoft\\teachermobilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\equipmentrequirementconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level3_physicalsoft\\equipmentrequirementconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\services\\mockdata.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\services\\mockdata.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}|\u89E3\u51B3\u65B9\u6848\u9879{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}|C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\build-and-run.bat||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}|\u89E3\u51B3\u65B9\u6848\u9879{9FA3D6BD-1EC1-3BA5-80CB-CE02773A58D5}|solutionrelative:build-and-run.bat||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\services\\api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\services\\api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\services\\llmapi.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\services\\llmapi.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\index.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\index.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\app.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\app.test.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\reportwebvitals.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\reportwebvitals.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\setuptests.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\setuptests.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\app.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\app.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\scheduling-client\\src\\index.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\scheduling-client\\src\\index.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\smartschedulingsystem.scheduling.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\smartschedulingsystem.scheduling.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\smartschedulingsystem.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\smartschedulingsystem.core.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\smartschedulingsystem.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\smartschedulingsystem.api.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingsolution.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingsolution.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\hybrid\\solutiondiversifier.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\hybrid\\solutiondiversifier.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\teacherconflictconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\teacherconflictconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\classroomconflictconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\classroomconflictconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\hybrid\\cplsscheduler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\hybrid\\cplsscheduler.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\courseassignment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\courseassignment.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\constraintdefinitions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\constraintdefinitions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\services\\schedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\services\\schedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\dependencyinjection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level2_configurablehard\\teacheravailabilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level2_configurablehard\\teacheravailabilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level2_configurablehard\\classroomavailabilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level2_configurablehard\\classroomavailabilityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\constraints\\level1_corehard\\classroomcapacityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\constraints\\level1_corehard\\classroomcapacityconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\localsearchoptimizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\localsearchoptimizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\interfaces\\iconstraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\interfaces\\iconstraintmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\mapping\\mappingprofile .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\mapping\\mappingprofile .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\services\\timeslotservice .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\services\\timeslotservice .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\itimeslotservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\itimeslotservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\iteacherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\iteacherservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\teacherdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\teacherdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\utils\\testdatagenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\utils\\testdatagenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\scheduleresultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\scheduleresultdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\schedulingconstraintdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\schedulingconstraintdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\scheduleitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\scheduleitem.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\dtos\\scheduleitemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\dtos\\scheduleitemdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\models\\schedulingresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\models\\schedulingresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\utils\\solutionconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\utils\\solutionconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\ischedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\ischedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\teacheravailability.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\teacheravailability.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\prerequisite.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\prerequisite.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\utils\\cpschedulingextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\utils\\cpschedulingextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\utils\\problemanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\utils\\problemanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\movegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\movegenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\swapmove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\swapmove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\timemove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\timemove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\hybrid\\constraintanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\hybrid\\constraintanalyzer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\hybrid\\engineselector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\hybrid\\engineselector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\hybrid\\parameteadjuster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\hybrid\\parameteadjuster.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\classroomcapacityconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\classroomcapacityconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\prerequisiteconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\converters\\prerequisiteconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\icpconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\icpconstraintconverter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\cpsolutioncallback.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\cpsolutioncallback.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\cp\\diversesolutioncallback.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\cp\\diversesolutioncallback.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\intelligentmoveselector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\intelligentmoveselector.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\teachermove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\teachermove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\roommove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\roommove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\imove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{918BD16C-86E0-45C2-9BD8-3E264E15FB91}|SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj|solutionrelative:smartschedulingsystem.scheduling\\algorithms\\ls\\moves\\imove.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\smartschedulingsystem.data.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\smartschedulingsystem.data.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\semester.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\semester.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\context\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\context\\appdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\coursesection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\coursesection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\classroom.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\classroom.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\teacher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\teacher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\schedulingconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\schedulingconstraint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\campustravetime.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\campustravetime.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\campus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\campus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\unavailableperiod.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\unavailableperiod.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\building.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\building.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\teacherperference.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\teacherperference.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\aischedulingsuggestion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\aischedulingsuggestion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\scheduleresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\scheduleresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\timeslot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\timeslot.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\department.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\department.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.data\\entities\\classroomavailability.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{946E0701-7162-44B2-A0CB-2F2A1085112E}|SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj|solutionrelative:smartschedulingsystem.data\\entities\\classroomavailability.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\services\\schedulingconstraintservice .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\services\\schedulingconstraintservice .cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\ischedulingconstraintservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\ischedulingconstraintservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\isemesterservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\isemesterservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\services\\reportservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\services\\reportservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.api\\smartschedulingsystem.api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{1F3C4B39-A01A-4BD9-9FB5-DE4BF8D46862}|SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj|solutionrelative:smartschedulingsystem.api\\smartschedulingsystem.api.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|c:\\users\\dell\\source\\repos\\smartschedulingsystem\\smartschedulingsystem.core\\interfaces\\iaischedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FFAF6DCB-44A6-4CF9-843C-B0B384682983}|SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj|solutionrelative:smartschedulingsystem.core\\interfaces\\iaischedulingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 1,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedHeight": 345,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "SchedulingEngine.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\SchedulingEngine.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\SchedulingEngine.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\SchedulingEngine.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\SchedulingEngine.cs",
+              "ViewState": "AgIAAGMAAAAAAAAAAAAYwHoAAABEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:15:35.987Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "SchedulingConflict.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingConflict.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingConflict.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingConflict.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingConflict.cs",
+              "ViewState": "AgIAACcAAAAAAAAAAAAAABMAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:31:07.565Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "SchedulingEvaluation.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingEvaluation.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingEvaluation.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingEvaluation.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingEvaluation.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:31:09.646Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "SolutionEvaluator.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\SolutionEvaluator.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\SolutionEvaluator.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\SolutionEvaluator.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\SolutionEvaluator.cs",
+              "ViewState": "AgIAANsBAAAAAAAAAAAiwOIBAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:15:32.222Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CPScheduler.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPScheduler.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPScheduler.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPScheduler.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPScheduler.cs",
+              "ViewState": "AgIAAFkBAAAAAAAAAAAcwHABAABdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:44:53.985Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "SchedulingAssignment.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingAssignment.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingAssignment.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingAssignment.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingAssignment.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:30:48.607Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "SchedulingProblem.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingProblem.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingProblem.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingProblem.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingProblem.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAABkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:08:56.299Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "GlobalConstraintManager.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\GlobalConstraintManager.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\GlobalConstraintManager.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\GlobalConstraintManager.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\GlobalConstraintManager.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T11:49:47.573Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ConstraintManager.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ConstraintManager.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\ConstraintManager.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ConstraintManager.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\ConstraintManager.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABkAAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:55:31.674Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ConflictResolver.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ConflictResolver.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\ConflictResolver.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ConflictResolver.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\ConflictResolver.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:15:54.047Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ClassroomConflictHandler.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ClassroomConflictHandler.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\ClassroomConflictHandler.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\ClassroomConflictHandler.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\ClassroomConflictHandler.cs",
+              "ViewState": "AgIAADUAAAAAAAAAAAAQwBsAAABlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-07T09:53:38.899Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "TeacherConflictHandler.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\TeacherConflictHandler.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Engine\\TeacherConflictHandler.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Engine\\TeacherConflictHandler.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Engine\\TeacherConflictHandler.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFgAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-07T09:21:26.094Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "TeacherPreferenceConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherPreferenceConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherPreferenceConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherPreferenceConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherPreferenceConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:14:40.228Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "TeacherConflictConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\TeacherConflictConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\TeacherConflictConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\TeacherConflictConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\TeacherConflictConstraint.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAwAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:41.112Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "ClassroomConflictConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomConflictConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomConflictConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomConflictConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomConflictConstraint.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAmwEsAAAAvAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:35.107Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "BaseConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\BaseConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\BaseConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\BaseConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\BaseConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:53:59.535Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "IConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\IConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\IConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\IConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Abstract\\IConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvxIAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T11:12:29.969Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "ResourceComplianceConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ResourceComplianceConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ResourceComplianceConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ResourceComplianceConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ResourceComplianceConstraint.cs",
+              "ViewState": "AgIAABMBAAAAAAAAAAAIwCUBAABnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:36.964Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "ScheduleController.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Controllers\\ScheduleController.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\Controllers\\ScheduleController.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Controllers\\ScheduleController.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\Controllers\\ScheduleController.cs",
+              "ViewState": "AgIAAO8CAAAAAAAAAAAIwAIDAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-22T07:53:54.711Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "SimulatedAnnealingController.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\SimulatedAnnealingController.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\SimulatedAnnealingController.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\SimulatedAnnealingController.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\SimulatedAnnealingController.cs",
+              "ViewState": "AgIAAHcAAAAAAAAAAAAIwIUAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:53:54.647Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "CPModelBuilder.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPModelBuilder.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPModelBuilder.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPModelBuilder.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPModelBuilder.cs",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAmwGUAAABrAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:40:50.007Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "TeacherScheduleCompactnessConstraint .cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherScheduleCompactnessConstraint .cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherScheduleCompactnessConstraint .cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherScheduleCompactnessConstraint .cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherScheduleCompactnessConstraint .cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:14:42.921Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "TeacherMobilityConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherMobilityConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherMobilityConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherMobilityConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level4_QualitySoft\\TeacherMobilityConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:14:41.279Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "EquipmentRequirementConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\EquipmentRequirementConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\EquipmentRequirementConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\EquipmentRequirementConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\EquipmentRequirementConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:13:46.827Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "api.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\api.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\api.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\api.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\api.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHwBAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-11T02:13:56.893Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 36,
+              "Title": "App.css",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.css",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.css",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.css",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-04-11T02:23:34.088Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "index.jsx",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\index.jsx",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\index.jsx",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\index.jsx",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\index.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2025-04-11T02:15:42.803Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 40,
+              "Title": "App.jsx",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.jsx",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.jsx",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.jsx",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.jsx",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2025-04-11T02:14:11.811Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "build-and-run.bat",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\build-and-run.bat",
+              "RelativeDocumentMoniker": "build-and-run.bat",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\build-and-run.bat",
+              "RelativeToolTip": "build-and-run.bat",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAABJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000614|",
+              "WhenOpened": "2025-04-24T06:57:18.469Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "mockData.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\mockData.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\mockData.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\mockData.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\mockData.js",
+              "ViewState": "AgIAAD0EAAAAAAAAAAAAAFYEAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-11T02:20:00.002Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 39,
+              "Title": "setupTests.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\setupTests.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\setupTests.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\setupTests.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\setupTests.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-25T06:23:35.051Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 38,
+              "Title": "reportWebVitals.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\reportWebVitals.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\reportWebVitals.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\reportWebVitals.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\reportWebVitals.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-25T06:23:35.763Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 37,
+              "Title": "App.test.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.test.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.test.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\App.test.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\App.test.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-25T06:23:43.202Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "llmApi.js",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\llmApi.js",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\llmApi.js",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\services\\llmApi.js",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\services\\llmApi.js",
+              "ViewState": "AgIAAHEBAAAAAAAAAAAWwIMBAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-04-11T02:14:03.871Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 34,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Program.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\Program.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Program.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:09:06.837Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\appsettings.json",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\appsettings.json",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\appsettings.json",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-04-25T06:32:43.059Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 41,
+              "Title": "index.css",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\index.css",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\scheduling-client\\src\\index.css",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\index.css",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\scheduling-client\\src\\index.css",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-04-24T09:48:02.595Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 42,
+              "Title": "SmartSchedulingSystem.Scheduling.csproj",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\SmartSchedulingSystem.Scheduling.csproj",
+              "ViewState": "AgIAABsAAAAAAAAAAAAAABcAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-04T06:42:14.549Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 44,
+              "Title": "SmartSchedulingSystem.API.csproj",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\SmartSchedulingSystem.API.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-03T06:01:56.08Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 45,
+              "Title": "SchedulingSolution.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingSolution.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingSolution.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingSolution.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingSolution.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAiwDYAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:39:11.382Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
+              "Title": "SolutionDiversifier.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\SolutionDiversifier.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\SolutionDiversifier.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\SolutionDiversifier.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\SolutionDiversifier.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAuwBwAAAAlAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-23T03:18:44.394Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 48,
+              "Title": "ClassroomConflictConstraintConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomConflictConstraintConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomConflictConstraintConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomConflictConstraintConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomConflictConstraintConverter.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAAA0wBwAAAA7AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T04:26:27.012Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 49,
+              "Title": "CPLSScheduler.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\CPLSScheduler.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\CPLSScheduler.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\CPLSScheduler.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\CPLSScheduler.cs",
+              "ViewState": "AgIAAH8CAAAAAAAAAAAYwIsCAAB1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:53:27.064Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 53,
+              "Title": "DependencyInjection.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\DependencyInjection.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\DependencyInjection.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\DependencyInjection.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\DependencyInjection.cs",
+              "ViewState": "AgIAABYAAAAAAAAAAIA4wCYAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T10:09:20.054Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 54,
+              "Title": "TeacherAvailabilityConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\TeacherAvailabilityConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\TeacherAvailabilityConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\TeacherAvailabilityConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\TeacherAvailabilityConstraint.cs",
+              "ViewState": "AgIAAJUAAAAAAAAAAAAjwJUAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:39.171Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 55,
+              "Title": "ClassroomAvailabilityConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\ClassroomAvailabilityConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\ClassroomAvailabilityConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\ClassroomAvailabilityConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level2_ConfigurableHard\\ClassroomAvailabilityConstraint.cs",
+              "ViewState": "AgIAAIoAAAAAAAAAAAAowI4AAAB5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:27.657Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 56,
+              "Title": "ClassroomCapacityConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomCapacityConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomCapacityConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomCapacityConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level1_CoreHard\\ClassroomCapacityConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAA9AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T12:54:33.552Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 57,
+              "Title": "LocalSearchOptimizer.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\LocalSearchOptimizer.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\LocalSearchOptimizer.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\LocalSearchOptimizer.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\LocalSearchOptimizer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:54:29.368Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 64,
+              "Title": "TestDataGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\TestDataGenerator.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Utils\\TestDataGenerator.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\TestDataGenerator.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Utils\\TestDataGenerator.cs",
+              "ViewState": "AgIAAO4EAAAAAAAAAAAlwMsEAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T10:19:18.789Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 68,
+              "Title": "ScheduleItemDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleItemDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\ScheduleItemDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleItemDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\ScheduleItemDto.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAswBEAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-11T04:38:42.22Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 69,
+              "Title": "SchedulingResult.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingResult.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingResult.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Models\\SchedulingResult.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Models\\SchedulingResult.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAuwD4AAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:39:10.8Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 70,
+              "Title": "SolutionConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\SolutionConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Utils\\SolutionConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\SolutionConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Utils\\SolutionConverter.cs",
+              "ViewState": "AgIAADkAAAAAAAAAAAAIwFQAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:46:12.844Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 74,
+              "Title": "CPSchedulingExtensions.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\CPSchedulingExtensions.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Utils\\CPSchedulingExtensions.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\CPSchedulingExtensions.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Utils\\CPSchedulingExtensions.cs",
+              "ViewState": "AgIAADMAAAAAAAAAAAAIwDoAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:48:38.487Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 75,
+              "Title": "ProblemAnalyzer.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\ProblemAnalyzer.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Utils\\ProblemAnalyzer.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\ProblemAnalyzer.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Utils\\ProblemAnalyzer.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAgwBAAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:02:57.086Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 76,
+              "Title": "MoveGenerator.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\MoveGenerator.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\MoveGenerator.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\MoveGenerator.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\MoveGenerator.cs",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAYwIEAAAAeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T06:02:37.495Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 77,
+              "Title": "SwapMove.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\SwapMove.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\SwapMove.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\SwapMove.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\SwapMove.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:52:27.285Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 78,
+              "Title": "TimeMove.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TimeMove.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TimeMove.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TimeMove.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TimeMove.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAEwCIAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:50:48.57Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 79,
+              "Title": "ConstraintAnalyzer.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ConstraintAnalyzer.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ConstraintAnalyzer.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ConstraintAnalyzer.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ConstraintAnalyzer.cs",
+              "ViewState": "AgIAAMEAAAAAAAAAAAArwMcAAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:53:26.117Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 80,
+              "Title": "EngineSelector.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\EngineSelector.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\EngineSelector.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\EngineSelector.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\EngineSelector.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:53:27.698Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 81,
+              "Title": "ParameteAdjuster.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ParameteAdjuster.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ParameteAdjuster.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ParameteAdjuster.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\Hybrid\\ParameteAdjuster.cs",
+              "ViewState": "AgIAAAsAAAAAAAAAAADwvyIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:53:29.654Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 82,
+              "Title": "ClassroomCapacityConstraintConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomCapacityConstraintConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomCapacityConstraintConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomCapacityConstraintConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\ClassroomCapacityConstraintConverter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEMAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T09:44:38.099Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 83,
+              "Title": "PrerequisiteConstraintConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\PrerequisiteConstraintConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\PrerequisiteConstraintConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\PrerequisiteConstraintConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\PrerequisiteConstraintConverter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T09:36:22.924Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 84,
+              "Title": "ICPConstraintConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\ICPConstraintConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\ICPConstraintConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\ICPConstraintConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\ICPConstraintConverter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwA0AAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:40:13.843Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 85,
+              "Title": "CPSolutionCallback.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPSolutionCallback.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPSolutionCallback.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPSolutionCallback.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CPSolutionCallback.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:44:14.856Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 86,
+              "Title": "DiverseSolutionCallback.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\DiverseSolutionCallback.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\DiverseSolutionCallback.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\DiverseSolutionCallback.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\DiverseSolutionCallback.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB4AAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T03:40:18.102Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 88,
+              "Title": "TeacherMove.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TeacherMove.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TeacherMove.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TeacherMove.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\TeacherMove.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:52:12.142Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 89,
+              "Title": "RoomMove.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\RoomMove.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\RoomMove.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\RoomMove.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\RoomMove.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:51:43.898Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 90,
+              "Title": "IMove.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\IMove.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\IMove.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\IMove.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\Moves\\IMove.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T05:50:22.018Z"
+            }
+          ]
+        },
+        {
+          "DockedHeight": 55,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "TestController.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Controllers\\TestController.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\Controllers\\TestController.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\Controllers\\TestController.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\Controllers\\TestController.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAAwEEAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-27T18:03:50.276Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "SchedulingParameters.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\SchedulingParameters.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Utils\\SchedulingParameters.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Utils\\SchedulingParameters.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Utils\\SchedulingParameters.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-23T03:08:12.344Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "TimeSlotDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\TimeSlotDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\TimeSlotDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\TimeSlotDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\TimeSlotDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-14T08:36:50.495Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ScheduleRequestDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleRequestDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\ScheduleRequestDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleRequestDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\ScheduleRequestDto.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAADwvwkAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-11T02:31:03.279Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 43,
+              "Title": "SmartSchedulingSystem.Core.csproj",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\SmartSchedulingSystem.Core.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-07T03:00:58.64Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "ClassroomTypeMatchConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ClassroomTypeMatchConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ClassroomTypeMatchConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ClassroomTypeMatchConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\Level3_PhysicalSoft\\ClassroomTypeMatchConstraint.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAnwCoAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-28T10:43:29.427Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 47,
+              "Title": "TeacherConflictConstraintConverter.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\TeacherConflictConstraintConverter.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\TeacherConflictConstraintConverter.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\TeacherConflictConstraintConverter.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\Converters\\TeacherConflictConstraintConverter.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-23T03:09:32.316Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 52,
+              "Title": "SchedulingService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\SchedulingService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Services\\SchedulingService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\SchedulingService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Services\\SchedulingService.cs",
+              "ViewState": "AgIAAJQAAAAAAAAAAAAiwI8AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:35:25.869Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 51,
+              "Title": "ConstraintDefinitions.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\ConstraintDefinitions.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Constraints\\ConstraintDefinitions.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Constraints\\ConstraintDefinitions.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Constraints\\ConstraintDefinitions.cs",
+              "ViewState": "AgIAAJMBAAAAAAAAAAASwJkBAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-22T04:21:55.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 50,
+              "Title": "CourseAssignment.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CourseAssignment.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CourseAssignment.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CourseAssignment.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\CP\\CourseAssignment.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACYAAAAmAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-22T04:53:18.786Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 58,
+              "Title": "IConstraintManager.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Interfaces\\IConstraintManager.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Interfaces\\IConstraintManager.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Interfaces\\IConstraintManager.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Interfaces\\IConstraintManager.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAzwBkAAABHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-21T06:16:30.762Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 60,
+              "Title": "TimeSlotService .cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\TimeSlotService .cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Services\\TimeSlotService .cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\TimeSlotService .cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Services\\TimeSlotService .cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-14T08:46:44.382Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 61,
+              "Title": "ITimeSlotService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ITimeSlotService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\ITimeSlotService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ITimeSlotService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\ITimeSlotService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:42:21.43Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 59,
+              "Title": "MappingProfile .cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Mapping\\MappingProfile .cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Mapping\\MappingProfile .cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Mapping\\MappingProfile .cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Mapping\\MappingProfile .cs",
+              "ViewState": "AgIAACkAAAAAAAAAAAAYwDwAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-11T02:30:42.429Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 63,
+              "Title": "TeacherDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\TeacherDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\TeacherDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\TeacherDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\TeacherDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAgAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-14T08:35:25.605Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 62,
+              "Title": "ITeacherService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ITeacherService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\ITeacherService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ITeacherService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\ITeacherService.cs",
+              "ViewState": "AgIAAAIAAAAAAAAAAAAkwA4AAABDAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:42:19.877Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 65,
+              "Title": "ScheduleResultDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleResultDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\ScheduleResultDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\ScheduleResultDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\ScheduleResultDto.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAqwBEAAAAHAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:47:04.223Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 66,
+              "Title": "SchedulingConstraintDto.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\SchedulingConstraintDto.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\DTOs\\SchedulingConstraintDto.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\DTOs\\SchedulingConstraintDto.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\DTOs\\SchedulingConstraintDto.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAIwA0AAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:41:49.142Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 67,
+              "Title": "ScheduleItem.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ScheduleItem.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\ScheduleItem.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ScheduleItem.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\ScheduleItem.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAmwA0AAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:25:20.569Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 71,
+              "Title": "ISchedulingService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISchedulingService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\ISchedulingService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISchedulingService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\ISchedulingService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:39:07.953Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 72,
+              "Title": "TeacherAvailability.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TeacherAvailability.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\TeacherAvailability.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TeacherAvailability.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\TeacherAvailability.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAAAswAYAAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:25:23.666Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 73,
+              "Title": "Prerequisite.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Prerequisite.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Prerequisite.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Prerequisite.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Prerequisite.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAAkwAwAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:18:54.564Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 91,
+              "Title": "SmartSchedulingSystem.Data.csproj",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\SmartSchedulingSystem.Data.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAABkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-04-03T10:14:11.739Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 87,
+              "Title": "IntelligentMoveSelector.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\IntelligentMoveSelector.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\IntelligentMoveSelector.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\IntelligentMoveSelector.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Scheduling\\Algorithms\\LS\\IntelligentMoveSelector.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-04T10:20:22.949Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 92,
+              "Title": "Semester.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Semester.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Semester.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Semester.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Semester.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAA0wAgAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:25:25.874Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 95,
+              "Title": "Classroom.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Classroom.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Classroom.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Classroom.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Classroom.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAABIwB4AAAA6AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:26:35.107Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 96,
+              "Title": "Teacher.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Teacher.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Teacher.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Teacher.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Teacher.cs",
+              "ViewState": "AgIAAA8AAAAAAAAAAAA1wBkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:23:05.781Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 94,
+              "Title": "CourseSection.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\CourseSection.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\CourseSection.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\CourseSection.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\CourseSection.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAgwAwAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:07:17.755Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 93,
+              "Title": "AppDbContext.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Context\\AppDbContext.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Context\\AppDbContext.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Context\\AppDbContext.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Context\\AppDbContext.cs",
+              "ViewState": "AgIAAEEAAAAAAAAAAABIwEkAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:48:37.897Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 97,
+              "Title": "SchedulingConstraint.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\SchedulingConstraint.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\SchedulingConstraint.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\SchedulingConstraint.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\SchedulingConstraint.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:06:47.678Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 98,
+              "Title": "CampusTraveTime.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\CampusTraveTime.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\CampusTraveTime.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\CampusTraveTime.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\CampusTraveTime.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAA8wBEAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:17:20.586Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 99,
+              "Title": "Campus.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Campus.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Campus.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Campus.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Campus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAABAwAwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:35:57.326Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 100,
+              "Title": "UnavailablePeriod.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\UnavailablePeriod.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\UnavailablePeriod.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\UnavailablePeriod.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\UnavailablePeriod.cs",
+              "ViewState": "AgIAAAUAAAAAAAAAAAAhwAgAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:19:20.641Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 101,
+              "Title": "Building.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Building.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Building.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Building.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Building.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwgAAAAZAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:17:35.114Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 102,
+              "Title": "TeacherPerference.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TeacherPerference.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\TeacherPerference.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TeacherPerference.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\TeacherPerference.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvw8AAAAuAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:15:58.537Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 103,
+              "Title": "AISchedulingSuggestion.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\AISchedulingSuggestion.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\AISchedulingSuggestion.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\AISchedulingSuggestion.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\AISchedulingSuggestion.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwwAAAAyAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:26:08.799Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 104,
+              "Title": "ScheduleResult.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ScheduleResult.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\ScheduleResult.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ScheduleResult.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\ScheduleResult.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAuwBIAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:07:08.553Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 105,
+              "Title": "TimeSlot.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TimeSlot.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\TimeSlot.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\TimeSlot.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\TimeSlot.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T10:25:24.557Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 106,
+              "Title": "Department.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Department.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\Department.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\Department.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\Department.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:07:17.021Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 107,
+              "Title": "ClassroomAvailability.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ClassroomAvailability.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Data\\Entities\\ClassroomAvailability.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Data\\Entities\\ClassroomAvailability.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Data\\Entities\\ClassroomAvailability.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T09:07:12.708Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 108,
+              "Title": "SchedulingConstraintService .cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\SchedulingConstraintService .cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Services\\SchedulingConstraintService .cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\SchedulingConstraintService .cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Services\\SchedulingConstraintService .cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAABIwAkAAABLAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:43:57.908Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 109,
+              "Title": "ISchedulingConstraintService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISchedulingConstraintService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\ISchedulingConstraintService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISchedulingConstraintService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\ISchedulingConstraintService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAuwAsAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:39:09.352Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 110,
+              "Title": "ISemesterService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISemesterService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\ISemesterService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\ISemesterService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\ISemesterService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:53:27.717Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 111,
+              "Title": "ReportService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\ReportService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Services\\ReportService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Services\\ReportService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Services\\ReportService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:52:42.202Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 112,
+              "Title": "SmartSchedulingSystem.API.http",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\SmartSchedulingSystem.API.http",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.API\\SmartSchedulingSystem.API.http",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\SmartSchedulingSystem.API.http",
+              "RelativeToolTip": "SmartSchedulingSystem.API\\SmartSchedulingSystem.API.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-04-03T08:49:05.271Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 113,
+              "Title": "IAISchedulingService.cs",
+              "DocumentMoniker": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\IAISchedulingService.cs",
+              "RelativeDocumentMoniker": "SmartSchedulingSystem.Core\\Interfaces\\IAISchedulingService.cs",
+              "ToolTip": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.Core\\Interfaces\\IAISchedulingService.cs",
+              "RelativeToolTip": "SmartSchedulingSystem.Core\\Interfaces\\IAISchedulingService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-03T08:44:14.08Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{dee22b65-9761-4a26-8fb2-759b971d6dfc}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{5a4e9529-b6a0-46b5-be4f-0f0b239bc0eb}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

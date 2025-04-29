@@ -1,0 +1,10 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\python_backend\\.venv\\Scripts\\python.exe",
+    "python.analysis.extraPaths": [
+        "C:\\Users\\Dell\\source\\repos\\SmartSchedulingSystem\\SmartSchedulingSystem.API\\scheduling-client\\src\\python_backend"
+    ],
+    "python.terminal.activateEnvironment": true,
+    "python.linting.enabled": true,
+    "python.interpreter.infoVisibility": "always",
+    "python.analysis.autoImportCompletions": true
+} 

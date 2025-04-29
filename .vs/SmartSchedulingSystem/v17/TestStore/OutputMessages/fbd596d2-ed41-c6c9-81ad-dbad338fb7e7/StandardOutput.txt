@@ -1,0 +1,65 @@
+2025-04-10T18:47:43.0833155+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.SimulatedAnnealingController - 模拟退火控制器已重置，初始温度: 1, 冷却率: 0.995
+测试问题: Medium Test Problem
+2025-04-10T18:47:43.0874591+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Engine.SchedulingEngine - 开始生成排课方案...
+2025-04-10T18:47:43.0907515+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Engine.SchedulingEngine - 问题特征: 课程数=4, 教师数=5, 教室数=4, 复杂度=0.06999999999999999
+2025-04-10T18:47:43.0926543+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 开始生成排课方案...
+2025-04-10T18:47:43.0928904+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 调整算法参数...
+2025-04-10T18:47:43.0935213+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 初始解数量: 10
+2025-04-10T18:47:43.0935367+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - CP求解时间限制: 165秒
+2025-04-10T18:47:43.0935423+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - LS最大迭代次数: 612
+2025-04-10T18:47:43.0937784+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 检查排课问题可行性...
+2025-04-10T18:47:43.0937927+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 问题规模: 课程数=4, 教师数=5, 教室数=4, 时间槽数=20
+2025-04-10T18:47:43.0944157+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始检查排课问题可行性
+2025-04-10T18:47:43.0962146+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始创建决策变量: 课程数=4, 教师数=5, 教室数=4, 时间槽数=20
+2025-04-10T18:47:43.0980461+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 已创建 1000 个变量...
+2025-04-10T18:47:43.0983985+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 变量创建完成，总共创建了 1600 个变量
+2025-04-10T18:47:43.3058875+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - CP模型构建完成，耗时：211ms
+2025-04-10T18:47:43.3059882+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始CP可行性求解...
+2025-04-10T18:47:43.3622494+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - CP可行性检查完成，状态：Optimal，耗时：55ms
+2025-04-10T18:47:43.3622843+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 排课问题有可行解
+2025-04-10T18:47:43.3622906+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 排课问题有可行解
+2025-04-10T18:47:43.3622979+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - CP阶段：生成初始解...
+2025-04-10T18:47:43.3633509+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始使用CP求解器生成初始解，目标数量：10
+2025-04-10T18:47:43.3638515+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 验证问题数据...
+2025-04-10T18:47:43.3638703+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 课程班级数: 4
+2025-04-10T18:47:43.3638755+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教师数: 5
+2025-04-10T18:47:43.3638787+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教室数: 4
+2025-04-10T18:47:43.3638846+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 时间槽数: 20
+2025-04-10T18:47:43.3638881+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教师课程偏好数: 8
+2025-04-10T18:47:43.3645071+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - === 调试问题数据 ===
+2025-04-10T18:47:43.3645224+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 问题ID: 2, 名称: Medium Test Problem
+2025-04-10T18:47:43.3645324+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 课程数: 4
+2025-04-10T18:47:43.3645364+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 第一门课程: ID=1, 名称=Course 1
+2025-04-10T18:47:43.3645399+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教师数: 5
+2025-04-10T18:47:43.3645731+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 第一位教师: ID=1, 名称=Teacher 1
+2025-04-10T18:47:43.3645808+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教室数: 4
+2025-04-10T18:47:43.3645999+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 第一个教室: ID=1, 名称=Room 1, 容量=50
+2025-04-10T18:47:43.3646061+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 时间槽数: 20
+2025-04-10T18:47:43.3650647+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 第一个时间槽: ID=1, 日期=1, 时间=08:00:00-10:00:00
+2025-04-10T18:47:43.3650818+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 教师课程偏好数: 8
+2025-04-10T18:47:43.3650876+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 第一个偏好: 教师ID=1, 课程ID=1, 能力级别=5
+2025-04-10T18:47:43.3650933+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - === 调试结束 ===
+2025-04-10T18:47:43.3651246+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始创建决策变量: 课程数=4, 教师数=5, 教室数=4, 时间槽数=20
+2025-04-10T18:47:43.3657310+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 已创建 1000 个变量...
+2025-04-10T18:47:43.3660840+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 变量创建完成，总共创建了 1600 个变量
+2025-04-10T18:47:43.5304799+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - CP模型构建完成，耗时：165ms
+2025-04-10T18:47:43.5310333+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 设置CP求解时间限制：165秒
+2025-04-10T18:47:43.5333529+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始CP求解...
+2025-04-10T18:47:43.5627466+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - CP求解完成，状态：Optimal，耗时：29ms，找到解数量：1
+2025-04-10T18:47:43.5654779+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 开始转换CP解为排课系统解...
+2025-04-10T18:47:43.5680532+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Utils.SolutionConverter - 解转换完成，共创建了 4 个分配
+2025-04-10T18:47:43.5680967+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.CP.CPScheduler - 解转换完成，耗时：2ms，共1个解
+2025-04-10T18:47:43.5681143+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - CP阶段完成，生成了 1 个初始解
+2025-04-10T18:47:43.5811870+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - LS阶段：优化解...
+2025-04-10T18:47:43.5816317+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 开始优化 1 个初始解
+2025-04-10T18:47:43.5824060+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 开始局部搜索优化...
+2025-04-10T18:47:43.5829472+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 初始解评分: 0.8218181818181818
+2025-04-10T18:47:43.5829855+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.SimulatedAnnealingController - 模拟退火控制器已重置，初始温度: 1, 冷却率: 0.995
+2025-04-10T18:47:43.6088733+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 已完成 50 次迭代，当前最佳评分: 0.8218181818181818, 温度: 0.778312557068642
+2025-04-10T18:47:43.6279908+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 连续 100 次无改进，提前终止搜索
+2025-04-10T18:47:43.6280451+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 局部搜索完成，共 100 次迭代，最终评分: 0.8218181818181818
+2025-04-10T18:47:43.6280822+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.LS.LocalSearchOptimizer - 完成 1 个解的优化
+2025-04-10T18:47:43.6280880+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - LS阶段完成，优化了 1 个解
+2025-04-10T18:47:43.6282787+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 最优解评分: 0.8218
+2025-04-10T18:47:43.6358602+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Algorithms.Hybrid.CPLSScheduler - 排课完成，耗时: 535ms，状态: Success，解数量: 1
+2025-04-10T18:47:43.6358957+08:00 - Information - 0 - SmartSchedulingSystem.Scheduling.Engine.SchedulingEngine - 成功生成排课方案，共1个方案
